@@ -128,3 +128,24 @@ enum ProposalStatus {
   approved,
   sent,
 }
+
+// ---------------------------------------------------------------------------
+// Lead Score — output của AI Lead Qualifier (be-py: lead_qualifier/chain.py)
+// ---------------------------------------------------------------------------
+
+/// Mức độ tiềm năng của lead, do AI Lead Qualifier chấm điểm.
+enum LeadScore {
+  hot,   // Khách hàng tiềm năng cao — nên ưu tiên
+  warm,  // Khách hàng trung bình — cần thêm thông tin
+  cold,  // Khách hàng ít tiềm năng — cân nhắc bỏ qua
+}
+
+// ---------------------------------------------------------------------------
+// Lead Urgency — độ khẩn cấp trích xuất từ transcript
+// ---------------------------------------------------------------------------
+
+enum LeadUrgency {
+  low,    // Không gấp
+  medium, // Bình thường
+  high,   // Gấp / cần xử lý ngay
+}

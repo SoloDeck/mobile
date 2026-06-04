@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/constants/app_constants.dart';
+import 'package:mobile/core/services/speech_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/core/widgets/error_retry_widget.dart';
 import 'package:mobile/core/widgets/loading_shimmer.dart';
@@ -19,13 +20,30 @@ class VoiceLeadScreen extends ConsumerStatefulWidget {
 }
 
 class _VoiceLeadScreenState extends ConsumerState<VoiceLeadScreen> {
+  final _speech = SpeechService();
+
   bool _isListening = false;
   bool _isProcessing = false;
   String _transcript = '';
+  double _soundLevel = 0;
   Lead? _extractedLead;
 
-  // Trong thực tế sẽ dùng speech_to_text plugin.
-  // Hiện tại giả lập bằng mock transcript.
+  @override
+  void initState() {
+    super.initState();
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    await _speech.initialize();
+  }
+
+  @override
+  void dispose() {
+    _speech.cancel();
+    super.dispose();
+  }
+
   void _toggleListening() {
     if (_isListening) {
       _stopListening();
@@ -34,35 +52,56 @@ class _VoiceLeadScreenState extends ConsumerState<VoiceLeadScreen> {
     }
   }
 
-  void _startListening() {
+  Future<void> _startListening() async {
+    if (!_speech.isAvailable) {
+      final ok = await _speech.initialize();
+      if (!ok) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể truy cập mic. Kiểm tra quyền trong Cài đặt.')),
+        );
+        return;
+      }
+    }
+
     setState(() {
       _isListening = true;
       _transcript = '';
       _extractedLead = null;
+      _soundLevel = 0;
     });
 
-    // Giả lập speech-to-text: sau 3s tự động tạo transcript
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted || !_isListening) return;
-      setState(() {
-        _transcript =
-            'Anh Hùng bên công ty TechViet gọi hỏi về dịch vụ thiết kế app, '
-            'số điện thoại 0987654321, budget khoảng 80 triệu.';
-      });
-
-      // Tự động dừng sau khi có transcript
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && _isListening) _stopListening();
-      });
-    });
+    await _speech.startListening(
+      onResult: (words, isFinal) {
+        if (!mounted) return;
+        // Cập nhật transcript real-time — hiện ngay trên UI dù partial hay final.
+        // Không gọi stop() ở đây; để onDone (status 'done') xử lý việc dừng,
+        // đảm bảo transcript được render trước khi bắt đầu processing.
+        setState(() => _transcript = words);
+      },
+      onDone: () {
+        if (!mounted || !_isListening) return;
+        setState(() {
+          _isListening = false;
+          _soundLevel = 0;
+        });
+        if (_transcript.isNotEmpty) _processTranscript();
+      },
+      onSoundLevel: (level) {
+        if (!mounted) return;
+        setState(() => _soundLevel = level);
+      },
+    );
   }
 
-  void _stopListening() {
-    setState(() => _isListening = false);
-
-    if (_transcript.isNotEmpty) {
-      _processTranscript();
-    }
+  Future<void> _stopListening() async {
+    await _speech.stop();
+    if (!mounted) return;
+    setState(() {
+      _isListening = false;
+      _soundLevel = 0;
+    });
+    if (_transcript.isNotEmpty) _processTranscript();
   }
 
   Future<void> _processTranscript() async {
@@ -116,6 +155,7 @@ class _VoiceLeadScreenState extends ConsumerState<VoiceLeadScreen> {
                   // Recorder button
                   VoiceRecorderButton(
                     isListening: _isListening,
+                    soundLevel: _soundLevel,
                     onTap: _isProcessing ? () {} : _toggleListening,
                   ),
                   const SizedBox(height: 8),
@@ -215,12 +255,23 @@ class _VoiceLeadScreenState extends ConsumerState<VoiceLeadScreen> {
                     : AppColors.tertiary,
               ),
             ),
-            title: Text(
-              lead.name,
-              style: Theme.of(context).textTheme.titleSmall,
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    lead.name,
+                    style: Theme.of(context).textTheme.titleSmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (lead.leadScore != null) ...[
+                  const SizedBox(width: 6),
+                  _LeadScoreChip(score: lead.leadScore!),
+                ],
+              ],
             ),
             subtitle: Text(
-              lead.notes ?? lead.rawTranscript ?? '',
+              lead.projectType ?? lead.notes ?? lead.rawTranscript ?? '',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
@@ -242,5 +293,30 @@ class _VoiceLeadScreenState extends ConsumerState<VoiceLeadScreen> {
     if (diff.inHours < 24) return '${diff.inHours} giờ trước';
     if (diff.inDays < 7) return '${diff.inDays} ngày trước';
     return '${date.day}/${date.month}';
+  }
+}
+
+class _LeadScoreChip extends StatelessWidget {
+  const _LeadScoreChip({required this.score});
+  final LeadScore score;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color, bg) = switch (score) {
+      LeadScore.hot => ('Hot', const Color(0xFFDC2626), const Color(0xFFFEE2E2)),
+      LeadScore.warm => ('Warm', const Color(0xFFD97706), const Color(0xFFFEF3C7)),
+      LeadScore.cold => ('Cold', const Color(0xFF2563EB), const Color(0xFFDBEAFE)),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+      ),
+    );
   }
 }

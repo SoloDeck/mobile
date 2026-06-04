@@ -185,6 +185,7 @@ class MockData {
   ];
 
   // ─── Leads ──────────────────────────────────────────────────────────
+  // Leads có AI qualification fields — mirror output của be-py lead_qualifier/chain.py
   static final List<Lead> leads = [
     Lead(
       id: 'lead_001',
@@ -198,6 +199,18 @@ class MockData {
           'budget khoảng 100 triệu, cần hoàn thành trong 3 tháng.',
       notes: 'Cần app mobile, budget 100tr, deadline 3 tháng',
       createdAt: DateTime(2025, 5, 8),
+      leadScore: LeadScore.hot,
+      scoreRationale:
+          'Lead có ngân sách rõ ràng (100 triệu), yêu cầu cụ thể và deadline '
+          'xác định (3 tháng). Nên ưu tiên liên hệ lại trong vòng 24 giờ để '
+          'chốt scope và ký hợp đồng.',
+      projectType: 'Phát triển App Mobile',
+      estimatedScope: 'Quy mô trung bình — App mobile tiêu chuẩn',
+      budgetSignal: 'Khách đã đề cập ngân sách cụ thể',
+      urgency: LeadUrgency.high,
+      suggestedPriceMin: 80000000,
+      suggestedPriceMax: 120000000,
+      isQualified: true,
     ),
     Lead(
       id: 'lead_002',
@@ -208,6 +221,17 @@ class MockData {
       source: LeadSource.manual,
       notes: 'Cần thiết kế lại website bán hàng, tích hợp thanh toán online.',
       createdAt: DateTime(2025, 5, 7),
+      leadScore: LeadScore.warm,
+      scoreRationale:
+          'Lead có yêu cầu rõ ràng về website bán hàng nhưng chưa đề cập ngân sách. '
+          'Gợi ý liên hệ để khai thác thêm về budget và timeline trước khi lập đề xuất.',
+      projectType: 'Thiết kế Website',
+      estimatedScope: 'Quy mô trung bình — Website thương mại điện tử',
+      budgetSignal: 'Chưa đề cập ngân sách — cần khai thác thêm',
+      urgency: LeadUrgency.medium,
+      suggestedPriceMin: 8000000,
+      suggestedPriceMax: 25000000,
+      isQualified: true,
     ),
     Lead(
       id: 'lead_003',
@@ -219,6 +243,17 @@ class MockData {
           'có 3 page cần quản lý, mỗi page post 2 bài/ngày.',
       notes: 'Quản lý 3 fanpage, 2 bài/ngày/page',
       createdAt: DateTime(2025, 5, 6),
+      leadScore: LeadScore.warm,
+      scoreRationale:
+          'Lead có yêu cầu cụ thể (3 fanpage, 2 bài/ngày) nhưng chưa rõ ngân sách. '
+          'Không có dấu hiệu cảnh báo. Nên gửi bảng giá và schedule call để chốt.',
+      projectType: 'Tư vấn Digital Marketing',
+      estimatedScope: 'Quy mô trung bình — Quản lý 3 fanpage',
+      budgetSignal: 'Chưa đề cập ngân sách — cần khai thác thêm',
+      urgency: LeadUrgency.low,
+      suggestedPriceMin: 8000000,
+      suggestedPriceMax: 15000000,
+      isQualified: true,
     ),
     Lead(
       id: 'lead_004',
@@ -228,6 +263,19 @@ class MockData {
       source: LeadSource.webForm,
       notes: 'Đăng ký qua form website, cần landing page cho dự án BĐS mới.',
       createdAt: DateTime(2025, 5, 5),
+      leadScore: LeadScore.cold,
+      scoreRationale:
+          'Lead từ web form với thông tin rất sơ sài, không có số điện thoại, '
+          'mô tả yêu cầu chưa rõ ràng. Nên gửi email xác nhận để làm rõ nhu cầu '
+          'trước khi đầu tư thêm thời gian.',
+      projectType: 'Thiết kế Website',
+      estimatedScope: 'Quy mô nhỏ — Landing page đơn giản',
+      budgetSignal: 'Chưa đề cập ngân sách — cần khai thác thêm',
+      urgency: LeadUrgency.low,
+      suggestedPriceMin: 3000000,
+      suggestedPriceMax: 8000000,
+      redFlags: ['Mô tả yêu cầu chưa rõ ràng', 'Thiếu thông tin liên hệ trực tiếp'],
+      isQualified: true,
     ),
     Lead(
       id: 'lead_005',
@@ -241,6 +289,18 @@ class MockData {
           'và quản lý bệnh nhân, ưu tiên bảo mật dữ liệu.',
       notes: 'Hệ thống đặt lịch khám + quản lý bệnh nhân, cần bảo mật cao',
       createdAt: DateTime(2025, 5, 4),
+      leadScore: LeadScore.hot,
+      scoreRationale:
+          'Lead từ lĩnh vực y tế với yêu cầu cụ thể về hệ thống phức tạp '
+          '(đặt lịch + quản lý bệnh nhân) và nhấn mạnh bảo mật. Đây là dấu hiệu '
+          'khách nghiêm túc, có ngân sách. Nên lên lịch tư vấn trực tiếp sớm.',
+      projectType: 'Phát triển App Mobile',
+      estimatedScope: 'Quy mô lớn — Hệ thống quản lý phòng khám đầy đủ tính năng',
+      budgetSignal: 'Chưa đề cập ngân sách — cần khai thác thêm',
+      urgency: LeadUrgency.medium,
+      suggestedPriceMin: 50000000,
+      suggestedPriceMax: 120000000,
+      isQualified: true,
     ),
   ];
 
