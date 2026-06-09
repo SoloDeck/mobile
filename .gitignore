@@ -52,10 +52,10 @@ app.*.map.json
 !assets/env/
 !assets/env/*.example
 
-# Generated Dart files — commit only if CI cannot run build_runner
-# Uncomment next lines to gitignore generated files:
-# **/*.g.dart
-# **/*.freezed.dart
+# Generated Dart files
+**/*.g.dart
+**/*.freezed.dart
+**/*.mocks.dart
 
 # claude-code-harness (lifecycle) runtime state — keep out of git
 .claude/state/
