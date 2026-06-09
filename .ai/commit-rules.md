@@ -36,3 +36,18 @@ test(clients): add unit test for create client use case
 - `assets/env/.env` (real secrets).
 - `*.g.dart` or `*.freezed.dart` in a broken state.
 - Files from failed `build_runner` runs.
+
+## Version Bump (REQUIRED before a deployable change is done)
+
+Once tests pass and the change is deployable, you **MUST** bump the application version in
+`pubspec.yaml` (`version: X.Y.Z+B` — semver `X.Y.Z` plus build number `B`) as part of the same
+change:
+
+- `fix` → patch (`1.0.0+1` → `1.0.1+2`)
+- `feat` → minor (`1.0.0+1` → `1.1.0+2`)
+- breaking change → major (`1.0.0+1` → `2.0.0+2`)
+
+Always increment the build number `+B` on every deployable bump (stores require a higher build
+number per upload). Pure `docs`/`test`/`chore`/`refactor` changes that are not independently
+deployable do not require a bump. Commit the bump as `chore(version): bump to X.Y.Z+B` (or fold it
+into the deployable commit).
