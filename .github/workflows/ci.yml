@@ -1,0 +1,203 @@
+name: Mobile CI
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Phase 1a: format + analyze
+  # ---------------------------------------------------------------------------
+  analyze:
+    name: Format & Analyze
+    runs-on: [self-hosted, windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build deps image
+        run: docker compose build test
+
+      - name: Format check
+        run: |
+          docker compose run --rm test \
+            dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: |
+          docker compose run --rm test \
+            flutter analyze --fatal-infos
+
+  # ---------------------------------------------------------------------------
+  # Phase 1b: codegen — build_runner (freezed, riverpod, drift, envied)
+  # Exports generated files as an artifact consumed by test jobs.
+  # ---------------------------------------------------------------------------
+  codegen:
+    name: Code Generation
+    runs-on: [self-hosted, windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build deps image
+        run: docker compose build test
+
+      - name: Run build_runner
+        run: |
+          docker compose run --rm \
+            -v "${GITHUB_WORKSPACE}/lib:/app/lib" \
+            test \
+            dart run build_runner build --delete-conflicting-outputs
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: codegen-output
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            .dart_tool/
+
+  # ---------------------------------------------------------------------------
+  # Phase 2: unit + widget tests — need codegen artifact
+  # ---------------------------------------------------------------------------
+  unit-test:
+    name: Unit Tests
+    needs: [codegen]
+    runs-on: [self-hosted, windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download codegen artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codegen-output
+
+      - name: Build test image
+        run: docker compose build test
+
+      - name: Run unit tests
+        run: |
+          docker compose run --rm test \
+            flutter test test/unit/ --coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-coverage
+          path: coverage/lcov.info
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  widget-test:
+    name: Widget Tests
+    needs: [codegen]
+    runs-on: [self-hosted, windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download codegen artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codegen-output
+
+      - name: Build test image
+        run: docker compose build test
+
+      - name: Run widget tests
+        run: |
+          docker compose run --rm test \
+            flutter test test/widget/
+
+  # ---------------------------------------------------------------------------
+  # Phase 3: Android APK build — only on push to main
+  # ---------------------------------------------------------------------------
+  build-android:
+    name: Build Android APK
+    needs: [analyze, unit-test, widget-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: [self-hosted, windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d \
+            > android/app/google-services.json
+
+      - name: Inject signing keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d \
+            > android/app/release.jks
+
+      - name: Write .env for staging build
+        run: |
+          cat > .env <<'EOF'
+          API_BASE_URL=${{ secrets.API_BASE_URL_STAGING }}
+          APP_ENV=staging
+          GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          GOOGLE_IOS_CLIENT_ID=${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          ACCESS_TOKEN_TTL=900
+          REFRESH_TOKEN_TTL=2592000
+          EOF
+
+      - name: Build release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          docker compose run --rm \
+            -e KEYSTORE_PASSWORD \
+            -e KEY_ALIAS \
+            -e KEY_PASSWORD \
+            android-build \
+            flutter build apk --release \
+              --dart-define=KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD \
+              --dart-define=KEY_ALIAS=$KEY_ALIAS \
+              --dart-define=KEY_PASSWORD=$KEY_PASSWORD
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solodesk-release-${{ github.sha }}.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # iOS build — deferred until a macOS self-hosted runner is available.
+  # Uncomment and set runs-on: [self-hosted, macos, ARM64] when ready.
+  # ---------------------------------------------------------------------------
+  # build-ios:
+  #   name: Build iOS IPA
+  #   needs: [analyze, unit-test, widget-test]
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   runs-on: [self-hosted, macos, ARM64]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: stable
+  #         cache: true
+  #     - run: flutter pub get
+  #     - run: dart run build_runner build --delete-conflicting-outputs
+  #     - run: flutter build ipa --release --no-codesign
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: solodesk-release-${{ github.sha }}.ipa
+  #         path: build/ios/ipa/*.ipa

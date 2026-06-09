@@ -45,9 +45,12 @@ app.*.map.json
 /android/app/release
 
 # Environment secrets — never commit real .env
-/.env
+*/env
 *.env
 !.env.example
+# Allow committed example/template env files (placeholders only, no real secrets)
+!assets/env/
+!assets/env/*.example
 
 # Generated Dart files — commit only if CI cannot run build_runner
 # Uncomment next lines to gitignore generated files:
