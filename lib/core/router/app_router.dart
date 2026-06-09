@@ -1,38 +1,50 @@
-
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/domain/providers/auth_provider.dart';
-import 'package:mobile/presentation/auth/login_screen.dart';
-import 'package:mobile/presentation/home/home_screen.dart';
-import 'package:mobile/presentation/pipeline/pipeline_screen.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:solodesk_mobile/core/router/route_guards.dart';
+import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/core/security/token_manager.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/pages/forgot_password_page.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/pages/login_page.dart';
 
-/// Provider cho GoRouter, tích hợp redirect dựa trên auth state.
-final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+part 'app_router.g.dart';
+
+@Riverpod(keepAlive: true)
+GoRouter router(Ref ref) {
+  final tokenManager = ref.read(tokenManagerProvider);
 
   return GoRouter(
-    initialLocation: '/login',
-    redirect: (context, state) {
-      final isLoggedIn = authState.value != null;
-      final isLoginRoute = state.matchedLocation == '/login';
-
-      if (!isLoggedIn && !isLoginRoute) return '/login';
-      if (isLoggedIn && isLoginRoute) return '/home';
-      return null;
-    },
+    initialLocation: RouteNames.home,
+    redirect: (context, state) => authGuard(state, tokenManager),
     routes: [
       GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        path: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
+        path: RouteNames.register,
+        builder: (context, state) =>
+            const _AuthPlaceholderPage(label: 'Register'),
       ),
       GoRoute(
-        path: '/pipeline',
-        builder: (context, state) => const PipelineScreen(),
+        path: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.home,
+        builder: (context, state) => const _AuthPlaceholderPage(label: 'Home'),
       ),
     ],
   );
-});
+}
+
+// Temporary placeholder — replace with actual screen widgets from modules.
+class _AuthPlaceholderPage extends StatelessWidget {
+  const _AuthPlaceholderPage({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) =>
+      Scaffold(body: Center(child: Text(label)));
+}

@@ -1,0 +1,43 @@
+name: solodesk_mobile
+
+packages:
+  - .
+
+scripts:
+  analyze:
+    run: flutter analyze
+    description: Run static analysis
+
+  format:
+    run: dart format --output=none --set-exit-if-changed .
+    description: Check code formatting
+
+  format:fix:
+    run: dart format .
+    description: Auto-format all Dart files
+
+  codegen:
+    run: dart run build_runner build --delete-conflicting-outputs
+    description: Run all code generators (Freezed, Riverpod, Drift, Envied)
+
+  codegen:watch:
+    run: dart run build_runner watch --delete-conflicting-outputs
+    description: Watch and regenerate on change
+
+  test:
+    run: flutter test
+    description: Run all tests
+
+  test:unit:
+    run: flutter test test/unit/
+    description: Run unit tests only
+
+  test:widget:
+    run: flutter test test/widget/
+    description: Run widget tests only
+
+  clean:
+    run: |
+      flutter clean
+      flutter pub get
+    description: Clean and reinstall dependencies
