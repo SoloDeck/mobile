@@ -10,8 +10,11 @@ class _GoogleLogo extends StatelessWidget {
   const _GoogleLogo();
 
   @override
-  Widget build(BuildContext context) =>
-      const SizedBox(width: 20, height: 20, child: CustomPaint(painter: _GoogleLogoPainter()));
+  Widget build(BuildContext context) => const SizedBox(
+    width: 20,
+    height: 20,
+    child: CustomPaint(painter: _GoogleLogoPainter()),
+  );
 }
 
 class _GoogleLogoPainter extends CustomPainter {
@@ -46,7 +49,12 @@ class _GoogleLogoPainter extends CustomPainter {
     final cx = size.width / 2;
     final cy = size.height / 2;
     canvas.drawRect(
-      Rect.fromLTRB(cx, cy - stroke / 2, size.width - stroke / 2, cy + stroke / 2),
+      Rect.fromLTRB(
+        cx,
+        cy - stroke / 2,
+        size.width - stroke / 2,
+        cy + stroke / 2,
+      ),
       Paint()..color = _blue,
     );
   }
@@ -79,7 +87,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
-    final success = await ref.read(authControllerProvider.notifier).login(
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -90,8 +100,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _submitGoogle() async {
     FocusScope.of(context).unfocus();
-    final success =
-        await ref.read(authControllerProvider.notifier).loginWithGoogle();
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .loginWithGoogle();
 
     if (!mounted) return;
     if (success) context.go(RouteNames.home);
@@ -105,15 +116,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(authControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
         final error = next.error;
-        final message =
-            error is AppException ? error.message : 'Something went wrong';
+        final message = error is AppException
+            ? error.message
+            : 'Something went wrong';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: AppColors.error,
-            ),
+            SnackBar(content: Text(message), backgroundColor: AppColors.error),
           );
       }
     });

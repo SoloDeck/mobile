@@ -16,9 +16,7 @@ class PasswordResetController extends _$PasswordResetController {
     final useCase = RequestPasswordResetUseCase(
       ref.read(authRepositoryProvider),
     );
-    state = await AsyncValue.guard(
-      () => useCase(email).then((_) => true),
-    );
+    state = await AsyncValue.guard(() => useCase(email).then((_) => true));
     return state.value ?? false;
   }
 }

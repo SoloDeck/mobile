@@ -27,13 +27,21 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.get<T>(path, queryParameters: queryParameters, options: options);
+      return await _dio.get<T>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       _unwrap(e);
     }
   }
 
-  Future<Response<T>> post<T>(String path, {Object? data, Options? options}) async {
+  Future<Response<T>> post<T>(
+    String path, {
+    Object? data,
+    Options? options,
+  }) async {
     try {
       return await _dio.post<T>(path, data: data, options: options);
     } on DioException catch (e) {
@@ -41,7 +49,11 @@ class ApiClient {
     }
   }
 
-  Future<Response<T>> put<T>(String path, {Object? data, Options? options}) async {
+  Future<Response<T>> put<T>(
+    String path, {
+    Object? data,
+    Options? options,
+  }) async {
     try {
       return await _dio.put<T>(path, data: data, options: options);
     } on DioException catch (e) {
@@ -49,7 +61,11 @@ class ApiClient {
     }
   }
 
-  Future<Response<T>> patch<T>(String path, {Object? data, Options? options}) async {
+  Future<Response<T>> patch<T>(
+    String path, {
+    Object? data,
+    Options? options,
+  }) async {
     try {
       return await _dio.patch<T>(path, data: data, options: options);
     } on DioException catch (e) {

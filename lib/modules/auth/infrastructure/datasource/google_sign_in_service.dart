@@ -23,7 +23,9 @@ class GoogleSignInService {
       );
     }
     await GoogleSignIn.instance.initialize(
-      clientId: AppConfig.googleIosClientId.isNotEmpty ? AppConfig.googleIosClientId : null,
+      clientId: AppConfig.googleIosClientId.isNotEmpty
+          ? AppConfig.googleIosClientId
+          : null,
       serverClientId: AppConfig.googleServerClientId,
     );
     _initialized = true;
