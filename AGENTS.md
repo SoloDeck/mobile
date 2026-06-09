@@ -144,24 +144,8 @@ test/
 
 ## Commit Rules
 
-Same format as the backend:
-
-```
-feat(deals): add pipeline stage card widget
-fix(auth): handle 401 token refresh race condition
-refactor(network): extract error interceptor to own file
-test(clients): add unit test for create client use case
-```
-
-Types: `feat` · `fix` · `docs` · `refactor` · `test` · `chore`
-Scope: module name or `core`, `shared`, `ci`, `deps`.
-
-**Branch per purpose (REQUIRED):** before committing, check the current branch. If on `main`/default, you MUST create a new branch named `<type>/<scope-or-purpose>` (e.g. `feat/deals-stage-card`, `fix/auth-token-refresh`) and commit there. Never commit directly to `main`.
-
-**Never commit:**
-- `assets/env/.env` (real secrets)
-- `*.g.dart` or `*.freezed.dart` in a broken state
-- Files from failed `build_runner` runs
+**REQUIRED reading before any commit:** see [`.ai/commit-rules.md`](.ai/commit-rules.md) for the full
+commit and branch convention. Key rule: never commit to `main` — branch as `<type>/<scope>` first.
 
 ## Common Commands
 
