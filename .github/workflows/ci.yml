@@ -1,8 +1,8 @@
-name: Mobile CI
+name: Mobile CI / CD
 
 on:
   push:
-    branches-ignore: [main]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -10,52 +10,53 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   # ---------------------------------------------------------------------------
-  # Phase 1a: format + analyze
+  # Phase 1a: format + analyze — Flutter container, no Docker needed
   # ---------------------------------------------------------------------------
   analyze:
     name: Format & Analyze
-    runs-on: [self-hosted, windows, X64]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:stable
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build deps image
-        run: docker compose build test
-
+      - name: Install dependencies
+        run: flutter pub get
       - name: Format check
-        run: |
-          docker compose run --rm test \
-            dart format --output=none --set-exit-if-changed .
-
+        run: dart format --output=none --set-exit-if-changed .
       - name: Analyze
-        run: |
-          docker compose run --rm test \
-            flutter analyze --fatal-infos
+        run: flutter analyze --fatal-infos
 
   # ---------------------------------------------------------------------------
   # Phase 1b: codegen — build_runner (freezed, riverpod, drift, envied)
-  # Exports generated files as an artifact consumed by test jobs.
   # ---------------------------------------------------------------------------
   codegen:
     name: Code Generation
-    runs-on: [self-hosted, windows, X64]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:stable
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build deps image
-        run: docker compose build test
+      - name: Write .env for codegen (envied requires a .env at build time)
+        run: |
+          cat > .env <<'EOF'
+          API_BASE_URL=http://localhost:8000/api/v1
+          APP_ENV=development
+          GOOGLE_SERVER_CLIENT_ID=placeholder
+          GOOGLE_IOS_CLIENT_ID=placeholder
+          ACCESS_TOKEN_TTL=900
+          REFRESH_TOKEN_TTL=2592000
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Run build_runner
-        run: |
-          docker compose run --rm \
-            -v "${GITHUB_WORKSPACE}/lib:/app/lib" \
-            test \
-            dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Upload generated files
         uses: actions/upload-artifact@v4
@@ -72,7 +73,10 @@ jobs:
   unit-test:
     name: Unit Tests
     needs: [codegen]
-    runs-on: [self-hosted, windows, X64]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:stable
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
@@ -81,13 +85,11 @@ jobs:
         with:
           name: codegen-output
 
-      - name: Build test image
-        run: docker compose build test
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Run unit tests
-        run: |
-          docker compose run --rm test \
-            flutter test test/unit/ --coverage
+        run: flutter test test/unit/ --coverage
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -107,7 +109,10 @@ jobs:
   widget-test:
     name: Widget Tests
     needs: [codegen]
-    runs-on: [self-hosted, windows, X64]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:stable
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
@@ -116,22 +121,20 @@ jobs:
         with:
           name: codegen-output
 
-      - name: Build test image
-        run: docker compose build test
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Run widget tests
-        run: |
-          docker compose run --rm test \
-            flutter test test/widget/
+        run: flutter test test/widget/
 
   # ---------------------------------------------------------------------------
-  # Phase 3: Android APK build — only on push to main
+  # Phase 3: Android APK build — ubuntu-latest has Docker, main push only
   # ---------------------------------------------------------------------------
   build-android:
     name: Build Android APK
-    needs: [analyze, unit-test, widget-test]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: [self-hosted, windows, X64]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -181,12 +184,11 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # iOS build — deferred until a macOS self-hosted runner is available.
-  # Uncomment and set runs-on: [self-hosted, macos, ARM64] when ready.
   # ---------------------------------------------------------------------------
   # build-ios:
   #   name: Build iOS IPA
   #   needs: [analyze, unit-test, widget-test]
-  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: [self-hosted, macos, ARM64]
   #   steps:
   #     - uses: actions/checkout@v4
