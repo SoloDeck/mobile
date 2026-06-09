@@ -43,3 +43,29 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment secrets — never commit real .env
+/.env
+*.env
+!.env.example
+
+# Generated Dart files — commit only if CI cannot run build_runner
+# Uncomment next lines to gitignore generated files:
+# **/*.g.dart
+# **/*.freezed.dart
+
+# claude-code-harness (lifecycle) runtime state — keep out of git
+.claude/state/
+.claude/agent-memory/
+.claude/logs/
+
+# Android signing & Firebase
+*.jks
+*.keystore
+android/app/google-services.json
+
+# iOS signing & Firebase
+ios/GoogleService-Info.plist
+*.p12
+*.pfx
+*.mobileprovision
