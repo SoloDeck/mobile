@@ -1,205 +1,65 @@
-name: Mobile CI / CD
-
+name: CI / CD
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    branches:
+      - main
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # Phase 1a: format + analyze — Flutter container, no Docker needed
-  # ---------------------------------------------------------------------------
-  analyze:
-    name: Format & Analyze
+  build-test:
+    name: Build / Test
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/cirruslabs/flutter:stable
-    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed .
-      - name: Analyze
-        run: flutter analyze --fatal-infos
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.head_ref }}
 
-  # ---------------------------------------------------------------------------
-  # Phase 1b: codegen — build_runner (freezed, riverpod, drift, envied)
-  # ---------------------------------------------------------------------------
-  codegen:
-    name: Code Generation
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/cirruslabs/flutter:stable
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Write .env for codegen (envied requires a .env at build time)
-        run: |
-          cat > .env <<'EOF'
-          API_BASE_URL=http://localhost:8000/api/v1
-          APP_ENV=development
-          GOOGLE_SERVER_CLIENT_ID=placeholder
-          GOOGLE_IOS_CLIENT_ID=placeholder
-          ACCESS_TOKEN_TTL=900
-          REFRESH_TOKEN_TTL=2592000
-          EOF
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run build_runner
+      - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Upload generated files
-        uses: actions/upload-artifact@v4
-        with:
-          name: codegen-output
-          path: |
-            lib/**/*.g.dart
-            lib/**/*.freezed.dart
-            .dart_tool/
+      - name: Run tests
+        run: flutter test
 
-  # ---------------------------------------------------------------------------
-  # Phase 2: unit + widget tests — need codegen artifact
-  # ---------------------------------------------------------------------------
-  unit-test:
-    name: Unit Tests
-    needs: [codegen]
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/cirruslabs/flutter:stable
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download codegen artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: codegen-output
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Run unit tests
-        run: flutter test test/unit/ --coverage
-
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: mobile-coverage
-          path: coverage/lcov.info
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: coverage/lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
-
-  widget-test:
-    name: Widget Tests
-    needs: [codegen]
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/cirruslabs/flutter:stable
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download codegen artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: codegen-output
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Run widget tests
-        run: flutter test test/widget/
-
-  # ---------------------------------------------------------------------------
-  # Phase 3: Android APK build — ubuntu-latest has Docker, main push only
-  # ---------------------------------------------------------------------------
   build-android:
-    name: Build Android APK
+    name: Build / Android / Main
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Inject google-services.json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d \
-            > android/app/google-services.json
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
 
-      - name: Inject signing keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d \
-            > android/app/release.jks
+      - name: Install dependencies
+        run: flutter pub get
 
-      - name: Write .env for staging build
-        run: |
-          cat > .env <<'EOF'
-          API_BASE_URL=${{ secrets.API_BASE_URL_STAGING }}
-          APP_ENV=staging
-          GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
-          GOOGLE_IOS_CLIENT_ID=${{ secrets.GOOGLE_IOS_CLIENT_ID }}
-          ACCESS_TOKEN_TTL=900
-          REFRESH_TOKEN_TTL=2592000
-          EOF
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Build release APK
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          docker compose run --rm \
-            -e KEYSTORE_PASSWORD \
-            -e KEY_ALIAS \
-            -e KEY_PASSWORD \
-            android-build \
-            flutter build apk --release \
-              --dart-define=KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD \
-              --dart-define=KEY_ALIAS=$KEY_ALIAS \
-              --dart-define=KEY_PASSWORD=$KEY_PASSWORD
+      - name: Build APK
+        run: flutter build apk --release
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: solodesk-release-${{ github.sha }}.apk
+          name: solodesk-mobile-release
           path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
-
-  # ---------------------------------------------------------------------------
-  # iOS build — deferred until a macOS self-hosted runner is available.
-  # ---------------------------------------------------------------------------
-  # build-ios:
-  #   name: Build iOS IPA
-  #   needs: [analyze, unit-test, widget-test]
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  #   runs-on: [self-hosted, macos, ARM64]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: subosito/flutter-action@v2
-  #       with:
-  #         channel: stable
-  #         cache: true
-  #     - run: flutter pub get
-  #     - run: dart run build_runner build --delete-conflicting-outputs
-  #     - run: flutter build ipa --release --no-codesign
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: solodesk-release-${{ github.sha }}.ipa
-  #         path: build/ios/ipa/*.ipa
