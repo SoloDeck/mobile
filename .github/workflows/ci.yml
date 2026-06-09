@@ -30,7 +30,9 @@ jobs:
         run: flutter pub get
 
       - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'http://localhost:8000/api/v1' }}
 
       - name: Run tests
         run: flutter test
@@ -53,7 +55,9 @@ jobs:
         run: flutter pub get
 
       - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'http://localhost:8000/api/v1' }}
 
       - name: Build APK
         run: flutter build apk --release
