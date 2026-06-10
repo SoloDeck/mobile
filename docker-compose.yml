@@ -1,0 +1,25 @@
+# ===========================================================================
+# SoloDesk Mobile — CI convenience compose (not a running service stack)
+# Usage:
+#   docker compose run --rm test          # analyze + unit/widget tests
+#   docker compose run --rm android-build # produce release APK
+# ===========================================================================
+
+services:
+
+  test:
+    build:
+      context: .
+      target: test
+    restart: "no"
+    volumes:
+      - ./lib:/app/lib
+      - ./test:/app/test
+
+  android-build:
+    build:
+      context: .
+      target: android-build
+    restart: "no"
+    volumes:
+      - ./build/app/outputs:/app/build/app/outputs

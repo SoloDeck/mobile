@@ -1,0 +1,25 @@
+# Harness v4 Configuration — SoloDesk mobile (Flutter)
+# Applies when Claude Code is launched rooted in this submodule.
+
+[project]
+name = "SoloDesk-mobile"
+version = "0.1.0"
+description = "SoloDesk mobile — Flutter (riverpod 3, freezed 3, drift, dio, go_router), clean architecture, modular."
+
+[agent]
+# default = "security-reviewer"
+
+[env]
+CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"
+
+[safety.permissions]
+deny = [
+  "Bash(sudo:*)",
+]
+ask = [
+  "Bash(rm -r:*)",
+  "Bash(git push --force:*)",
+]
+
+[safety.sandbox]
+failIfUnavailable = false

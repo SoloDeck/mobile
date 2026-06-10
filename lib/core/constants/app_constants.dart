@@ -103,31 +103,19 @@ class AppConstants {
 // Notification Type
 // ---------------------------------------------------------------------------
 
-enum NotificationType {
-  paymentOverdue,
-  reminder,
-  newLead,
-}
+enum NotificationType { paymentOverdue, reminder, newLead }
 
 // ---------------------------------------------------------------------------
 // Lead Source
 // ---------------------------------------------------------------------------
 
-enum LeadSource {
-  voice,
-  manual,
-  webForm,
-}
+enum LeadSource { voice, manual, webForm }
 
 // ---------------------------------------------------------------------------
 // Proposal Status
 // ---------------------------------------------------------------------------
 
-enum ProposalStatus {
-  draft,
-  approved,
-  sent,
-}
+enum ProposalStatus { draft, approved, sent }
 
 // ---------------------------------------------------------------------------
 // Lead Score — output của AI Lead Qualifier (be-py: lead_qualifier/chain.py)
@@ -135,9 +123,9 @@ enum ProposalStatus {
 
 /// Mức độ tiềm năng của lead, do AI Lead Qualifier chấm điểm.
 enum LeadScore {
-  hot,   // Khách hàng tiềm năng cao — nên ưu tiên
-  warm,  // Khách hàng trung bình — cần thêm thông tin
-  cold,  // Khách hàng ít tiềm năng — cân nhắc bỏ qua
+  hot, // Khách hàng tiềm năng cao — nên ưu tiên
+  warm, // Khách hàng trung bình — cần thêm thông tin
+  cold, // Khách hàng ít tiềm năng — cân nhắc bỏ qua
 }
 
 // ---------------------------------------------------------------------------
@@ -145,7 +133,7 @@ enum LeadScore {
 // ---------------------------------------------------------------------------
 
 enum LeadUrgency {
-  low,    // Không gấp
+  low, // Không gấp
   medium, // Bình thường
-  high,   // Gấp / cần xử lý ngay
+  high, // Gấp / cần xử lý ngay
 }

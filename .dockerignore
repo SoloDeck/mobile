@@ -1,0 +1,17 @@
+.git
+.dart_tool/
+build/
+*.g.dart
+*.freezed.dart
+.flutter-plugins
+.flutter-plugins-dependencies
+android/.gradle
+android/local.properties
+ios/Pods
+ios/.symlinks
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+coverage/
+.DS_Store
+.vscode
+.idea
