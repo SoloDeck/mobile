@@ -8,13 +8,11 @@ on:
       - main
 
 jobs:
-  build-test:
-    name: Build / Test
+  test-unit:
+    name: Test / Unit + Widget (PR)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: >
-      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,13 +35,48 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build
 
-      - name: Run tests
-        run: flutter test
+      - name: Run unit and widget tests
+        run: flutter test test/unit test/widget
+
+  test-integration:
+    name: Test / Integration (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create .env for code generation
+        run: cp .env.example .env
+
+      - name: Run code generation
+        run: dart run build_runner build
+
+      - name: Run integration tests
+        run: |
+          if ls test/integration/*_test.dart >/dev/null 2>&1; then
+            flutter test test/integration
+          else
+            echo "No integration tests found in test/integration — skipping."
+          fi
 
   build-android:
     name: Build / Android / Main
     runs-on: ubuntu-latest
-    needs: build-test
+    needs: test-integration
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     timeout-minutes: 20
     steps:
