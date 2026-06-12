@@ -114,6 +114,8 @@ module/
 
 ## Code Generation
 
+0. **DO NOT HARDCODE:** Respect the root `GEMINI.md` principle. Use `@Envied` for configuration and always run codegen after `.env` changes.
+
 After changing annotated files:
 
 ```bash
@@ -198,7 +200,7 @@ Deserialize with `ApiResponse.fromJson(json, T.fromJson)`.
 | `lib/core/database/app_database.dart` | Drift `AppDatabase` |
 | `lib/shared/models/api_response.dart` | Generic API envelope |
 | `lib/shared/errors/app_exception.dart` | Exception hierarchy |
-| `assets/env/.env` | Runtime env (gitignored) |
+| `.env` | Runtime env (gitignored) |
 
 ---
 

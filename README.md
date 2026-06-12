@@ -58,7 +58,7 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 
 # Copy and fill env file
-cp .env.example assets/env/.env
+cp .env.example .env
 
 # Run
 flutter run

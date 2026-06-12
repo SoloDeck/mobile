@@ -7,6 +7,8 @@ import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/forgot_password_page.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/login_page.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/pages/password_reset_confirm_page.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/pages/register_page.dart';
 
 part 'app_router.g.dart';
 
@@ -24,12 +26,17 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: RouteNames.register,
-        builder: (context, state) =>
-            const _AuthPlaceholderPage(label: 'Register'),
+        builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
         path: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.resetPassword,
+        builder: (context, state) => PasswordResetConfirmPage(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
       ),
       GoRoute(
         path: RouteNames.home,

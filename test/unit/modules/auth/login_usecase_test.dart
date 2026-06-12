@@ -27,6 +27,7 @@ void main() {
     accessToken: 'access',
     refreshToken: 'refresh',
     tokenType: 'bearer',
+    expiresIn: 900,
   );
 
   group('LoginUseCase', () {
