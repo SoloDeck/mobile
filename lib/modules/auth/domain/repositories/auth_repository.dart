@@ -1,4 +1,5 @@
 import 'package:solodesk_mobile/modules/auth/domain/entities/auth_token.dart';
+import 'package:solodesk_mobile/modules/auth/domain/entities/auth_user.dart';
 
 abstract interface class AuthRepository {
   Future<AuthToken> login({required String email, required String password});
@@ -16,4 +17,8 @@ abstract interface class AuthRepository {
   Future<AuthToken> refreshToken(String refreshToken);
 
   Future<void> requestPasswordReset(String email);
+
+  Future<void> confirmPasswordReset(String token, String newPassword);
+
+  Future<AuthUser> fetchMe();
 }
