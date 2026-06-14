@@ -16,6 +16,9 @@ abstract class AppConfig {
   @EnviedField(varName: 'GOOGLE_IOS_CLIENT_ID', defaultValue: '')
   static final String googleIosClientId = _AppConfig.googleIosClientId;
 
+  @EnviedField(varName: 'GOOGLE_ANDROID_CLIENT_ID', defaultValue: '')
+  static final String googleAndroidClientId = _AppConfig.googleAndroidClientId;
+
   static bool get isDevelopment => appEnv == 'development';
   static bool get isProduction => appEnv == 'production';
   static bool get isGoogleSignInConfigured => googleServerClientId.isNotEmpty;

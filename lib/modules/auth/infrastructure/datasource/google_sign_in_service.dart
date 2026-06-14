@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/config/app_config.dart';
@@ -9,7 +8,7 @@ part 'google_sign_in_service.g.dart';
 /// Thin wrapper around the google_sign_in v7 SDK.
 ///
 /// Returns the Google **ID token**, which the backend exchanges for app tokens
-/// via `/auth/google/callback`.
+/// via `POST /auth/google`.
 class GoogleSignInService {
   GoogleSignInService();
 
@@ -56,6 +55,20 @@ class GoogleSignInService {
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) return null;
       throw AuthException(e.description ?? 'Google Sign-In failed.');
+    }
+  }
+
+  /// Attempts non-interactive (silent) authentication from a previously
+  /// authorized session. Returns the ID token, or `null` when no session can be
+  /// restored without showing UI (e.g. first launch or signed-out).
+  Future<String?> signInSilently() async {
+    await _ensureInitialized();
+    try {
+      final attempt = GoogleSignIn.instance.attemptLightweightAuthentication();
+      final account = attempt == null ? null : await attempt;
+      return account?.authentication.idToken;
+    } on GoogleSignInException {
+      return null;
     }
   }
 

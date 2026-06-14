@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/network/api_client.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
