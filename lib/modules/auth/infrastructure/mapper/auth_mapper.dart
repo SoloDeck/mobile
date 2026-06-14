@@ -9,7 +9,6 @@ extension AuthTokenResponseDtoMapper on AuthTokenResponseDto {
     refreshToken: refreshToken,
     tokenType: tokenType,
     expiresIn: expiresIn,
-    user: user?.toDomain(),
   );
 }
 
