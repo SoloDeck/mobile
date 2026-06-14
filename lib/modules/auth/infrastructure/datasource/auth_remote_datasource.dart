@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:solodesk_mobile/core/network/api_client.dart';
 import 'package:solodesk_mobile/modules/auth/infrastructure/dto/auth_token_response_dto.dart';
 import 'package:solodesk_mobile/modules/auth/infrastructure/dto/login_request_dto.dart';
@@ -47,9 +49,10 @@ class AuthRemoteDatasource {
   }
 
   Future<AuthTokenResponseDto> loginWithGoogle(String idToken) async {
+    final platform = Platform.isAndroid ? 'android' : 'ios';
     final response = await _client.post<Map<String, dynamic>>(
-      ApiEndpoints.authGoogleCallback,
-      data: {'id_token': idToken},
+      ApiEndpoints.authGoogle,
+      data: {'id_token': idToken, 'platform': platform},
     );
     final envelope = ApiResponse.fromJson(
       response.data!,

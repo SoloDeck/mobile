@@ -18,11 +18,30 @@ class LoginWithGoogleUseCase {
     final idToken = await _googleSignIn.signIn();
     if (idToken == null) return false;
 
+    await _exchangeAndStore(idToken);
+    return true;
+  }
+
+  /// Attempts to restore a session without user interaction.
+  ///
+  /// Returns `true` when a local session already exists or when silent Google
+  /// authentication succeeds; `false` otherwise.
+  Future<bool> trySilentLogin() async {
+    final existing = await _tokenManager.getAccessToken();
+    if (existing != null) return true;
+
+    final idToken = await _googleSignIn.signInSilently();
+    if (idToken == null) return false;
+
+    await _exchangeAndStore(idToken);
+    return true;
+  }
+
+  Future<void> _exchangeAndStore(String idToken) async {
     final token = await _repository.loginWithGoogle(idToken: idToken);
     await _tokenManager.saveTokens(
       accessToken: token.accessToken,
       refreshToken: token.refreshToken,
     );
-    return true;
   }
 }

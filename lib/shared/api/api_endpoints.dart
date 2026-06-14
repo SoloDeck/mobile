@@ -5,7 +5,7 @@ abstract final class ApiEndpoints {
   static const authRefresh = '/auth/refresh';
   static const authLogout = '/auth/logout';
   static const authMe = '/auth/me';
-  static const authGoogleCallback = '/auth/google';
+  static const authGoogle = '/auth/google';
   static const authForgotPassword = '/auth/password-reset/request';
   static const authResetPassword = '/auth/password-reset/confirm';
 

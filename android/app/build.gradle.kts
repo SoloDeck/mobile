@@ -20,8 +20,15 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // applicationId must match the package name registered on the Android
+        // OAuth client in Google Cloud Console (GOOGLE_ANDROID_CLIENT_ID).
         applicationId = "com.solodesk.mobile"
+        // Google Sign-In (Android) requires the signing certificate SHA-1
+        // fingerprint to be registered on that OAuth client. Register both the
+        // debug and release keystore fingerprints:
+        //   keytool -list -v -keystore <keystore> -alias <alias> | grep SHA1
+        // SHA-1 (debug):   <REGISTER_IN_GOOGLE_CLOUD_CONSOLE>
+        // SHA-1 (release): <REGISTER_IN_GOOGLE_CLOUD_CONSOLE>
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

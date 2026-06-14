@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/modules/auth/application/usecases/confirm_password_reset_usecase.dart';
 import 'package:solodesk_mobile/modules/auth/application/usecases/request_password_reset_usecase.dart';

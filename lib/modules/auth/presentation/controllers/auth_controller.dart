@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
 import 'package:solodesk_mobile/modules/auth/application/usecases/fetch_me_usecase.dart';
@@ -44,6 +43,24 @@ class AuthController extends _$AuthController {
       return success;
     });
     return state.value ?? false;
+  }
+
+  /// Restores a session without user interaction (e.g. on app startup).
+  /// Returns `true` when a session was restored. Does not surface errors as a
+  /// failed state — a silent attempt failing is expected and non-fatal.
+  Future<bool> trySilentLogin() async {
+    final useCase = LoginWithGoogleUseCase(
+      ref.read(googleSignInServiceProvider),
+      ref.read(authRepositoryProvider),
+      ref.read(tokenManagerProvider),
+    );
+    try {
+      final restored = await useCase.trySilentLogin();
+      if (restored) await _loadCurrentUser();
+      return restored;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<bool> register({
