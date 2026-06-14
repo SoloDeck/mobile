@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/config/app_config.dart';
@@ -18,15 +20,26 @@ class GoogleSignInService {
     if (_initialized) return;
     if (!AppConfig.isGoogleSignInConfigured) {
       throw const AuthException(
-        'Google Sign-In is not configured. Set GOOGLE_SERVER_CLIENT_ID in your .env.',
+        'Google Sign-In is not configured. Set GOOGLE_WEB_CLIENT_ID in your .env.',
       );
     }
-    await GoogleSignIn.instance.initialize(
-      clientId: AppConfig.googleIosClientId.isNotEmpty
-          ? AppConfig.googleIosClientId
-          : null,
-      serverClientId: AppConfig.googleServerClientId,
-    );
+    try {
+      await GoogleSignIn.instance.initialize(
+        clientId: Platform.isIOS && AppConfig.googleIosClientId.isNotEmpty
+            ? AppConfig.googleIosClientId
+            : null,
+        // iOS: skip serverClientId to avoid AppAuth invalid_audience error;
+        // GID SDK still returns idToken with iOS client ID as audience.
+        // Android: uses GOOGLE_ANDROID_CLIENT_ID as serverClientId.
+        serverClientId: Platform.isIOS
+            ? null
+            : AppConfig.googleAndroidClientId.isNotEmpty
+                ? AppConfig.googleAndroidClientId
+                : AppConfig.googleWebClientId,
+      );
+    } catch (e) {
+      throw AuthException('Google Sign-In init failed: ${e.toString()}');
+    }
     _initialized = true;
   }
 
@@ -55,6 +68,8 @@ class GoogleSignInService {
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) return null;
       throw AuthException(e.description ?? 'Google Sign-In failed.');
+    } catch (e) {
+      throw AuthException(e.toString());
     }
   }
 
