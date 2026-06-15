@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:solodesk_mobile/core/app/app_shell.dart';
 import 'package:solodesk_mobile/core/router/route_guards.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
@@ -43,35 +44,40 @@ GoRouter router(Ref ref) {
           token: state.uri.queryParameters['token'] ?? '',
         ),
       ),
-      GoRoute(
-        path: RouteNames.home,
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: RouteNames.clients,
-        builder: (context, state) => const ClientsPage(),
-      ),
-      GoRoute(
-        path: '${RouteNames.clients}/new',
-        builder: (context, state) => const CreateClientPage(),
-      ),
-      GoRoute(
-        path: RouteNames.clientDetail,
-        builder: (context, state) =>
-            ClientDetailPage(clientId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: RouteNames.deals,
-        builder: (context, state) => const PipelinePage(),
-      ),
-      GoRoute(
-        path: RouteNames.dealDetail,
-        builder: (context, state) =>
-            DealDetailPage(dealId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: RouteNames.analytics,
-        builder: (context, state) => const DashboardPage(),
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
+        routes: [
+          GoRoute(
+            path: RouteNames.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: RouteNames.clients,
+            builder: (context, state) => const ClientsPage(),
+          ),
+          GoRoute(
+            path: '${RouteNames.clients}/new',
+            builder: (context, state) => const CreateClientPage(),
+          ),
+          GoRoute(
+            path: RouteNames.clientDetail,
+            builder: (context, state) =>
+                ClientDetailPage(clientId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: RouteNames.deals,
+            builder: (context, state) => const PipelinePage(),
+          ),
+          GoRoute(
+            path: RouteNames.dealDetail,
+            builder: (context, state) =>
+                DealDetailPage(dealId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: RouteNames.analytics,
+            builder: (context, state) => const DashboardPage(),
+          ),
+        ],
       ),
     ],
   );
