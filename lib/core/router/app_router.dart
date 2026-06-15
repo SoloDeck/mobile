@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/router/route_guards.dart';
@@ -9,6 +7,13 @@ import 'package:solodesk_mobile/modules/auth/presentation/pages/forgot_password_
 import 'package:solodesk_mobile/modules/auth/presentation/pages/login_page.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/password_reset_confirm_page.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/register_page.dart';
+import 'package:solodesk_mobile/modules/analytics/presentation/pages/dashboard_page.dart';
+import 'package:solodesk_mobile/modules/clients/presentation/pages/client_detail_page.dart';
+import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
+import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client_page.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
+import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
 
 part 'app_router.g.dart';
 
@@ -40,18 +45,34 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: RouteNames.home,
-        builder: (context, state) => const _AuthPlaceholderPage(label: 'Home'),
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: RouteNames.clients,
+        builder: (context, state) => const ClientsPage(),
+      ),
+      GoRoute(
+        path: '${RouteNames.clients}/new',
+        builder: (context, state) => const CreateClientPage(),
+      ),
+      GoRoute(
+        path: RouteNames.clientDetail,
+        builder: (context, state) =>
+            ClientDetailPage(clientId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.deals,
+        builder: (context, state) => const PipelinePage(),
+      ),
+      GoRoute(
+        path: RouteNames.dealDetail,
+        builder: (context, state) =>
+            DealDetailPage(dealId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.analytics,
+        builder: (context, state) => const DashboardPage(),
       ),
     ],
   );
-}
-
-// Temporary placeholder — replace with actual screen widgets from modules.
-class _AuthPlaceholderPage extends StatelessWidget {
-  const _AuthPlaceholderPage({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(body: Center(child: Text(label)));
 }

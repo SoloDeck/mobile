@@ -15,14 +15,13 @@ abstract final class ApiEndpoints {
   // Clients
   static const clients = '/clients';
   static String clientById(String id) => '/clients/$id';
-  static String clientCommunicationLogs(String id) =>
-      '/clients/$id/communication-logs';
+  static String clientCommunicationLogs(String id) => '/clients/$id/comm-logs';
 
   // Deals
   static const deals = '/deals';
   static String dealById(String id) => '/deals/$id';
-  static String dealStageTransition(String id) => '/deals/$id/stage-transition';
-  static String dealActivities(String id) => '/deals/$id/activities';
+  static String dealStage(String id) => '/deals/$id/stage';
+  static String dealActivities(String id) => '/deals/$id/activity';
 
   // Proposals
   static const proposals = '/proposals';
@@ -45,6 +44,7 @@ abstract final class ApiEndpoints {
   static String reminderById(String id) => '/reminders/$id';
 
   // Analytics
+  static const analyticsDashboard = '/analytics/dashboard';
   static const analyticsRevenue = '/analytics/revenue';
   static const analyticsPipeline = '/analytics/pipeline';
   static const analyticsWinRate = '/analytics/win-rate';
