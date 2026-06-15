@@ -15,6 +15,7 @@ import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
+import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/voice_capture_page.dart';
 
 part 'app_router.g.dart';
 
@@ -43,6 +44,10 @@ GoRouter router(Ref ref) {
         builder: (context, state) => PasswordResetConfirmPage(
           token: state.uri.queryParameters['token'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: RouteNames.voiceCapture,
+        builder: (context, state) => const VoiceCapturePage(),
       ),
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
