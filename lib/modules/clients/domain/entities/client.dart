@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'client.freezed.dart';
-part 'client.g.dart';
 
 enum ClientType {
   @JsonValue('individual')
@@ -21,20 +20,22 @@ enum ClientStatus {
   archived,
 }
 
+/// A freelancer's client (khách hàng). Pure domain entity — fields mirror the
+/// backend `ClientResponse` contract (`/clients`).
 @freezed
 abstract class Client with _$Client {
   const factory Client({
     required String id,
+    required String ownerUserId,
     required String name,
     required ClientType type,
     required ClientStatus status,
+    required int dealCount,
     required DateTime createdAt,
     String? email,
     String? phone,
-    String? companyName,
-    String? website,
-    List<String>? tags,
+    String? notes,
+    String? description,
+    DateTime? updatedAt,
   }) = _Client;
-
-  factory Client.fromJson(Map<String, dynamic> json) => _$ClientFromJson(json);
 }
