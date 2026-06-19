@@ -3,18 +3,30 @@ import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.child});
+  const AppShell({super.key, required this.navigationShell});
 
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
+
+  void _goToTab(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     return Scaffold(
-      body: child,
+      body: _FadeTabSwitcher(
+        activeIndex: navigationShell.currentIndex,
+        reduceMotion: reduceMotion,
+        child: navigationShell,
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(RouteNames.voiceCapture),
+        onPressed: () => GoRouter.of(context).push(RouteNames.voiceCapture),
         child: const Icon(Icons.mic),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -30,7 +42,7 @@ class AppShell extends StatelessWidget {
                 icon: Icons.home_rounded,
                 label: 'Trang chủ',
                 selected: location == RouteNames.home || location == '/',
-                onTap: () => context.go(RouteNames.home),
+                onTap: () => _goToTab(0),
               ),
             ),
             Expanded(
@@ -38,7 +50,7 @@ class AppShell extends StatelessWidget {
                 icon: Icons.view_kanban_outlined,
                 label: 'Pipeline',
                 selected: location.startsWith(RouteNames.deals),
-                onTap: () => context.go(RouteNames.deals),
+                onTap: () => _goToTab(1),
               ),
             ),
             const SizedBox(width: 58),
@@ -47,7 +59,7 @@ class AppShell extends StatelessWidget {
                 icon: Icons.people_outline_rounded,
                 label: 'Khách hàng',
                 selected: location.startsWith(RouteNames.clients),
-                onTap: () => context.go(RouteNames.clients),
+                onTap: () => _goToTab(2),
               ),
             ),
             Expanded(
@@ -55,11 +67,86 @@ class AppShell extends StatelessWidget {
                 icon: Icons.bar_chart_rounded,
                 label: 'Báo cáo',
                 selected: location.startsWith(RouteNames.analytics),
-                onTap: () => context.go(RouteNames.analytics),
+                onTap: () => _goToTab(3),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Material 3 "Fade Through" for tab switching:
+// old content fades out (opacity 1→0, scale 1→0.96),
+// new content fades in (opacity 0→1, scale 0.96→1).
+// Exit is shorter than enter so the UI feels responsive.
+class _FadeTabSwitcher extends StatefulWidget {
+  const _FadeTabSwitcher({
+    required this.activeIndex,
+    required this.child,
+    required this.reduceMotion,
+  });
+
+  final int activeIndex;
+  final Widget child;
+  final bool reduceMotion;
+
+  @override
+  State<_FadeTabSwitcher> createState() => _FadeTabSwitcherState();
+}
+
+class _FadeTabSwitcherState extends State<_FadeTabSwitcher>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    )..value = 1.0;
+
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _scale = Tween<double>(begin: 0.96, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_FadeTabSwitcher oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.activeIndex != widget.activeIndex) {
+      if (widget.reduceMotion) return;
+      _controller
+        ..duration = const Duration(milliseconds: 140)
+        ..reverse().then((_) {
+          if (!mounted) return;
+          _controller
+            ..duration = const Duration(milliseconds: 220)
+            ..forward();
+        });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.reduceMotion) return widget.child;
+
+    return FadeTransition(
+      opacity: _opacity,
+      child: ScaleTransition(
+        scale: _scale,
+        child: widget.child,
       ),
     );
   }
@@ -85,19 +172,17 @@ class _NavItem extends StatefulWidget {
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
-      lowerBound: 0.97,
+      duration: const Duration(milliseconds: 120),
+      lowerBound: 0.94,
       upperBound: 1.0,
       value: 1.0,
     );
-    _scale = _controller;
   }
 
   @override
@@ -123,7 +208,7 @@ class _NavItemState extends State<_NavItem>
       onTapCancel: _onTapCancel,
       behavior: HitTestBehavior.opaque,
       child: ScaleTransition(
-        scale: _scale,
+        scale: _controller,
         child: SizedBox(
           height: 60,
           child: Column(
@@ -134,10 +219,11 @@ class _NavItemState extends State<_NavItem>
               Text(
                 widget.label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight:
-                      widget.selected ? FontWeight.w600 : FontWeight.w400,
-                ),
+                      color: color,
+                      fontWeight: widget.selected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
               ),
             ],
           ),
