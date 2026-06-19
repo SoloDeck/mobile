@@ -27,4 +27,6 @@ abstract final class RouteNames {
   static const analytics = '/analytics';
 
   static const settings = '/settings';
+
+  static const voiceCapture = '/voice-capture';
 }

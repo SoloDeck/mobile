@@ -50,3 +50,11 @@ final class ServerException extends AppException {
 final class CacheException extends AppException {
   const CacheException(super.message);
 }
+
+final class AIQualificationException extends AppException {
+  const AIQualificationException(super.message);
+  factory AIQualificationException.parseError() =>
+      const AIQualificationException('Không thể phân tích phản hồi AI');
+  factory AIQualificationException.serviceUnavailable() =>
+      const AIQualificationException('Dịch vụ AI không khả dụng');
+}

@@ -5,18 +5,18 @@ class AppColors {
   AppColors._();
 
   // ─── Primary ────────────────────────────────────────────────────────
-  static const Color primary = Color(0xFF6366F1); // Indigo-500
-  static const Color primaryLight = Color(0xFF818CF8); // Indigo-400
-  static const Color primaryDark = Color(0xFF4F46E5); // Indigo-600
-  static const Color primaryContainer = Color(0xFFE0E7FF); // Indigo-100
+  static const Color primary = Color(0xFF2563EB); // Blue-600
+  static const Color primaryLight = Color(0xFF3B82F6); // Blue-500
+  static const Color primaryDark = Color(0xFF1D4ED8); // Blue-700
+  static const Color primaryContainer = Color(0xFFDBEAFE); // Blue-100
   static const Color onPrimary = Colors.white;
 
   // ─── Secondary ──────────────────────────────────────────────────────
-  static const Color secondary = Color(0xFF8B5CF6); // Violet-500
-  static const Color secondaryContainer = Color(0xFFEDE9FE); // Violet-100
+  static const Color secondary = Color(0xFF3B82F6); // Blue-500
+  static const Color secondaryContainer = Color(0xFFDBEAFE); // Blue-100
 
-  // ─── Tertiary ───────────────────────────────────────────────────────
-  static const Color tertiary = Color(0xFF10B981); // Emerald-500
+  // ─── Tertiary (accent/CTA — deal green) ─────────────────────────────
+  static const Color tertiary = Color(0xFF059669); // Emerald-600
   static const Color tertiaryContainer = Color(0xFFD1FAE5); // Emerald-100
 
   // ─── Background & Surface ──────────────────────────────────────────

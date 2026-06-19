@@ -49,4 +49,7 @@ abstract final class ApiEndpoints {
   static const analyticsPipeline = '/analytics/pipeline';
   static const analyticsWinRate = '/analytics/win-rate';
   static const analyticsTopClients = '/analytics/top-clients';
+
+  // AI
+  static const aiLeadsQualify = '/ai/leads/qualify';
 }

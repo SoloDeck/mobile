@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:solodesk_mobile/core/app/app_shell.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summary.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/repositories/analytics_repository.dart';
@@ -73,32 +74,40 @@ class _FakeAnalyticsRepository implements AnalyticsRepository {
   );
 }
 
-GoRouter _createRouter() {
+GoRouter _createRouter({String initialLocation = RouteNames.home}) {
   return GoRouter(
-    initialLocation: RouteNames.home,
+    initialLocation: initialLocation,
     routes: [
-      GoRoute(
-        path: RouteNames.home,
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: RouteNames.clients,
-        builder: (context, state) => const ClientsPage(),
-      ),
-      GoRoute(
-        path: RouteNames.deals,
-        builder: (context, state) => const PipelinePage(),
-      ),
-      GoRoute(
-        path: RouteNames.analytics,
-        builder: (context, state) => const DashboardPage(),
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
+        routes: [
+          GoRoute(
+            path: RouteNames.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: RouteNames.clients,
+            builder: (context, state) => const ClientsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.deals,
+            builder: (context, state) => const PipelinePage(),
+          ),
+          GoRoute(
+            path: RouteNames.analytics,
+            builder: (context, state) => const DashboardPage(),
+          ),
+        ],
       ),
     ],
   );
 }
 
-Future<void> _pumpApp(WidgetTester tester) async {
-  final router = _createRouter();
+Future<void> _pumpApp(
+  WidgetTester tester, {
+  String initialLocation = RouteNames.home,
+}) async {
+  final router = _createRouter(initialLocation: initialLocation);
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
@@ -117,48 +126,84 @@ Future<void> _pumpApp(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('navigates from Home to clients', (tester) async {
-    await _pumpApp(tester);
+  group('bottom navigation bar', () {
+    testWidgets('renders 4 tab labels on home', (tester) async {
+      await _pumpApp(tester);
 
-    await tester.tap(find.text('Khách hàng'));
-    await tester.pumpAndSettle();
+      expect(find.text('Trang chủ'), findsOneWidget);
+      expect(find.text('Pipeline'), findsOneWidget);
+      expect(find.text('Khách hàng'), findsOneWidget);
+      expect(find.text('Báo cáo'), findsOneWidget);
+    });
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Khách hàng'),
-      ),
-      findsOneWidget,
-    );
-  });
+    testWidgets('tapping Pipeline tab navigates to deals page', (tester) async {
+      await _pumpApp(tester);
 
-  testWidgets('navigates from Home to the deal pipeline', (tester) async {
-    await _pumpApp(tester);
+      await tester.tap(find.text('Pipeline'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pipeline thương vụ'));
-    await tester.pumpAndSettle();
+      expect(find.byType(PipelinePage), findsOneWidget);
+    });
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Pipeline thương vụ'),
-      ),
-      findsOneWidget,
-    );
-  });
+    testWidgets('tapping Khách hàng tab navigates to clients page', (tester) async {
+      await _pumpApp(tester);
 
-  testWidgets('navigates from Home to analytics', (tester) async {
-    await _pumpApp(tester);
+      await tester.tap(find.text('Khách hàng'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Tổng quan'));
-    await tester.pumpAndSettle();
+      expect(find.byType(ClientsPage), findsOneWidget);
+    });
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Tổng quan'),
-      ),
-      findsOneWidget,
-    );
+    testWidgets('tapping Báo cáo tab navigates to analytics page', (tester) async {
+      await _pumpApp(tester);
+
+      await tester.tap(find.text('Báo cáo'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DashboardPage), findsOneWidget);
+    });
+
+    testWidgets('bottom nav persists after navigating to clients', (tester) async {
+      await _pumpApp(tester);
+
+      await tester.tap(find.text('Khách hàng'));
+      await tester.pumpAndSettle();
+
+      // Bottom nav labels still visible on clients page
+      // Use findsAtLeastNWidgets since AppBar title may duplicate a nav label
+      expect(find.text('Trang chủ'), findsAtLeastNWidgets(1));
+      expect(find.text('Pipeline'), findsAtLeastNWidgets(1));
+      expect(find.text('Báo cáo'), findsAtLeastNWidgets(1));
+      expect(find.byType(BottomAppBar), findsOneWidget);
+    });
+
+    testWidgets('Pipeline tab is active when on deals route', (tester) async {
+      await _pumpApp(tester, initialLocation: RouteNames.deals);
+
+      // Verify PipelinePage is showing (not HomePage)
+      expect(find.byType(PipelinePage), findsOneWidget);
+      expect(find.byType(HomePage), findsNothing);
+    });
+
+    testWidgets('Khách hàng tab is active when on clients route', (tester) async {
+      await _pumpApp(tester, initialLocation: RouteNames.clients);
+
+      expect(find.byType(ClientsPage), findsOneWidget);
+      expect(find.byType(HomePage), findsNothing);
+    });
+
+    testWidgets('tapping Trang chủ tab returns to home page', (tester) async {
+      await _pumpApp(tester);
+
+      // Navigate away first
+      await tester.tap(find.text('Pipeline'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PipelinePage), findsOneWidget);
+
+      // Tap home tab
+      await tester.tap(find.text('Trang chủ'));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomePage), findsOneWidget);
+    });
   });
 }
