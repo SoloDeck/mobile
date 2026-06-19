@@ -17,6 +17,7 @@ import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_pag
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/voice_capture_page.dart';
+import 'package:solodesk_mobile/shared/widgets/swipe_back_wrapper.dart';
 
 part 'app_router.g.dart';
 
@@ -44,7 +45,10 @@ CustomTransitionPage<T> _slidePage<T>({
       final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
       return SlideTransition(
         position: slide,
-        child: FadeTransition(opacity: fade, child: child),
+        child: FadeTransition(
+          opacity: fade,
+          child: SwipeBackWrapper(child: child),
+        ),
       );
     },
   );
