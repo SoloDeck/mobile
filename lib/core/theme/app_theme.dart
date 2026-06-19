@@ -20,61 +20,68 @@ class AppTheme {
       error: AppColors.error,
     );
 
-    final textTheme = GoogleFonts.interTextTheme().copyWith(
-      headlineLarge: GoogleFonts.inter(
+    // Heading: Be Vietnam Pro — Vietnamese-first, clean, multilingual
+    // Body:    Noto Sans — excellent Vietnamese rendering, readable at small sizes
+    final textTheme = GoogleFonts.notoSansTextTheme().copyWith(
+      headlineLarge: GoogleFonts.beVietnamPro(
         fontSize: 28,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
       ),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.beVietnamPro(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.beVietnamPro(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.beVietnamPro(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      titleMedium: GoogleFonts.inter(
+      titleMedium: GoogleFonts.beVietnamPro(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: AppColors.textPrimary,
       ),
-      titleSmall: GoogleFonts.inter(
+      titleSmall: GoogleFonts.beVietnamPro(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: AppColors.textSecondary,
       ),
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: GoogleFonts.notoSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.notoSans(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: AppColors.textSecondary,
       ),
-      bodySmall: GoogleFonts.inter(
+      bodySmall: GoogleFonts.notoSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: AppColors.textTertiary,
       ),
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.notoSans(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      labelMedium: GoogleFonts.inter(
+      labelMedium: GoogleFonts.notoSans(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: AppColors.textSecondary,
+      ),
+      labelSmall: GoogleFonts.notoSans(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textTertiary,
       ),
     );
 
@@ -91,7 +98,7 @@ class AppTheme {
         scrolledUnderElevation: 0.5,
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.beVietnamPro(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
@@ -119,7 +126,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.beVietnamPro(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -135,7 +142,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           side: const BorderSide(color: AppColors.primary),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.beVietnamPro(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
