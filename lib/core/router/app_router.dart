@@ -88,10 +88,16 @@ GoRouter router(Ref ref) {
           child: const VoiceCapturePage(),
         ),
       ),
-      // StatefulShellRoute preserves each tab's widget tree and scroll state.
-      StatefulShellRoute.indexedStack(
+      // navigatorContainerBuilder provides SwipeableTabBody so all branches
+      // are available during an interactive swipe without re-mounting them.
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            SwipeableTabBody(
+              navigationShell: navigationShell,
+              children: children,
+            ),
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(
