@@ -100,6 +100,9 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
 
     if (_offset > w * widget.popThreshold || velocity > widget.velocityThreshold) {
       _pop();
+      // For tab-level navigation the host widget stays alive, so reset the
+      // transform immediately so the incoming tab renders at position 0.
+      if (mounted) setState(() => _offset = 0);
       return;
     }
 
