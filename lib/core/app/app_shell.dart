@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/shared/widgets/swipe_back_wrapper.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  // Tracks the sequence of tabs visited so swipe-back can retrace them.
+  // Home (index 0) is the implicit root — it is never pushed onto the stack.
+  final List<int> _tabHistory = [];
+
   void _goToTab(int index) {
-    navigationShell.goBranch(
+    if (index == widget.navigationShell.currentIndex) return;
+    setState(() => _tabHistory.add(widget.navigationShell.currentIndex));
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
+
+  void _goToPreviousTab() {
+    if (_tabHistory.isEmpty) return;
+    final prev = _tabHistory.removeLast();
+    widget.navigationShell.goBranch(prev, initialLocation: false);
+  }
+
+  /// Swipe-back is allowed on a tab page only when:
+  ///   1. There is a tab history to return to.
+  ///   2. No subpage is currently pushed on top (the subpage's own
+  ///      SwipeBackWrapper handles that case; we must not fight it).
+  bool _canGoBackTab() =>
+      _tabHistory.isNotEmpty && !GoRouter.of(context).canPop();
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +45,14 @@ class AppShell extends StatelessWidget {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     return Scaffold(
-      body: _FadeTabSwitcher(
-        activeIndex: navigationShell.currentIndex,
-        reduceMotion: reduceMotion,
-        child: navigationShell,
+      body: SwipeBackWrapper(
+        onPop: _goToPreviousTab,
+        canPop: _canGoBackTab,
+        child: _FadeTabSwitcher(
+          activeIndex: widget.navigationShell.currentIndex,
+          reduceMotion: reduceMotion,
+          child: widget.navigationShell,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => GoRouter.of(context).push(RouteNames.voiceCapture),

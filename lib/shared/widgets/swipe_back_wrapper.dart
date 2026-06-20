@@ -2,24 +2,38 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Wraps a subpage with a left-edge swipe-to-pop gesture.
+/// Wraps a widget with a left-edge swipe-to-pop gesture.
 ///
 /// A custom gesture recognizer intercepts horizontal drags that START within
 /// [edgeWidth] pixels of the left screen edge.  This means the recognizer
 /// never competes with scrollables in the rest of the screen.
 ///
-/// Usage: wrap the `child` inside `_slidePage` (app_router.dart).  Every
-/// route built through that helper automatically gets swipe-back.
+/// **Subpage usage** (app_router.dart `_slidePage`):
+///   Leave [onPop] and [canPop] null — defaults to `context.pop()` /
+///   `context.canPop()`.
+///
+/// **Tab-history usage** (AppShell body):
+///   Pass [onPop] = go to previous tab, [canPop] = () => history is non-empty
+///   AND no subpage is currently open.
 class SwipeBackWrapper extends StatefulWidget {
   const SwipeBackWrapper({
     super.key,
     required this.child,
+    this.onPop,
+    this.canPop,
     this.edgeWidth = 40.0,
     this.popThreshold = 0.35,
     this.velocityThreshold = 500.0,
   });
 
   final Widget child;
+
+  /// Called when a successful swipe is detected.  Defaults to `context.pop()`.
+  final VoidCallback? onPop;
+
+  /// Returns whether a swipe-back is currently allowed.  Defaults to
+  /// `context.canPop()`.
+  final bool Function()? canPop;
 
   /// How many logical pixels from the left edge activate the gesture.
   final double edgeWidth;
@@ -57,8 +71,13 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
     super.dispose();
   }
 
+  bool _checkCanPop() =>
+      widget.canPop?.call() ?? context.canPop();
+
+  void _pop() => widget.onPop != null ? widget.onPop!() : context.pop();
+
   void _onStart(DragStartDetails _) {
-    if (!context.canPop()) return;
+    if (!_checkCanPop()) return;
     _tracking = true;
     _spring.stop();
     setState(() => _offset = 0);
@@ -80,7 +99,7 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
     final velocity = details.primaryVelocity ?? 0;
 
     if (_offset > w * widget.popThreshold || velocity > widget.velocityThreshold) {
-      context.pop();
+      _pop();
       return;
     }
 
