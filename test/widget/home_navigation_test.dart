@@ -75,28 +75,45 @@ class _FakeAnalyticsRepository implements AnalyticsRepository {
 }
 
 GoRouter _createRouter({String initialLocation = RouteNames.home}) {
+  // Mirror the production shell: StatefulShellRoute + SwipeableTabBody, with
+  // branch order home / deals / clients / analytics matching AppShell's tab
+  // indices.
   return GoRouter(
     initialLocation: initialLocation,
     routes: [
-      ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: RouteNames.home,
-            builder: (context, state) => const HomePage(),
-          ),
-          GoRoute(
-            path: RouteNames.clients,
-            builder: (context, state) => const ClientsPage(),
-          ),
-          GoRoute(
-            path: RouteNames.deals,
-            builder: (context, state) => const PipelinePage(),
-          ),
-          GoRoute(
-            path: RouteNames.analytics,
-            builder: (context, state) => const DashboardPage(),
-          ),
+      StatefulShellRoute(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            SwipeableTabBody(
+          navigationShell: navigationShell,
+          children: children,
+        ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.home,
+              builder: (context, state) => const HomePage(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.deals,
+              builder: (context, state) => const PipelinePage(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.clients,
+              builder: (context, state) => const ClientsPage(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.analytics,
+              builder: (context, state) => const DashboardPage(),
+            ),
+          ]),
         ],
       ),
     ],
@@ -145,7 +162,9 @@ void main() {
       expect(find.byType(PipelinePage), findsOneWidget);
     });
 
-    testWidgets('tapping Khách hàng tab navigates to clients page', (tester) async {
+    testWidgets('tapping Khách hàng tab navigates to clients page', (
+      tester,
+    ) async {
       await _pumpApp(tester);
 
       await tester.tap(find.text('Khách hàng'));
@@ -154,7 +173,9 @@ void main() {
       expect(find.byType(ClientsPage), findsOneWidget);
     });
 
-    testWidgets('tapping Báo cáo tab navigates to analytics page', (tester) async {
+    testWidgets('tapping Báo cáo tab navigates to analytics page', (
+      tester,
+    ) async {
       await _pumpApp(tester);
 
       await tester.tap(find.text('Báo cáo'));
@@ -163,7 +184,9 @@ void main() {
       expect(find.byType(DashboardPage), findsOneWidget);
     });
 
-    testWidgets('bottom nav persists after navigating to clients', (tester) async {
+    testWidgets('bottom nav persists after navigating to clients', (
+      tester,
+    ) async {
       await _pumpApp(tester);
 
       await tester.tap(find.text('Khách hàng'));
@@ -185,7 +208,9 @@ void main() {
       expect(find.byType(HomePage), findsNothing);
     });
 
-    testWidgets('Khách hàng tab is active when on clients route', (tester) async {
+    testWidgets('Khách hàng tab is active when on clients route', (
+      tester,
+    ) async {
       await _pumpApp(tester, initialLocation: RouteNames.clients);
 
       expect(find.byType(ClientsPage), findsOneWidget);

@@ -19,21 +19,34 @@ class AppColors {
   static const Color tertiary = Color(0xFF059669); // Emerald-600
   static const Color tertiaryContainer = Color(0xFFD1FAE5); // Emerald-100
 
-  // ─── Background & Surface ──────────────────────────────────────────
+  // ─── Background & Surface (light) ──────────────────────────────────
   static const Color background = Color(0xFFF8FAFC); // Slate-50
   static const Color surface = Colors.white;
   static const Color surfaceVariant = Color(0xFFF1F5F9); // Slate-100
   static const Color cardSurface = Colors.white;
 
-  // ─── Text ───────────────────────────────────────────────────────────
+  // ─── Background & Surface (dark) ───────────────────────────────────
+  static const Color backgroundDark = Color(0xFF0F172A); // Slate-900
+  static const Color surfaceDark = Color(0xFF1E293B); // Slate-800
+  static const Color surfaceVariantDark = Color(0xFF334155); // Slate-700
+  static const Color cardSurfaceDark = Color(0xFF1E293B); // Slate-800
+
+  // ─── Text (light) ───────────────────────────────────────────────────
   static const Color textPrimary = Color(0xFF1E293B); // Slate-800
   static const Color textSecondary = Color(0xFF64748B); // Slate-500
   static const Color textTertiary = Color(0xFF94A3B8); // Slate-400
   static const Color textOnPrimary = Colors.white;
 
+  // ─── Text (dark) ────────────────────────────────────────────────────
+  static const Color textPrimaryDark = Color(0xFFF1F5F9); // Slate-100
+  static const Color textSecondaryDark = Color(0xFFCBD5E1); // Slate-300
+  static const Color textTertiaryDark = Color(0xFF94A3B8); // Slate-400
+
   // ─── Borders & Dividers ─────────────────────────────────────────────
   static const Color border = Color(0xFFE2E8F0); // Slate-200
   static const Color divider = Color(0xFFF1F5F9); // Slate-100
+  static const Color borderDark = Color(0xFF334155); // Slate-700
+  static const Color dividerDark = Color(0xFF1E293B); // Slate-800
 
   // ─── Status ─────────────────────────────────────────────────────────
   static const Color success = Color(0xFF10B981); // Emerald-500
