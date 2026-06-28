@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/app/app_shell.dart';
@@ -15,9 +16,46 @@ import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
+import 'package:solodesk_mobile/modules/projects/presentation/pages/project_detail_page.dart';
+import 'package:solodesk_mobile/modules/tasks/presentation/pages/task_detail_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/pages/settings_page.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/voice_capture_page.dart';
+import 'package:solodesk_mobile/shared/widgets/swipe_back_wrapper.dart';
 
 part 'app_router.g.dart';
+
+// Slide-from-right + fade — used for push navigation (detail screens).
+// Exit: faster than enter so the UI feels responsive (MD motion principle).
+CustomTransitionPage<T> _slidePage<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final slide = Tween<Offset>(
+        begin: const Offset(1.0, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      ));
+      final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+      return SlideTransition(
+        position: slide,
+        child: FadeTransition(
+          opacity: fade,
+          child: SwipeBackWrapper(child: child),
+        ),
+      );
+    },
+  );
+}
 
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
@@ -47,41 +85,101 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: RouteNames.voiceCapture,
-        builder: (context, state) => const VoiceCapturePage(),
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: const VoiceCapturePage(),
+        ),
       ),
-      ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: RouteNames.home,
-            builder: (context, state) => const HomePage(),
-          ),
-          GoRoute(
-            path: RouteNames.clients,
-            builder: (context, state) => const ClientsPage(),
-          ),
-          GoRoute(
-            path: '${RouteNames.clients}/new',
-            builder: (context, state) => const CreateClientPage(),
-          ),
-          GoRoute(
-            path: RouteNames.clientDetail,
-            builder: (context, state) =>
-                ClientDetailPage(clientId: state.pathParameters['id']!),
-          ),
-          GoRoute(
-            path: RouteNames.deals,
-            builder: (context, state) => const PipelinePage(),
-          ),
-          GoRoute(
-            path: RouteNames.dealDetail,
-            builder: (context, state) =>
-                DealDetailPage(dealId: state.pathParameters['id']!),
-          ),
-          GoRoute(
-            path: RouteNames.analytics,
-            builder: (context, state) => const DashboardPage(),
-          ),
+      GoRoute(
+        path: RouteNames.settings,
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: const SettingsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.projectDetail,
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: ProjectDetailPage(projectId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.taskDetail,
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: TaskDetailPage(taskId: state.pathParameters['id']!),
+        ),
+      ),
+      // navigatorContainerBuilder provides SwipeableTabBody so all branches
+      // are available during an interactive swipe without re-mounting them.
+      StatefulShellRoute(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            SwipeableTabBody(
+              navigationShell: navigationShell,
+              children: children,
+            ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.home,
+              builder: (context, state) => const HomePage(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.deals,
+              builder: (context, state) => const PipelinePage(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  pageBuilder: (context, state) => _slidePage(
+                    context: context,
+                    state: state,
+                    child: DealDetailPage(
+                        dealId: state.pathParameters['id']!),
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.clients,
+              builder: (context, state) => const ClientsPage(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  pageBuilder: (context, state) => _slidePage(
+                    context: context,
+                    state: state,
+                    child: const CreateClientPage(),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id',
+                  pageBuilder: (context, state) => _slidePage(
+                    context: context,
+                    state: state,
+                    child: ClientDetailPage(
+                        clientId: state.pathParameters['id']!),
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: RouteNames.analytics,
+              builder: (context, state) => const DashboardPage(),
+            ),
+          ]),
         ],
       ),
     ],

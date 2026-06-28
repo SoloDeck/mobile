@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/audio/voice_capture_service.dart';
+import 'package:solodesk_mobile/core/theme/app_semantic_colors.dart';
 import 'package:solodesk_mobile/modules/voice_lead/domain/entities/voice_lead_draft.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
@@ -211,7 +212,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
               child: Text(
                 'Đang lắng nghe…',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
             ),
@@ -268,8 +269,9 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
           child: SingleChildScrollView(
             child: Text(
               _transcript,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: Colors.grey),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ),
@@ -282,7 +284,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          Icon(Icons.error_outline,
+              size: 48, color: Theme.of(context).colorScheme.error),
           const SizedBox(height: 16),
           Text(_errorMessage ?? 'Có lỗi xảy ra'),
           const SizedBox(height: 24),
@@ -306,7 +309,10 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
       _VoiceState.recording => FilledButton.icon(
           key: const Key('stop_button'),
           onPressed: _toggleRecording,
-          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          style: FilledButton.styleFrom(
+            backgroundColor: cs.error,
+            foregroundColor: cs.onError,
+          ),
           icon: const Icon(Icons.stop),
           label: const Text('Dừng ghi âm'),
         ),
@@ -341,16 +347,18 @@ class _ScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final semantic = context.semanticColors;
     final (color, label) = switch (recommendation) {
-      'hot' => (Colors.red.shade700, 'Hot'),
-      'warm' => (Colors.orange.shade700, 'Warm'),
-      _ => (Colors.blue.shade700, 'Cold'),
+      'hot' => (semantic.scoreHot, 'Hot'),
+      'warm' => (semantic.scoreWarm, 'Warm'),
+      _ => (semantic.scoreCold, 'Cold'),
     };
     return Chip(
       key: Key('score_badge_$recommendation'),
       label: Text(
         label,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        style: TextStyle(
+            color: semantic.onScore, fontWeight: FontWeight.w600),
       ),
       backgroundColor: color,
       padding: EdgeInsets.zero,

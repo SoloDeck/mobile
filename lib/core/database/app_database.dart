@@ -58,6 +58,50 @@ class DealRows extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('ProjectRow')
+class ProjectRows extends Table {
+  @override
+  String get tableName => 'projects';
+
+  TextColumn get id => text()();
+  TextColumn get ownerId => text()();
+  TextColumn get name => text()();
+  TextColumn get status => text()();
+  IntColumn get taskCount => integer()();
+  IntColumn get doneCount => integer()();
+  TextColumn get createdAt => text()();
+  TextColumn get dealId => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get startDate => text().nullable()();
+  TextColumn get endDate => text().nullable()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('TaskRow')
+class TaskRows extends Table {
+  @override
+  String get tableName => 'tasks';
+
+  TextColumn get id => text()();
+  TextColumn get entityType => text()();
+  TextColumn get entityId => text()();
+  TextColumn get title => text()();
+  TextColumn get priority => text()();
+  TextColumn get status => text()();
+  // Checklist items serialized as a JSON array string.
+  TextColumn get checklistItems => text()();
+  TextColumn get createdAt => text()();
+  TextColumn get description => text().nullable()();
+  TextColumn get deadline => text().nullable()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftAccessor(tables: [ClientRows])
 class ClientRowsDao extends DatabaseAccessor<AppDatabase>
     with _$ClientRowsDaoMixin {
@@ -86,19 +130,47 @@ class DealRowsDao extends DatabaseAccessor<AppDatabase>
   }
 }
 
+@DriftAccessor(tables: [ProjectRows])
+class ProjectRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$ProjectRowsDaoMixin {
+  ProjectRowsDao(super.db);
+
+  Future<List<ProjectRow>> getAll() => select(projectRows).get();
+
+  Future<void> upsertAll(Iterable<ProjectRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(projectRows, rows.toList());
+    });
+  }
+}
+
+@DriftAccessor(tables: [TaskRows])
+class TaskRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$TaskRowsDaoMixin {
+  TaskRowsDao(super.db);
+
+  Future<List<TaskRow>> getAll() => select(taskRows).get();
+
+  Future<void> upsertAll(Iterable<TaskRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(taskRows, rows.toList());
+    });
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
 @DriftDatabase(
-  tables: [ClientRows, DealRows],
-  daos: [ClientRowsDao, DealRowsDao],
+  tables: [ClientRows, DealRows, ProjectRows, TaskRows],
+  daos: [ClientRowsDao, DealRowsDao, ProjectRowsDao, TaskRowsDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +181,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(clientRows);
         await m.createTable(dealRows);
+      }
+      if (from < 3) {
+        await m.createTable(projectRows);
+        await m.createTable(taskRows);
       }
     },
   );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summary.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/providers/analytics_provider.dart';
 import 'package:solodesk_mobile/shared/utils/currency_formatter.dart';
@@ -14,7 +16,16 @@ class DashboardPage extends ConsumerWidget {
     final summary = ref.watch(dashboardSummaryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tổng quan')),
+      appBar: AppBar(
+        title: const Text('Tổng quan'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Cài đặt',
+            onPressed: () => context.push(RouteNames.settings),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async => ref.refresh(dashboardSummaryProvider.future),
         child: AsyncValueWidget<DashboardSummary>(

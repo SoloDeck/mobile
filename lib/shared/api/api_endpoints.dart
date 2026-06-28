@@ -23,6 +23,20 @@ abstract final class ApiEndpoints {
   static String dealStage(String id) => '/deals/$id/stage';
   static String dealActivities(String id) => '/deals/$id/activity';
 
+  // Projects
+  static const projects = '/projects';
+  static String projectById(String id) => '/projects/$id';
+
+  // Tasks (polymorphic — entity_type: project | deal | reminder)
+  static String projectTasks(String projectId) => '/projects/$projectId/tasks';
+  static String dealTasks(String dealId) => '/deals/$dealId/tasks';
+  static String reminderTasks(String reminderId) =>
+      '/reminders/$reminderId/tasks';
+  static String taskById(String id) => '/tasks/$id';
+  static String taskChecklist(String taskId) => '/tasks/$taskId/checklist';
+  static String checklistItem(String taskId, String itemId) =>
+      '/tasks/$taskId/checklist/$itemId';
+
   // Proposals
   static const proposals = '/proposals';
   static String proposalById(String id) => '/proposals/$id';
