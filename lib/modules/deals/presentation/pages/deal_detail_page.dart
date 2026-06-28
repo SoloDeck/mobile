@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/controllers/deals_controller.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/providers/deals_provider.dart';
+import 'package:solodesk_mobile/modules/projects/domain/entities/project.dart';
+import 'package:solodesk_mobile/modules/projects/presentation/providers/projects_provider.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_owner.dart';
+import 'package:solodesk_mobile/modules/tasks/presentation/pages/widgets/task_list_widget.dart';
 import 'package:solodesk_mobile/shared/utils/currency_formatter.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 
 /// Deal detail with the value, client and the legal next-stage transition
-/// buttons (forward-only pipeline).
+/// buttons (forward-only pipeline), plus a "Dự án" tab listing the linked
+/// project's tasks.
 class DealDetailPage extends ConsumerWidget {
   const DealDetailPage({super.key, required this.dealId});
 
@@ -25,35 +30,77 @@ class DealDetailPage extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết thương vụ')),
-      body: AsyncValueWidget<Deal>(
-        value: deal,
-        onRetry: () => ref.invalidate(dealDetailProvider(dealId)),
-        data: (d) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(d.title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Chip(label: Text(d.stage.label)),
-            const Divider(height: 32),
-            _DetailRow(label: 'Khách hàng', value: d.clientName ?? d.clientId),
-            _DetailRow(
-              label: 'Giá trị ước tính',
-              value: d.estimatedValue == null
-                  ? '—'
-                  : formatVnd(d.estimatedValue!),
-            ),
-            _DetailRow(
-              label: 'Giá trị thực tế',
-              value: d.actualValue == null ? '—' : formatVnd(d.actualValue!),
-            ),
-            _DetailRow(label: 'Ghi chú', value: d.notes ?? '—'),
-            const Divider(height: 32),
-            _StageTransitions(deal: d),
-          ],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Chi tiết thương vụ'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Chi tiết'),
+              Tab(text: 'Dự án'),
+            ],
+          ),
+        ),
+        body: AsyncValueWidget<Deal>(
+          value: deal,
+          onRetry: () => ref.invalidate(dealDetailProvider(dealId)),
+          data: (d) => TabBarView(
+            children: [
+              ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(
+                    d.title,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Chip(label: Text(d.stage.label)),
+                  const Divider(height: 32),
+                  _DetailRow(
+                    label: 'Khách hàng',
+                    value: d.clientName ?? d.clientId,
+                  ),
+                  _DetailRow(
+                    label: 'Giá trị ước tính',
+                    value: d.estimatedValue == null
+                        ? '—'
+                        : formatVnd(d.estimatedValue!),
+                  ),
+                  _DetailRow(
+                    label: 'Giá trị thực tế',
+                    value:
+                        d.actualValue == null ? '—' : formatVnd(d.actualValue!),
+                  ),
+                  _DetailRow(label: 'Ghi chú', value: d.notes ?? '—'),
+                  const Divider(height: 32),
+                  _StageTransitions(deal: d),
+                ],
+              ),
+              _DealProjectTab(deal: d),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Resolves (or creates) the project linked to this deal, then shows its tasks.
+class _DealProjectTab extends ConsumerWidget {
+  const _DealProjectTab({required this.deal});
+
+  final Deal deal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(dealProjectProvider(deal.id, deal.title));
+    return AsyncValueWidget<Project>(
+      value: project,
+      onRetry: () =>
+          ref.invalidate(dealProjectProvider(deal.id, deal.title)),
+      data: (p) =>
+          TaskListWidget(entityType: TaskOwner.project, entityId: p.id),
     );
   }
 }

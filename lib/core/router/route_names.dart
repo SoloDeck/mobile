@@ -13,6 +13,12 @@ abstract final class RouteNames {
   static const deals = '/deals';
   static const dealDetail = '/deals/:id';
 
+  static const projects = '/projects';
+  static const projectDetail = '/projects/:id';
+
+  static const tasks = '/tasks';
+  static const taskDetail = '/tasks/:id';
+
   static const proposals = '/proposals';
   static const proposalDetail = '/proposals/:id';
 

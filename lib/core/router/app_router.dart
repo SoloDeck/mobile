@@ -16,6 +16,8 @@ import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
+import 'package:solodesk_mobile/modules/projects/presentation/pages/project_detail_page.dart';
+import 'package:solodesk_mobile/modules/tasks/presentation/pages/task_detail_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/settings_page.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/voice_capture_page.dart';
 import 'package:solodesk_mobile/shared/widgets/swipe_back_wrapper.dart';
@@ -95,6 +97,22 @@ GoRouter router(Ref ref) {
           context: context,
           state: state,
           child: const SettingsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.projectDetail,
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: ProjectDetailPage(projectId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.taskDetail,
+        pageBuilder: (context, state) => _slidePage(
+          context: context,
+          state: state,
+          child: TaskDetailPage(taskId: state.pathParameters['id']!),
         ),
       ),
       // navigatorContainerBuilder provides SwipeableTabBody so all branches
