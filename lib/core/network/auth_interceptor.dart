@@ -1,14 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/providers/auth_state_provider.dart';
 
 part 'auth_interceptor.g.dart';
 
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._tokenManager);
+  AuthInterceptor(this._tokenManager, this._container);
 
   final TokenManager _tokenManager;
+  final ProviderContainer _container;
 
   @override
   Future<void> onRequest(
@@ -37,17 +38,26 @@ class AuthInterceptor extends Interceptor {
           final response = await Dio().fetch(opts);
           return handler.resolve(response);
         } catch (_) {
-          await _tokenManager.clearTokens();
+          await _silentLogout();
         }
       } else {
-        await _tokenManager.clearTokens();
+        await _silentLogout();
       }
     }
     handler.next(err);
+  }
+
+  Future<void> _silentLogout() async {
+    await _tokenManager.clearTokens();
+    _container.read(currentUserProvider.notifier).clear();
+    _container.read(logoutProvider.notifier).trigger();
   }
 }
 
 @Riverpod(keepAlive: true)
 AuthInterceptor authInterceptor(Ref ref) {
-  return AuthInterceptor(ref.read(tokenManagerProvider));
+  return AuthInterceptor(
+    ref.read(tokenManagerProvider),
+    ref.container,
+  );
 }
