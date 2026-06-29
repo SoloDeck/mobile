@@ -84,23 +84,27 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> logout() async {
+    state = const AsyncValue.loading();
     final useCase = LogoutUseCase(ref.read(authRepositoryProvider));
     try {
       await useCase.execute();
     } catch (_) {
-      // Best-effort server logout; always clear local session below.
+      // Best-effort server revocation; always clear local session below.
     }
     await ref.read(tokenManagerProvider).clearTokens();
     ref.read(currentUserProvider.notifier).clear();
     state = const AsyncValue.data(false);
+    // Notify router — triggers navigation reset to /login.
+    ref.read(logoutProvider.notifier).trigger();
   }
 
   /// Loads the authenticated user into [currentUserProvider]. Best-effort:
   /// a failed /me call does not invalidate the successful sign-in.
   Future<void> _loadCurrentUser() async {
     try {
-      final user = await FetchMeUseCase(ref.read(authRepositoryProvider))
-          .execute();
+      final user = await FetchMeUseCase(
+        ref.read(authRepositoryProvider),
+      ).execute();
       ref.read(currentUserProvider.notifier).set(user);
     } catch (_) {
       // Ignore — the session is still valid even if profile load failed.
