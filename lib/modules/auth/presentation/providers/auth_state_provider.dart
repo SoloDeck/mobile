@@ -21,3 +21,15 @@ class CurrentUser extends _$CurrentUser {
 
   void clear() => state = null;
 }
+
+/// Single-signal notifier: flip to `true` to trigger a logout redirect anywhere
+/// in the app (controller, interceptor). The router consumes and resets it.
+@Riverpod(keepAlive: true)
+class LogoutNotifier extends _$LogoutNotifier {
+  @override
+  bool build() => false;
+
+  void trigger() => state = true;
+
+  void reset() => state = false;
+}
