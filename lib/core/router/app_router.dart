@@ -17,6 +17,9 @@ import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_detail_page.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_form_page.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoices_page.dart';
 import 'package:solodesk_mobile/modules/projects/presentation/pages/project_detail_page.dart';
 import 'package:solodesk_mobile/modules/tasks/presentation/pages/task_detail_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/settings_page.dart';
@@ -38,14 +41,14 @@ CustomTransitionPage<T> _slidePage<T>({
     transitionDuration: const Duration(milliseconds: 280),
     reverseTransitionDuration: const Duration(milliseconds: 220),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final slide = Tween<Offset>(
-        begin: const Offset(1.0, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      ));
+      final slide = Tween<Offset>(begin: const Offset(1.0, 0), end: Offset.zero)
+          .animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          );
       final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
       return SlideTransition(
         position: slide,
@@ -137,60 +140,112 @@ GoRouter router(Ref ref) {
               children: children,
             ),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.home,
-              builder: (context, state) => const HomePage(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.deals,
-              builder: (context, state) => const PipelinePage(),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  pageBuilder: (context, state) => _slidePage(
-                    context: context,
-                    state: state,
-                    child: DealDetailPage(
-                        dealId: state.pathParameters['id']!),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.home,
+                builder: (context, state) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deals,
+                builder: (context, state) => const PipelinePage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    pageBuilder: (context, state) => _slidePage(
+                      context: context,
+                      state: state,
+                      child: DealDetailPage(
+                        dealId: state.pathParameters['id']!,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.clients,
-              builder: (context, state) => const ClientsPage(),
-              routes: [
-                GoRoute(
-                  path: 'new',
-                  pageBuilder: (context, state) => _slidePage(
-                    context: context,
-                    state: state,
-                    child: const CreateClientPage(),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.clients,
+                builder: (context, state) => const ClientsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    pageBuilder: (context, state) => _slidePage(
+                      context: context,
+                      state: state,
+                      child: const CreateClientPage(),
+                    ),
                   ),
-                ),
-                GoRoute(
-                  path: ':id',
-                  pageBuilder: (context, state) => _slidePage(
-                    context: context,
-                    state: state,
-                    child: ClientDetailPage(
-                        clientId: state.pathParameters['id']!),
+                  GoRoute(
+                    path: ':id',
+                    pageBuilder: (context, state) => _slidePage(
+                      context: context,
+                      state: state,
+                      child: ClientDetailPage(
+                        clientId: state.pathParameters['id']!,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.analytics,
-              builder: (context, state) => const DashboardPage(),
-            ),
-          ]),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.analytics,
+                builder: (context, state) => const DashboardPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.invoices,
+                builder: (context, state) => const InvoicesPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    pageBuilder: (context, state) => _slidePage(
+                      context: context,
+                      state: state,
+                      child: InvoiceFormPage(
+                        preset: state.extra as InvoiceFormArgs?,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    pageBuilder: (context, state) => _slidePage(
+                      context: context,
+                      state: state,
+                      child: InvoiceDetailPage(
+                        invoiceId: state.pathParameters['id']!,
+                      ),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        pageBuilder: (context, state) => _slidePage(
+                          context: context,
+                          state: state,
+                          child: InvoiceFormPage(
+                            invoiceId: state.pathParameters['id']!,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     ],

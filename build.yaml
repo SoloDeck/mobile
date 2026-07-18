@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Nested @freezed/@JsonSerializable objects (e.g. invoice line items)
+          # must have toJson() called recursively so request bodies serialize
+          # to Maps rather than leaking DTO instances.
+          explicit_to_json: true

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/controllers/deals_controller.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/providers/deals_provider.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_form_page.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
+import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_card.dart';
 import 'package:solodesk_mobile/modules/projects/domain/entities/project.dart';
 import 'package:solodesk_mobile/modules/projects/presentation/providers/projects_provider.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_owner.dart';
@@ -24,9 +29,9 @@ class DealDetailPage extends ConsumerWidget {
 
     ref.listen(dealStageControllerProvider, (previous, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error.toString())));
       }
     });
 
@@ -69,12 +74,15 @@ class DealDetailPage extends ConsumerWidget {
                   ),
                   _DetailRow(
                     label: 'Giá trị thực tế',
-                    value:
-                        d.actualValue == null ? '—' : formatVnd(d.actualValue!),
+                    value: d.actualValue == null
+                        ? '—'
+                        : formatVnd(d.actualValue!),
                   ),
                   _DetailRow(label: 'Ghi chú', value: d.notes ?? '—'),
                   const Divider(height: 32),
                   _StageTransitions(deal: d),
+                  const Divider(height: 32),
+                  _DealInvoicesSection(deal: d),
                 ],
               ),
               _DealProjectTab(deal: d),
@@ -97,8 +105,7 @@ class _DealProjectTab extends ConsumerWidget {
     final project = ref.watch(dealProjectProvider(deal.id, deal.title));
     return AsyncValueWidget<Project>(
       value: project,
-      onRetry: () =>
-          ref.invalidate(dealProjectProvider(deal.id, deal.title)),
+      onRetry: () => ref.invalidate(dealProjectProvider(deal.id, deal.title)),
       data: (p) =>
           TaskListWidget(entityType: TaskOwner.project, entityId: p.id),
     );
@@ -145,6 +152,70 @@ class _StageTransitions extends ConsumerWidget {
                 child: Text(target.label),
               ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Invoices linked to this deal, plus a shortcut to create one with the deal
+/// (and its client) pre-filled.
+class _DealInvoicesSection extends ConsumerWidget {
+  const _DealInvoicesSection({required this.deal});
+
+  final Deal deal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final invoices = ref.watch(dealInvoicesProvider(deal.id));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Hóa đơn', style: theme.textTheme.titleMedium),
+            TextButton.icon(
+              onPressed: () => context.push(
+                '${RouteNames.invoices}/new',
+                extra: InvoiceFormArgs(
+                  dealId: deal.id,
+                  clientId: deal.clientId,
+                  clientName: deal.clientName,
+                  dealTitle: deal.title,
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Tạo hóa đơn'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        invoices.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, _) =>
+              Text('Không tải được hóa đơn', style: theme.textTheme.bodySmall),
+          data: (items) => items.isEmpty
+              ? Text('Chưa có hóa đơn', style: theme.textTheme.bodySmall)
+              : Column(
+                  children: [
+                    for (final invoice in items)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: InvoiceCard(
+                          invoice: invoice,
+                          onTap: () => context.push(
+                            '${RouteNames.invoices}/${invoice.id}',
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
         ),
       ],
     );
