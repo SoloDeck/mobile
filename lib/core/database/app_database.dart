@@ -102,6 +102,24 @@ class TaskRows extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('InvoiceRow')
+class InvoiceRows extends Table {
+  @override
+  String get tableName => 'invoices';
+
+  TextColumn get id => text()();
+  TextColumn get invoiceNumber => text()();
+  TextColumn get status => text()();
+  TextColumn get dueDate => text()();
+  RealColumn get total => real()();
+  RealColumn get amountOutstanding => real()();
+  TextColumn get clientName => text().nullable()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftAccessor(tables: [ClientRows])
 class ClientRowsDao extends DatabaseAccessor<AppDatabase>
     with _$ClientRowsDaoMixin {
@@ -158,19 +176,39 @@ class TaskRowsDao extends DatabaseAccessor<AppDatabase>
   }
 }
 
+@DriftAccessor(tables: [InvoiceRows])
+class InvoiceRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$InvoiceRowsDaoMixin {
+  InvoiceRowsDao(super.db);
+
+  Future<List<InvoiceRow>> getAll() => select(invoiceRows).get();
+
+  Future<void> upsertAll(Iterable<InvoiceRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(invoiceRows, rows.toList());
+    });
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
 @DriftDatabase(
-  tables: [ClientRows, DealRows, ProjectRows, TaskRows],
-  daos: [ClientRowsDao, DealRowsDao, ProjectRowsDao, TaskRowsDao],
+  tables: [ClientRows, DealRows, ProjectRows, TaskRows, InvoiceRows],
+  daos: [
+    ClientRowsDao,
+    DealRowsDao,
+    ProjectRowsDao,
+    TaskRowsDao,
+    InvoiceRowsDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -185,6 +223,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await m.createTable(projectRows);
         await m.createTable(taskRows);
+      }
+      if (from < 4) {
+        await m.createTable(invoiceRows);
       }
     },
   );

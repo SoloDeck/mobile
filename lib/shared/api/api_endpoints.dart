@@ -51,6 +51,8 @@ abstract final class ApiEndpoints {
   // Invoices
   static const invoices = '/invoices';
   static String invoiceById(String id) => '/invoices/$id';
+  static String invoiceSend(String id) => '/invoices/$id/send';
+  static String invoiceVoid(String id) => '/invoices/$id/void';
   static String invoicePayments(String id) => '/invoices/$id/payments';
 
   // Reminders

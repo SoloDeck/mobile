@@ -62,6 +62,14 @@ class AppShell extends StatelessWidget {
             ),
             Expanded(
               child: _NavItem(
+                icon: Icons.receipt_long_outlined,
+                label: 'Hóa đơn',
+                selected: location.startsWith(RouteNames.invoices),
+                onTap: () => _goToTab(4),
+              ),
+            ),
+            Expanded(
+              child: _NavItem(
                 icon: Icons.bar_chart_rounded,
                 label: 'Báo cáo',
                 selected: location.startsWith(RouteNames.analytics),
@@ -126,7 +134,10 @@ class _SwipeableTabBodyState extends State<SwipeableTabBody>
   @override
   void initState() {
     super.initState();
-    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 280));
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
     _curve = CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic);
     _anim.addListener(_onAnimTick);
     _anim.addStatusListener(_onAnimStatus);
@@ -171,7 +182,12 @@ class _SwipeableTabBodyState extends State<SwipeableTabBody>
       final prevIdx = _history.removeLast();
       widget.navigationShell.goBranch(prevIdx, initialLocation: false);
     }
-    if (mounted) setState(() { _offset = 0; _draggingIndex = null; });
+    if (mounted) {
+      setState(() {
+        _offset = 0;
+        _draggingIndex = null;
+      });
+    }
   }
 
   void _onDragStart(DragStartDetails _) {
@@ -227,17 +243,17 @@ class _SwipeableTabBodyState extends State<SwipeableTabBody>
       gestures: {
         _TabEdgeDragRecognizer:
             GestureRecognizerFactoryWithHandlers<_TabEdgeDragRecognizer>(
-          () => _TabEdgeDragRecognizer(
-            edgeWidth: _edgeWidth,
-            canActivate: () => _canSwipeBack,
-          ),
-          (r) {
-            r
-              ..onStart = _onDragStart
-              ..onUpdate = _onDragUpdate
-              ..onEnd = _onDragEnd;
-          },
-        ),
+              () => _TabEdgeDragRecognizer(
+                edgeWidth: _edgeWidth,
+                canActivate: () => _canSwipeBack,
+              ),
+              (r) {
+                r
+                  ..onStart = _onDragStart
+                  ..onUpdate = _onDragUpdate
+                  ..onEnd = _onDragEnd;
+              },
+            ),
       },
       child: isDragging && prevIdx != null
           ? ClipRect(
@@ -260,10 +276,7 @@ class _SwipeableTabBodyState extends State<SwipeableTabBody>
                 ],
               ),
             )
-          : IndexedStack(
-              index: current,
-              children: widget.children,
-            ),
+          : IndexedStack(index: current, children: widget.children),
     );
   }
 }
@@ -273,10 +286,7 @@ class _SwipeableTabBodyState extends State<SwipeableTabBody>
 /// returns true.  The [canActivate] check runs at pointer-down time so this
 /// recognizer never competes with the subpage [SwipeBackWrapper].
 class _TabEdgeDragRecognizer extends HorizontalDragGestureRecognizer {
-  _TabEdgeDragRecognizer({
-    required this.edgeWidth,
-    required this.canActivate,
-  });
+  _TabEdgeDragRecognizer({required this.edgeWidth, required this.canActivate});
 
   final double edgeWidth;
   final bool Function() canActivate;
@@ -335,8 +345,9 @@ class _NavItemState extends State<_NavItem>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color =
-        widget.selected ? colorScheme.primary : colorScheme.onSurfaceVariant;
+    final color = widget.selected
+        ? colorScheme.primary
+        : colorScheme.onSurfaceVariant;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -356,11 +367,11 @@ class _NavItemState extends State<_NavItem>
               Text(
                 widget.label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: color,
-                      fontWeight: widget.selected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                    ),
+                  color: color,
+                  fontWeight: widget.selected
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                ),
               ),
             ],
           ),
