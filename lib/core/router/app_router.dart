@@ -9,6 +9,7 @@ import 'package:solodesk_mobile/modules/auth/presentation/pages/forgot_password_
 import 'package:solodesk_mobile/modules/auth/presentation/pages/login_page.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/password_reset_confirm_page.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/register_page.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/providers/auth_state_provider.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/pages/dashboard_page.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/client_detail_page.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
@@ -57,12 +58,22 @@ CustomTransitionPage<T> _slidePage<T>({
   );
 }
 
+/// Makes GoRouter re-evaluate the redirect when token state changes.
+/// Without this, the router's `redirect` only runs on navigation events.
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(Ref ref) {
+    ref.listen(isAuthenticatedProvider, (_, _) => notifyListeners());
+  }
+}
+
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
   final tokenManager = ref.read(tokenManagerProvider);
+  final routerNotifier = RouterNotifier(ref);
 
-  return GoRouter(
+  final goRouter = GoRouter(
     initialLocation: RouteNames.home,
+    refreshListenable: routerNotifier,
     redirect: (context, state) => authGuard(state, tokenManager),
     routes: [
       GoRoute(
@@ -184,4 +195,15 @@ GoRouter router(Ref ref) {
       ),
     ],
   );
+
+  // When LogoutNotifier fires, imperatively navigate to /login (stack reset)
+  // and immediately reset the flag so it only fires once.
+  ref.listen(logoutProvider, (_, triggered) {
+    if (triggered) {
+      goRouter.go(RouteNames.login);
+      ref.read(logoutProvider.notifier).reset();
+    }
+  });
+
+  return goRouter;
 }
