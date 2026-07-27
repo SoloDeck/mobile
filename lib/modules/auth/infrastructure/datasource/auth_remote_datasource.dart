@@ -92,9 +92,14 @@ class AuthRemoteDatasource {
     );
   }
 
+  /// The current user's profile.
+  ///
+  /// Lives under `/users/me`, not `/auth/me` — the auth router only carries
+  /// config/register/login/refresh/logout/google/password-reset, so the old
+  /// `/auth/me` call answered 404 on every environment.
   Future<UserResponseDto> fetchMe() async {
     final response = await _client.get<Map<String, dynamic>>(
-      ApiEndpoints.authMe,
+      ApiEndpoints.usersMe,
     );
     final envelope = ApiResponse.fromJson(
       response.data!,

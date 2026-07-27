@@ -42,16 +42,16 @@ class _TaskBody extends ConsumerWidget {
     );
     final theme = Theme.of(context);
 
-    ref.listen(
-      tasksControllerProvider(task.entityType, task.entityId),
-      (previous, next) {
-        if (next.hasError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.error.toString())),
-          );
-        }
-      },
-    );
+    ref.listen(tasksControllerProvider(task.entityType, task.entityId), (
+      previous,
+      next,
+    ) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error.toString())));
+      }
+    });
 
     Future<void> changeStatus(TaskStatus status) async {
       await ref

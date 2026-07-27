@@ -3,7 +3,12 @@ import 'package:speech_to_text/speech_to_text.dart';
 
 /// Wraps [SpeechToText] với locale vi-VN để nhận dạng tiếng Việt + English mix.
 class SpeechService {
-  final SpeechToText _stt = SpeechToText();
+  /// [speechToText] is injectable so tests can drive the engine callbacks
+  /// directly. Production callers use the no-arg constructor.
+  SpeechService({SpeechToText? speechToText})
+    : _stt = speechToText ?? SpeechToText();
+
+  final SpeechToText _stt;
   bool _initialized = false;
 
   // Callback được set khi gọi startListening, dùng để notify screen khi
@@ -65,8 +70,19 @@ class SpeechService {
   }
 
   Future<void> stop() async {
+    // Take the callback out first so the engine's onStatus('done') — which may
+    // or may not fire after a manual stop, depending on the platform — cannot
+    // invoke it a second time. Then fire it ourselves once _stt.stop() has
+    // settled, so a manual stop and an engine timeout look identical to the
+    // caller.
+    //
+    // Nulling the field without firing (what this used to do) meant a manual
+    // stop silently dropped the only "recording finished" signal the screen
+    // gets, leaving it stuck mid-recording forever.
+    final onDone = _onDone;
     _onDone = null;
     await _stt.stop();
+    onDone?.call();
   }
 
   Future<void> cancel() async {

@@ -13,8 +13,7 @@ class ChecklistWidget extends StatelessWidget {
       return const Text('Chưa có mục checklist nào.');
     }
 
-    final sorted = [...items]
-      ..sort((a, b) => a.position.compareTo(b.position));
+    final sorted = [...items]..sort((a, b) => a.position.compareTo(b.position));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,9 +22,7 @@ class ChecklistWidget extends StatelessWidget {
           Row(
             children: [
               Icon(
-                item.isDone
-                    ? Icons.check_box
-                    : Icons.check_box_outline_blank,
+                item.isDone ? Icons.check_box : Icons.check_box_outline_blank,
                 size: 20,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -34,9 +31,7 @@ class ChecklistWidget extends StatelessWidget {
                 child: Text(
                   item.text,
                   style: item.isDone
-                      ? const TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                        )
+                      ? const TextStyle(decoration: TextDecoration.lineThrough)
                       : null,
                 ),
               ),

@@ -59,8 +59,9 @@ class _PasswordResetConfirmPageState
     ref.listen(passwordResetControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
         final error = next.error;
-        final message =
-            error is AppException ? error.message : 'Something went wrong';
+        final message = error is AppException
+            ? error.message
+            : 'Something went wrong';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -72,7 +73,7 @@ class _PasswordResetConfirmPageState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),

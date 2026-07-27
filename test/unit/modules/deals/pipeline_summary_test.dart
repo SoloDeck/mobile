@@ -35,10 +35,7 @@ void main() {
     test('emits one summary per stage, in canonical order', () {
       final summaries = buildPipelineSummary([]);
 
-      expect(
-        summaries.map((s) => s.stage).toList(),
-        DealStage.values,
-      );
+      expect(summaries.map((s) => s.stage).toList(), DealStage.values);
       expect(summaries.every((s) => s.count == 0), isTrue);
       expect(summaries.every((s) => s.totalValue == 0), isTrue);
     });

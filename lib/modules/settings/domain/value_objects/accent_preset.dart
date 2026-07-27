@@ -1,19 +1,20 @@
-import 'package:flutter/material.dart';
-
 /// The finite set of accent (seed) colors a user can personalize with.
 ///
 /// Kept as an enum (not a free-form color) so the choice is persistable as a
 /// stable string and the UI shows a curated, on-brand palette.
+///
+/// This is a pure domain value object — it only knows preset *names*. The
+/// [Color] each preset maps to lives in the presentation layer (see the
+/// `AccentPresetColor` extension in
+/// `presentation/theme/accent_preset_colors.dart`) since `dart:ui` colors
+/// are not a domain concern.
 enum AccentPreset {
-  blue(Color(0xFF2563EB), 'Xanh dương'),
-  green(Color(0xFF059669), 'Xanh lá'),
-  purple(Color(0xFF7C3AED), 'Tím'),
-  orange(Color(0xFFEA580C), 'Cam');
+  blue('Xanh dương'),
+  green('Xanh lá'),
+  purple('Tím'),
+  orange('Cam');
 
-  const AccentPreset(this.seed, this.label);
-
-  /// Seed color fed to `ColorScheme.fromSeed`.
-  final Color seed;
+  const AccentPreset(this.label);
 
   /// Vietnamese label shown in the settings UI.
   final String label;

@@ -16,7 +16,8 @@ void main() {
     datasource = AuthRemoteDatasource(client);
   });
 
-  Response<Map<String, dynamic>> tokenResponse() => Response<Map<String, dynamic>>(
+  Response<Map<String, dynamic>> tokenResponse() =>
+      Response<Map<String, dynamic>>(
         requestOptions: RequestOptions(path: ApiEndpoints.authGoogle),
         data: {
           'success': true,
@@ -31,21 +32,27 @@ void main() {
         },
       );
 
-  test('loginWithGoogle posts the id token and platform to /auth/google', () async {
-    when(
-      () => client.post<Map<String, dynamic>>(any(), data: any(named: 'data')),
-    ).thenAnswer((_) async => tokenResponse());
+  test(
+    'loginWithGoogle posts the id token and platform to /auth/google',
+    () async {
+      when(
+        () =>
+            client.post<Map<String, dynamic>>(any(), data: any(named: 'data')),
+      ).thenAnswer((_) async => tokenResponse());
 
-    await datasource.loginWithGoogle('the-id-token');
+      await datasource.loginWithGoogle('the-id-token');
 
-    final body = verify(
-      () => client.post<Map<String, dynamic>>(
-        ApiEndpoints.authGoogle,
-        data: captureAny(named: 'data'),
-      ),
-    ).captured.single as Map<String, dynamic>;
+      final body =
+          verify(
+                () => client.post<Map<String, dynamic>>(
+                  ApiEndpoints.authGoogle,
+                  data: captureAny(named: 'data'),
+                ),
+              ).captured.single
+              as Map<String, dynamic>;
 
-    expect(body['id_token'], 'the-id-token');
-    expect(body['platform'], anyOf('android', 'ios'));
-  });
+      expect(body['id_token'], 'the-id-token');
+      expect(body['platform'], anyOf('android', 'ios'));
+    },
+  );
 }

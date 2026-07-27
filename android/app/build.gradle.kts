@@ -14,6 +14,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Kotlin phải cùng JVM target với Java. Không đặt dòng này thì Kotlin lấy
+    // mặc định theo JDK đang cài (JDK 21 trên máy dev), lệch với Java 17 ở trên
+    // và Gradle dừng với "Inconsistent JVM-target compatibility".
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
     defaultConfig {
         // applicationId must match the package name registered on the Android
         // OAuth client in Google Cloud Console (GOOGLE_ANDROID_CLIENT_ID).

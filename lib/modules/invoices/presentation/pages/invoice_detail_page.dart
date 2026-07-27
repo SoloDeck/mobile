@@ -382,6 +382,22 @@ class _ActionBar extends ConsumerWidget {
         ),
       );
     }
+    // Chỉ nhắc khi hóa đơn đã gửi và vẫn còn nợ — nhắc một bản nháp chưa gửi
+    // là vô nghĩa.
+    if (!invoice.status.isDraft && invoice.amountOutstanding > 0) {
+      if (primaryRow.isNotEmpty) primaryRow.add(const SizedBox(width: 12));
+      primaryRow.add(
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: isBusy
+                ? null
+                : () => context.push(RouteNames.reminderComposeOf(invoice.id)),
+            icon: const Icon(Icons.notifications_active_outlined),
+            label: const Text('Nhắc thanh toán'),
+          ),
+        ),
+      );
+    }
 
     if (primaryRow.isEmpty && !invoice.canVoid) {
       return const SizedBox.shrink();

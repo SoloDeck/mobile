@@ -66,18 +66,14 @@ class _CreateClientPageState extends ConsumerState<CreateClientPage> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Tên khách hàng *',
-              ),
+              decoration: const InputDecoration(labelText: 'Tên khách hàng *'),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
             ),
             const SizedBox(height: 16),
             SegmentedButton<ClientType>(
               segments: ClientType.values
-                  .map(
-                    (t) => ButtonSegment(value: t, label: Text(t.label)),
-                  )
+                  .map((t) => ButtonSegment(value: t, label: Text(t.label)))
                   .toList(),
               selected: {_type},
               onSelectionChanged: (s) => setState(() => _type = s.first),

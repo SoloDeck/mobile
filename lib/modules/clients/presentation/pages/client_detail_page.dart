@@ -23,10 +23,7 @@ class ClientDetailPage extends ConsumerWidget {
         data: (c) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              c.name,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text(c.name, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,

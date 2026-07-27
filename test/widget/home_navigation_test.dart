@@ -17,6 +17,7 @@ import 'package:solodesk_mobile/modules/deals/domain/repositories/deals_reposito
 import 'package:solodesk_mobile/modules/deals/infrastructure/repository/deals_repository_impl.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page.dart';
+import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 
 class _FakeClientsRepository implements ClientsRepository {
   @override
@@ -86,34 +87,42 @@ GoRouter _createRouter({String initialLocation = RouteNames.home}) {
             AppShell(navigationShell: navigationShell),
         navigatorContainerBuilder: (context, navigationShell, children) =>
             SwipeableTabBody(
-          navigationShell: navigationShell,
-          children: children,
-        ),
+              navigationShell: navigationShell,
+              children: children,
+            ),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.home,
-              builder: (context, state) => const HomePage(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.deals,
-              builder: (context, state) => const PipelinePage(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.clients,
-              builder: (context, state) => const ClientsPage(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: RouteNames.analytics,
-              builder: (context, state) => const DashboardPage(),
-            ),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.home,
+                builder: (context, state) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deals,
+                builder: (context, state) => const PipelinePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.clients,
+                builder: (context, state) => const ClientsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.analytics,
+                builder: (context, state) => const DashboardPage(),
+              ),
+            ],
+          ),
         ],
       ),
     ],
@@ -144,13 +153,13 @@ Future<void> _pumpApp(
 
 void main() {
   group('bottom navigation bar', () {
-    testWidgets('renders 4 tab labels on home', (tester) async {
+    testWidgets('renders the four SoloNavBar labels on home', (tester) async {
       await _pumpApp(tester);
 
-      expect(find.text('Trang chủ'), findsOneWidget);
+      expect(find.text('Hôm nay'), findsOneWidget);
       expect(find.text('Pipeline'), findsOneWidget);
-      expect(find.text('Khách hàng'), findsOneWidget);
-      expect(find.text('Báo cáo'), findsOneWidget);
+      expect(find.text('Dự án'), findsOneWidget);
+      expect(find.text('Tôi'), findsOneWidget);
     });
 
     testWidgets('tapping Pipeline tab navigates to deals page', (tester) async {
@@ -162,42 +171,40 @@ void main() {
       expect(find.byType(PipelinePage), findsOneWidget);
     });
 
-    testWidgets('tapping Khách hàng tab navigates to clients page', (
+    testWidgets('tapping the third tab navigates to its branch', (
       tester,
     ) async {
       await _pumpApp(tester);
 
-      await tester.tap(find.text('Khách hàng'));
+      await tester.tap(find.text('Dự án'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ClientsPage), findsOneWidget);
     });
 
-    testWidgets('tapping Báo cáo tab navigates to analytics page', (
+    testWidgets('tapping the fourth tab navigates to its branch', (
       tester,
     ) async {
       await _pumpApp(tester);
 
-      await tester.tap(find.text('Báo cáo'));
+      await tester.tap(find.text('Tôi'));
       await tester.pumpAndSettle();
 
       expect(find.byType(DashboardPage), findsOneWidget);
     });
 
-    testWidgets('bottom nav persists after navigating to clients', (
-      tester,
-    ) async {
+    testWidgets('nav bar persists after switching branch', (tester) async {
       await _pumpApp(tester);
 
-      await tester.tap(find.text('Khách hàng'));
+      await tester.tap(find.text('Dự án'));
       await tester.pumpAndSettle();
 
       // Bottom nav labels still visible on clients page
       // Use findsAtLeastNWidgets since AppBar title may duplicate a nav label
-      expect(find.text('Trang chủ'), findsAtLeastNWidgets(1));
+      expect(find.text('Hôm nay'), findsAtLeastNWidgets(1));
       expect(find.text('Pipeline'), findsAtLeastNWidgets(1));
-      expect(find.text('Báo cáo'), findsAtLeastNWidgets(1));
-      expect(find.byType(BottomAppBar), findsOneWidget);
+      expect(find.text('Tôi'), findsAtLeastNWidgets(1));
+      expect(find.byType(SoloNavBar), findsOneWidget);
     });
 
     testWidgets('Pipeline tab is active when on deals route', (tester) async {
@@ -208,16 +215,30 @@ void main() {
       expect(find.byType(HomePage), findsNothing);
     });
 
-    testWidgets('Khách hàng tab is active when on clients route', (
-      tester,
-    ) async {
+    testWidgets('third tab is active when on its route', (tester) async {
       await _pumpApp(tester, initialLocation: RouteNames.clients);
 
       expect(find.byType(ClientsPage), findsOneWidget);
       expect(find.byType(HomePage), findsNothing);
     });
 
-    testWidgets('tapping Trang chủ tab returns to home page', (tester) async {
+    // `index` của SoloNavBar phải bám theo nhánh đang mở. Trước đây mỗi màn
+    // gốc tự đặt cứng index của mình và ba test màn (MÀN 02/04/11) kiểm điều
+    // đó; giờ shell đặt một lần nên chỗ kiểm chuyển về đây.
+    testWidgets('SoloNavBar index follows the active branch', (tester) async {
+      await _pumpApp(tester);
+      expect(tester.widget<SoloNavBar>(find.byType(SoloNavBar)).index, 0);
+
+      await tester.tap(find.text('Pipeline'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<SoloNavBar>(find.byType(SoloNavBar)).index, 1);
+
+      await tester.tap(find.text('Tôi'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<SoloNavBar>(find.byType(SoloNavBar)).index, 3);
+    });
+
+    testWidgets('tapping the first tab returns to home page', (tester) async {
       await _pumpApp(tester);
 
       // Navigate away first
@@ -226,7 +247,7 @@ void main() {
       expect(find.byType(PipelinePage), findsOneWidget);
 
       // Tap home tab
-      await tester.tap(find.text('Trang chủ'));
+      await tester.tap(find.text('Hôm nay'));
       await tester.pumpAndSettle();
       expect(find.byType(HomePage), findsOneWidget);
     });

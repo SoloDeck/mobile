@@ -19,7 +19,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   @override
   Future<AppearanceSettings> loadAppearance() async {
-    final mode = ThemeModeStorage.fromStorage(await _storage.read(_themeModeKey));
+    final mode = ThemeModeStorage.fromStorage(
+      await _storage.read(_themeModeKey),
+    );
     final accent = AccentPreset.fromStorage(await _storage.read(_accentKey));
     return AppearanceSettings(mode: mode, accent: accent);
   }

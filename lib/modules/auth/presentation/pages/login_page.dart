@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/core/theme/app_colors.dart';
+import 'package:solodesk_mobile/theme/app_colors.dart' as design_tokens;
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 
@@ -20,10 +21,10 @@ class _GoogleLogo extends StatelessWidget {
 class _GoogleLogoPainter extends CustomPainter {
   const _GoogleLogoPainter();
 
-  static const _blue = Color(0xFF4285F4);
-  static const _red = Color(0xFFEA4335);
-  static const _yellow = Color(0xFFFBBC05);
-  static const _green = Color(0xFF34A853);
+  static const _blue = design_tokens.AppColors.googleBlue;
+  static const _red = design_tokens.AppColors.googleRed;
+  static const _yellow = design_tokens.AppColors.googleYellow;
+  static const _green = design_tokens.AppColors.googleGreen;
 
   @override
   void paint(Canvas canvas, Size size) {

@@ -30,12 +30,15 @@ class GoogleSignInService {
             : null,
         // iOS: skip serverClientId to avoid AppAuth invalid_audience error;
         // GID SDK still returns idToken with iOS client ID as audience.
-        // Android: uses GOOGLE_ANDROID_CLIENT_ID as serverClientId.
-        serverClientId: Platform.isIOS
-            ? null
-            : AppConfig.googleAndroidClientId.isNotEmpty
-                ? AppConfig.googleAndroidClientId
-                : AppConfig.googleWebClientId,
+        //
+        // Android: Credential Manager only accepts a **web** OAuth client ID
+        // here. Passing GOOGLE_ANDROID_CLIENT_ID makes Play services reject the
+        // request with "Developer console is not set up correctly"
+        // (DEVELOPER_ERROR) and the account picker closes without a token.
+        // The Android client ID is never handed to the SDK — it only has to
+        // exist in Cloud Console carrying the package name + signing SHA-1 so
+        // Google can attest the app.
+        serverClientId: Platform.isIOS ? null : AppConfig.googleWebClientId,
       );
     } catch (e) {
       throw AuthException('Google Sign-In init failed: ${e.toString()}');

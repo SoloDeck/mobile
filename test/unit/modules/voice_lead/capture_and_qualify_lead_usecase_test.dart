@@ -18,9 +18,7 @@ void main() {
   late CaptureAndQualifyLeadUseCase useCase;
 
   setUpAll(() {
-    registerFallbackValue(
-      const LeadQualificationRequestDto(inquiryText: ''),
-    );
+    registerFallbackValue(const LeadQualificationRequestDto(inquiryText: ''));
     registerFallbackValue(DealSource.inbound);
   });
 
@@ -65,10 +63,7 @@ void main() {
         ),
       ).thenAnswer((_) async => kDeal);
 
-      final draft = await useCase(
-        transcribedText: kText,
-        clientId: kClientId,
-      );
+      final draft = await useCase(transcribedText: kText, clientId: kClientId);
 
       expect(draft.qualificationScore, 0.85);
       expect(draft.recommendation, 'hot');
@@ -89,9 +84,7 @@ void main() {
     });
 
     test('AIQualificationException thrown when datasource fails', () async {
-      when(
-        () => mockDatasource.qualify(any()),
-      ).thenThrow(Exception('network'));
+      when(() => mockDatasource.qualify(any())).thenThrow(Exception('network'));
 
       expect(
         () => useCase(transcribedText: kText, clientId: kClientId),
@@ -116,8 +109,9 @@ void main() {
 
       await useCase(transcribedText: kText, clientId: kClientId);
 
-      final captured =
-          verify(() => mockDatasource.qualify(captureAny())).captured;
+      final captured = verify(
+        () => mockDatasource.qualify(captureAny()),
+      ).captured;
       final req = captured.first as LeadQualificationRequestDto;
       expect(req.inquiryText, kText);
     });

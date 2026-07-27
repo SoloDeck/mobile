@@ -70,4 +70,7 @@ class AppColors {
   // ─── Shimmer ────────────────────────────────────────────────────────
   static const Color shimmerBase = Color(0xFFE2E8F0);
   static const Color shimmerHighlight = Color(0xFFF8FAFC);
+
+  // ─── Utility ────────────────────────────────────────────────────────
+  static const Color transparent = Colors.transparent;
 }

@@ -43,5 +43,16 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Mở liên kết thanh toán MoMo. Từ Android 11 trở lên, thiếu khai báo
+             này thì canLaunchUrl luôn trả về false dù đã cài ứng dụng. -->
+        <package android:name="com.mservice.momotransfer"/>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="momo"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
     </queries>
 </manifest>

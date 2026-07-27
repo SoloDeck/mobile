@@ -25,7 +25,8 @@ abstract class DealResponseDto with _$DealResponseDto {
     @JsonKey(unknownEnumValue: DealSource.other) DealSource? source,
     @JsonKey(name: 'estimated_value', fromJson: decimalFromJson)
     double? estimatedValue,
-    @JsonKey(name: 'actual_value', fromJson: decimalFromJson) double? actualValue,
+    @JsonKey(name: 'actual_value', fromJson: decimalFromJson)
+    double? actualValue,
     @Default('VND') String currency,
     String? notes,
     @JsonKey(name: 'closed_at') String? closedAt,

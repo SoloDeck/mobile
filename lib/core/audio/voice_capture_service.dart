@@ -5,9 +5,9 @@ class VoiceCaptureService {
   VoiceCaptureService({
     SpeechService? speechService,
     Future<bool> Function()? permissionRequester,
-  })  : _speech = speechService ?? SpeechService(),
-        _permissionRequester =
-            permissionRequester ?? _defaultPermissionRequester;
+  }) : _speech = speechService ?? SpeechService(),
+       _permissionRequester =
+           permissionRequester ?? _defaultPermissionRequester;
 
   final SpeechService _speech;
   final Future<bool> Function() _permissionRequester;
@@ -32,12 +32,11 @@ class VoiceCaptureService {
     required void Function(String words, bool isFinal) onResult,
     required void Function() onDone,
     void Function(double level)? onSoundLevel,
-  }) =>
-      _speech.startListening(
-        onResult: onResult,
-        onDone: onDone,
-        onSoundLevel: onSoundLevel,
-      );
+  }) => _speech.startListening(
+    onResult: onResult,
+    onDone: onDone,
+    onSoundLevel: onSoundLevel,
+  );
 
   Future<void> stop() => _speech.stop();
   Future<void> cancel() => _speech.cancel();

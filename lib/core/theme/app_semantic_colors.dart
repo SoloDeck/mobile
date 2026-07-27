@@ -153,9 +153,17 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     return AppSemanticColors(
       success: Color.lerp(success, other.success, t)!,
       onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
-      successContainer: Color.lerp(successContainer, other.successContainer, t)!,
+      successContainer: Color.lerp(
+        successContainer,
+        other.successContainer,
+        t,
+      )!,
       warning: Color.lerp(warning, other.warning, t)!,
-      warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
+      warningContainer: Color.lerp(
+        warningContainer,
+        other.warningContainer,
+        t,
+      )!,
       info: Color.lerp(info, other.info, t)!,
       infoContainer: Color.lerp(infoContainer, other.infoContainer, t)!,
       scoreHot: Color.lerp(scoreHot, other.scoreHot, t)!,
@@ -164,14 +172,24 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       onScore: Color.lerp(onScore, other.onScore, t)!,
       stageNewLead: Color.lerp(stageNewLead, other.stageNewLead, t)!,
       stageQualified: Color.lerp(stageQualified, other.stageQualified, t)!,
-      stageProposalSent:
-          Color.lerp(stageProposalSent, other.stageProposalSent, t)!,
-      stageInNegotiation:
-          Color.lerp(stageInNegotiation, other.stageInNegotiation, t)!,
+      stageProposalSent: Color.lerp(
+        stageProposalSent,
+        other.stageProposalSent,
+        t,
+      )!,
+      stageInNegotiation: Color.lerp(
+        stageInNegotiation,
+        other.stageInNegotiation,
+        t,
+      )!,
       stageActive: Color.lerp(stageActive, other.stageActive, t)!,
       stageCompleted: Color.lerp(stageCompleted, other.stageCompleted, t)!,
       shimmerBase: Color.lerp(shimmerBase, other.shimmerBase, t)!,
-      shimmerHighlight: Color.lerp(shimmerHighlight, other.shimmerHighlight, t)!,
+      shimmerHighlight: Color.lerp(
+        shimmerHighlight,
+        other.shimmerHighlight,
+        t,
+      )!,
     );
   }
 }

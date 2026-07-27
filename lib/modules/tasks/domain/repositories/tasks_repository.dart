@@ -24,5 +24,8 @@ abstract interface class TasksRepository {
     DateTime? deadline,
   });
 
-  Future<Task> updateStatus({required String taskId, required TaskStatus status});
+  Future<Task> updateStatus({
+    required String taskId,
+    required TaskStatus status,
+  });
 }

@@ -22,6 +22,10 @@ abstract class AppConfig {
   @EnviedField(varName: 'GOOGLE_IOS_CLIENT_ID', defaultValue: '')
   static final String googleIosClientId = _AppConfig.googleIosClientId;
 
+  /// Diagnostics only — never pass this to the Google Sign-In SDK.
+  /// Credential Manager's `serverClientId` must be [googleWebClientId]; the
+  /// Android client only has to exist in Cloud Console with the package name
+  /// and signing SHA-1 so Play services can attest the app.
   @EnviedField(varName: 'GOOGLE_ANDROID_CLIENT_ID', defaultValue: '')
   static final String googleAndroidClientId = _AppConfig.googleAndroidClientId;
 
