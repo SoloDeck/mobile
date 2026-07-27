@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
+import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_status_badge.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
+import 'package:solodesk_mobile/ui/solo_icons.dart';
 
 /// One row in the invoices list — number, client, due date and total, with the
 /// status shown as an icon-led badge and overdue invoices flagged in danger.
@@ -15,7 +18,7 @@ class InvoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final visual = invoiceStatusVisual(context, invoice.status);
+    final status = invoice.status;
     final overdue = invoice.isOverdue;
 
     return Card(
@@ -31,10 +34,17 @@ class InvoiceCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: visual.background,
+                  color: status.tone.background,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(visual.icon, color: visual.foreground, size: 22),
+                child: Center(
+                  child: SoloIcon(
+                    status.icon,
+                    label: status.label,
+                    size: SoloIcon.md,
+                    color: status.tone.foreground,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -63,7 +73,7 @@ class InvoiceCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  MoneyText(invoice.total, style: theme.textTheme.titleMedium),
+                  Money.card(invoice.total, tone: Tone.neutral),
                   const SizedBox(height: 8),
                   InvoiceStatusBadge(status: invoice.status),
                 ],
@@ -86,7 +96,7 @@ class _DueDate extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = overdue
-        ? theme.colorScheme.error
+        ? Tone.money.accent
         : theme.colorScheme.onSurfaceVariant;
     return Row(
       mainAxisSize: MainAxisSize.min,

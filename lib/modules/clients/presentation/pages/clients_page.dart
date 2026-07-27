@@ -9,7 +9,6 @@ import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/avatar.dart';
-import 'package:solodesk_mobile/ui/solo_app_bar.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 /// Lists all clients owned by the authenticated freelancer.

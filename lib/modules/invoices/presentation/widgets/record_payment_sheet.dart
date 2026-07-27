@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/payment_method.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoice_detail_controller.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/extensions/context_extensions.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
 import 'package:solodesk_mobile/shared/utils/currency_formatter.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
 
 /// Bottom sheet to record a payment against an invoice. Blocks amounts above the
 /// outstanding balance inline (mirroring the backend 400) before submitting.
@@ -125,10 +126,7 @@ class _RecordPaymentSheetState extends ConsumerState<RecordPaymentSheet> {
             Row(
               children: [
                 Text('Còn lại: ', style: theme.textTheme.bodySmall),
-                MoneyText(
-                  widget.invoice.amountOutstanding,
-                  style: theme.textTheme.bodySmall,
-                ),
+                Money.inline(widget.invoice.amountOutstanding, tone: Tone.money),
               ],
             ),
             const SizedBox(height: 20),

@@ -1,58 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:solodesk_mobile/core/theme/app_semantic_colors.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/solo_icons.dart';
+import 'package:solodesk_mobile/ui/status_chip.dart';
 
-/// Resolved visual tokens for an invoice status: an icon plus a foreground and
-/// background color, so status is signalled by icon + color, never colour alone.
-class InvoiceStatusVisual {
-  const InvoiceStatusVisual({
-    required this.icon,
-    required this.foreground,
-    required this.background,
-  });
+/// Ngữ nghĩa màu + icon của một trạng thái hóa đơn, dùng chung cho chip trạng
+/// thái và ô icon dẫn đầu trong `InvoiceCard`.
+///
+/// [InvoiceStatus.overdue] cố ý dùng [Tone.money] (hồng) chứ không phải màu
+/// lỗi đỏ — quá hạn nghĩa là "tiền đang phải đòi", đúng quy ước tô màu tiền
+/// của app, không phải một lỗi hệ thống.
+extension InvoiceStatusVisual on InvoiceStatus {
+  Tone get tone => switch (this) {
+    InvoiceStatus.draft => Tone.neutral,
+    InvoiceStatus.sent => Tone.neutral,
+    InvoiceStatus.partiallyPaid => Tone.warn,
+    InvoiceStatus.paid => Tone.ok,
+    InvoiceStatus.overdue => Tone.money,
+    InvoiceStatus.voided => Tone.neutral,
+  };
 
-  final IconData icon;
-  final Color foreground;
-  final Color background;
-}
-
-InvoiceStatusVisual invoiceStatusVisual(
-  BuildContext context,
-  InvoiceStatus status,
-) {
-  final scheme = Theme.of(context).colorScheme;
-  final semantic = context.semanticColors;
-  return switch (status) {
-    InvoiceStatus.draft => InvoiceStatusVisual(
-      icon: Icons.edit_note_rounded,
-      foreground: scheme.onSurfaceVariant,
-      background: scheme.surfaceContainerHighest,
-    ),
-    InvoiceStatus.sent => InvoiceStatusVisual(
-      icon: Icons.send_rounded,
-      foreground: semantic.info,
-      background: semantic.infoContainer,
-    ),
-    InvoiceStatus.partiallyPaid => InvoiceStatusVisual(
-      icon: Icons.incomplete_circle_rounded,
-      foreground: semantic.warning,
-      background: semantic.warningContainer,
-    ),
-    InvoiceStatus.paid => InvoiceStatusVisual(
-      icon: Icons.check_circle_rounded,
-      foreground: semantic.success,
-      background: semantic.successContainer,
-    ),
-    InvoiceStatus.overdue => InvoiceStatusVisual(
-      icon: Icons.warning_amber_rounded,
-      foreground: scheme.error,
-      background: scheme.errorContainer,
-    ),
-    InvoiceStatus.voided => InvoiceStatusVisual(
-      icon: Icons.block_rounded,
-      foreground: scheme.onSurfaceVariant,
-      background: scheme.surfaceContainerHighest,
-    ),
+  SoloIconData get icon => switch (this) {
+    InvoiceStatus.draft => SoloIcons.file,
+    InvoiceStatus.sent => SoloIcons.send,
+    InvoiceStatus.partiallyPaid => SoloIcons.clock,
+    InvoiceStatus.paid => SoloIcons.check,
+    InvoiceStatus.overdue => SoloIcons.clock,
+    InvoiceStatus.voided => SoloIcons.dots,
   };
 }
 
@@ -64,30 +38,6 @@ class InvoiceStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visual = invoiceStatusVisual(context, status);
-    return Semantics(
-      label: 'Trạng thái: ${status.label}',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: visual.background,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(visual.icon, size: 14, color: visual.foreground),
-            const SizedBox(width: 4),
-            Text(
-              status.label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: visual.foreground,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return StatusChip(status.label, tone: status.tone, icon: status.icon);
   }
 }
