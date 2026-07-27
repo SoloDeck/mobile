@@ -4,6 +4,11 @@ import 'package:solodesk_mobile/modules/clients/domain/entities/client.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/providers/clients_provider.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
+import 'package:solodesk_mobile/theme/app_gap.dart';
+import 'package:solodesk_mobile/theme/app_text.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/status_chip.dart';
 
 /// Read-only detail view for a single client.
 class ClientDetailPage extends ConsumerWidget {
@@ -15,34 +20,49 @@ class ClientDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.watch(clientDetailProvider(clientId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết khách hàng')),
-      body: AsyncValueWidget<Client>(
-        value: client,
-        onRetry: () => ref.invalidate(clientDetailProvider(clientId)),
-        data: (c) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(c.name, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 8,
-              children: [
-                Chip(label: Text(c.type.label)),
-                Chip(label: Text(c.status.label)),
+    return Theme(
+      data: AppTheme.light(),
+      child: Scaffold(
+        appBar: AppBar(title: Text(client.value?.name ?? 'Chi tiết khách hàng')),
+        body: AsyncValueWidget<Client>(
+          value: client,
+          onRetry: () => ref.invalidate(clientDetailProvider(clientId)),
+          data: (c) => ListView(
+            padding: const EdgeInsets.all(AppGap.screen),
+            children: [
+              Text(c.name, style: AppText.titleSm),
+              const SizedBox(height: AppGap.xs),
+              Wrap(
+                spacing: AppGap.betweenChips,
+                children: [
+                  StatusChip(c.type.label, tone: Tone.neutral),
+                  StatusChip(c.status.label, tone: _statusTone(c.status)),
+                ],
+              ),
+              const Divider(height: 32),
+              _DetailRow(label: 'Email', value: c.email),
+              _DetailRow(label: 'Điện thoại', value: c.phone),
+              _DetailRow(label: 'Số thương vụ', value: '${c.dealCount}'),
+              // Placeholder rows for future money fields (from API)
+              if (false) ...[
+                _DetailRow(label: 'Công nợ', value: null),
+                _DetailRow(label: 'Doanh thu', value: null),
               ],
-            ),
-            const Divider(height: 32),
-            _DetailRow(label: 'Email', value: c.email),
-            _DetailRow(label: 'Điện thoại', value: c.phone),
-            _DetailRow(label: 'Số thương vụ', value: '${c.dealCount}'),
-            _DetailRow(label: 'Mô tả', value: c.description),
-            _DetailRow(label: 'Ghi chú', value: c.notes),
-          ],
+              _DetailRow(label: 'Mô tả', value: c.description),
+              _DetailRow(label: 'Ghi chú', value: c.notes),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Tone _statusTone(ClientStatus status) => switch (status) {
+    ClientStatus.prospect => Tone.neutral,
+    ClientStatus.active => Tone.ok,
+    ClientStatus.inactive => Tone.warn,
+    ClientStatus.archived => Tone.neutral,
+  };
 }
 
 class _DetailRow extends StatelessWidget {
@@ -54,18 +74,18 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppGap.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 100,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: AppText.bodyStrong,
             ),
           ),
-          Expanded(child: Text(value?.isNotEmpty == true ? value! : '—')),
+          Expanded(child: Text(value?.isNotEmpty == true ? value! : '—', style: AppText.body)),
         ],
       ),
     );

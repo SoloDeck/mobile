@@ -1,0 +1,8 @@
+{
+  "name": "SoloDesk Mobile",
+  "version": "0.1.0",
+  "description": "Mobile app for SoloDesk - SEP490 SU26 project",
+  "skills": [
+    "./skills/"
+  ]
+}

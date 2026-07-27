@@ -1,0 +1,1242 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoloDesk — Phác thảo UI Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* — Bảng màu — */
+  --ink:#1A0B26;        /* mực tím than: chữ chính, nav */
+  --ink-2:#5A4668;      /* chữ phụ */
+  --ink-3:#9487A0;      /* chữ mờ, placeholder */
+  --paper:#F4F0F7;      /* nền màn hình */
+  --surface:#FFFFFF;    /* thẻ */
+  --line:#E7DFEC;       /* đường kẻ */
+  --momo:#D8207F;       /* TIỀN: doanh thu, công nợ, thanh toán */
+  --momo-soft:#FDEBF4;
+  --ai:#6D28E8;         /* AI: gợi ý, bản nháp máy sinh */
+  --ai-soft:#F0E9FE;
+  --jade:#06A47B;       /* đã xong, đã thu */
+  --jade-soft:#E4F7F1;
+  --amber:#E07C0A;      /* sắp đến hạn */
+  --amber-soft:#FDF0E0;
+  --stage-1:#9487A0; --stage-2:#6D28E8; --stage-3:#0F7BD1; --stage-4:#E07C0A; --stage-5:#06A47B; --stage-6:#1A0B26;
+
+  /* viền chip theo tone */
+  --momo-line:#F8CFE4; --ai-line:#DECDFB; --jade-line:#C4EBDF; --amber-line:#F6DDBB;
+  /* chữ đậm đọc được trên nền *-soft */
+  --momo-deep:#9C1259; --amber-deep:#8A4B04;
+  /* điểm cuối gradient của avatar */
+  --av-p-2:#8B1E8C; --av-v-2:#3D1DA8; --av-j-2:#04705B; --av-a-2:#B14C06;
+  /* accent preset — màu chọn giao diện trong Cài đặt, không phải tone ngữ nghĩa trạng thái */
+  --accent-blue:#2563EB; --accent-green:#059669; --accent-purple:#7C3AED; --accent-orange:#EA580C;
+  /* thương hiệu bên thứ ba (nút "Tiếp tục với Google") — cố định, không đổi theo theme */
+  --google-blue:#4285F4; --google-red:#EA4335; --google-yellow:#FBBC05; --google-green:#34A853;
+
+  --disp:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Be Vietnam Pro",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:#150A1E;color:#EFE7F4;font-family:var(--body);
+  background-image:radial-gradient(900px 500px at 12% -8%,rgba(109,40,232,.30),transparent 62%),
+                   radial-gradient(760px 460px at 92% 4%,rgba(216,32,127,.20),transparent 60%);
+  background-attachment:fixed;
+}
+.wrap{max-width:1460px;margin:0 auto;padding:0 24px 120px}
+
+/* ---------- Masthead ---------- */
+.masthead{padding:76px 0 40px;border-bottom:1px solid rgba(255,255,255,.10)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#C6A9E8}
+.masthead h1{
+  font-family:var(--disp);font-weight:800;font-variation-settings:'wdth' 96;
+  font-size:clamp(38px,6.4vw,78px);line-height:.96;letter-spacing:-.028em;margin:16px 0 0;color:#fff
+}
+.masthead h1 em{font-style:normal;color:#F06DB0}
+.lede{max-width:63ch;margin:20px 0 0;color:#C8BAD4;font-size:15.5px;line-height:1.65}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.meta span{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 11px;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:#D9CBE4}
+
+/* ---------- Điều hướng nhảy mục ---------- */
+.jump{position:sticky;top:0;z-index:60;display:flex;gap:6px;overflow-x:auto;padding:12px 0;
+  background:rgba(21,10,30,.86);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.09);scrollbar-width:none}
+.jump::-webkit-scrollbar{display:none}
+.jump a{flex:0 0 auto;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:#BFAECD;text-decoration:none;padding:8px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.13)}
+.jump a:hover,.jump a:focus-visible{background:#fff;color:#150A1E;border-color:#fff;outline:none}
+
+/* ---------- Khối token ---------- */
+.tokens{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;padding:52px 0 8px}
+.tok h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#C6A9E8;margin:0 0 16px;font-weight:500}
+.sw{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.sw i{width:34px;height:34px;border-radius:9px;flex:0 0 auto;border:1px solid rgba(255,255,255,.18)}
+.sw b{font-size:13px;font-weight:600;color:#F0E8F5}
+.sw small{display:block;font-family:var(--mono);font-size:10.5px;color:#A896B6;letter-spacing:.04em}
+.tspec{margin-bottom:14px}
+.tspec p{margin:0;color:#fff}
+.tspec small{font-family:var(--mono);font-size:10.5px;color:#A896B6;letter-spacing:.05em}
+
+/* ---------- Luồng ---------- */
+.flow{padding:74px 0 0;scroll-margin-top:66px}
+.flow-head{max-width:70ch;margin-bottom:34px}
+.flow-head h2{font-family:var(--disp);font-weight:700;font-variation-settings:'wdth' 92;
+  font-size:clamp(25px,3vw,38px);line-height:1.08;letter-spacing:-.02em;margin:12px 0 0;color:#fff}
+.flow-head p{margin:12px 0 0;color:#BEAECB;font-size:14.5px;line-height:1.62}
+.rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,390px));gap:44px 34px;justify-content:start}
+
+/* ---------- Khung điện thoại ---------- */
+.unit{margin:0}
+.phone{
+  width:390px;max-width:100%;border-radius:44px;background:var(--paper);position:relative;overflow:hidden;
+  border:9px solid #2A1637;box-shadow:0 34px 70px -26px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.09);
+  font-size:14px;color:var(--ink);line-height:1.45
+}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#2A1637;border-radius:999px;z-index:30}
+.sbar{display:flex;justify-content:space-between;align-items:center;height:46px;padding:0 24px 0 26px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.sbar .sig{display:flex;gap:2.5px;align-items:flex-end}
+.sbar .sig i{width:3px;background:var(--ink);border-radius:1px;display:block}
+.sbar .sig i:nth-child(1){height:5px}.sbar .sig i:nth-child(2){height:7.5px}.sbar .sig i:nth-child(3){height:10px}.sbar .sig i:nth-child(4){height:12px}
+.sbar .bat{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;display:inline-block}
+.sbar .bat::after{content:'';position:absolute;inset:1.5px;right:5px;background:var(--ink);border-radius:1px}
+.screen{height:754px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.body{flex:1;overflow:hidden;padding:0 18px 96px}
+.homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:132px;height:5px;border-radius:99px;background:rgba(26,11,38,.30);z-index:25}
+
+/* ---------- Thanh tiêu đề ---------- */
+.appbar{display:flex;align-items:center;gap:12px;padding:4px 18px 14px}
+.appbar .t{font-family:var(--disp);font-weight:700;font-variation-settings:'wdth' 92;font-size:22px;letter-spacing:-.02em;flex:1;line-height:1.15}
+.iconbtn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);flex:0 0 auto;position:relative}
+.iconbtn.ghost{background:transparent;border-color:transparent}
+.dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--momo);border:2px solid #fff}
+.i{width:20px;height:20px;stroke:var(--ink);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.i.sm{width:16px;height:16px}.i.xs{width:13px;height:13px}
+
+/* ---------- Nguyên tử ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px}
+.card+.card{margin-top:10px}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.sub{font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.mut{font-size:11.5px;color:var(--ink-3)}
+.num{font-family:var(--mono);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sec{margin:18px 0 9px;display:flex;align-items:baseline;justify-content:space-between}
+.sec a{font-size:11.5px;color:var(--ai);text-decoration:none;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 9px;border-radius:8px;background:var(--paper);color:var(--ink-2);border:1px solid var(--line);white-space:nowrap}
+.chip.money{background:var(--momo-soft);color:var(--momo);border-color:var(--momo-line)}
+.chip.ai{background:var(--ai-soft);color:var(--ai);border-color:var(--ai-line)}
+.chip.ok{background:var(--jade-soft);color:var(--jade);border-color:var(--jade-line)}
+.chip.warn{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-line)}
+.av{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;background:var(--ink);flex:0 0 auto}
+.av.p{background:linear-gradient(140deg,var(--momo),var(--av-p-2))}
+.av.v{background:linear-gradient(140deg,var(--ai),var(--av-v-2))}
+.av.j{background:linear-gradient(140deg,var(--jade),var(--av-j-2))}
+.av.a{background:linear-gradient(140deg,var(--amber),var(--av-a-2))}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;background:var(--ink);color:#fff;font-weight:600;font-size:14px;width:100%}
+.btn .i{stroke:#fff}
+.btn.money{background:var(--momo)}
+.btn.ai{background:var(--ai)}
+.btn.out{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.out .i{stroke:var(--ink)}
+.btn.sm{height:38px;font-size:13px;border-radius:11px}
+.btnrow{display:flex;gap:9px}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:99px;background:var(--ink)}
+
+/* ---------- CHỮ KÝ THỊ GIÁC: phiếu giấy răng cưa ---------- */
+.slip{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;overflow:hidden}
+.slip::before,.slip::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--paper);
+  border:1px solid var(--line);top:var(--notch,96px)}
+.slip::before{left:-10px}.slip::after{right:-10px}
+.perf{border-top:1.5px dashed var(--line);margin:12px -15px;height:0}
+.stamp{display:inline-block;transform:rotate(-7deg);border:2px solid currentColor;border-radius:7px;
+  padding:4px 9px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;opacity:.92}
+.stamp.due{color:var(--momo)}.stamp.paid{color:var(--jade)}.stamp.draft{color:var(--ai)}
+
+/* ---------- Thanh tab ---------- */
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:84px;padding:9px 12px 0;display:flex;align-items:flex-start;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-top:1px solid var(--line);z-index:20}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--ink-3);text-decoration:none;font-weight:600}
+.tabbar a .i{stroke:var(--ink-3);width:22px;height:22px}
+.tabbar a.on{color:var(--ink)}.tabbar a.on .i{stroke:var(--ink)}
+.fab{width:50px;height:50px;border-radius:17px;background:var(--ink);display:grid;place-items:center;margin-top:-16px;
+  box-shadow:0 10px 22px -8px rgba(26,11,38,.72)}
+.fab .i{stroke:#fff;width:24px;height:24px}
+
+/* ---------- Chú thích dưới máy ---------- */
+figcaption{margin-top:18px;padding-left:2px}
+figcaption h4{font-family:var(--disp);font-weight:700;font-variation-settings:'wdth' 90;font-size:17px;margin:0;color:#fff;letter-spacing:-.01em}
+figcaption .no{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#B08BD8;display:block;margin-bottom:6px}
+figcaption ul{margin:11px 0 0;padding-left:15px;color:#B9A9C7;font-size:12.5px;line-height:1.6}
+figcaption li{margin-bottom:5px}
+figcaption li b{color:#EFE3F6;font-weight:600}
+
+/* ---------- Hiệu ứng ---------- */
+.unit{opacity:0;transform:translateY(20px);animation:rise .7s cubic-bezier(.2,.7,.3,1) forwards;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes rise{to{opacity:1;transform:none}}
+@supports not (animation-timeline:view()){.unit{opacity:1;transform:none;animation:none}}
+.wavebar{display:flex;align-items:center;justify-content:center;gap:4px;height:78px}
+.wavebar i{width:5px;border-radius:99px;background:var(--ai);animation:pulse 1.05s ease-in-out infinite}
+@keyframes pulse{0%,100%{height:11px;opacity:.45}50%{height:var(--h,44px);opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.unit{opacity:1;transform:none}}
+@media (max-width:900px){.wrap{padding:0 14px 80px}.phone{border-radius:38px}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ic-home" viewBox="0 0 24 24"><path d="M3.5 10.6 12 3.7l8.5 6.9V20a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1z"/><path d="M9.5 21v-6h5v6"/></symbol>
+<symbol id="ic-board" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.3"/><rect x="9.5" y="4" width="5" height="11" rx="1.3"/><rect x="16" y="4" width="5" height="7" rx="1.3"/></symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="ic-folder" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2.4h8.8A1.5 1.5 0 0 1 21 8.9v9.6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></symbol>
+<symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="3.7"/><path d="M4.8 20c.7-3.6 3.7-5.6 7.2-5.6s6.5 2 7.2 5.6"/></symbol>
+<symbol id="ic-bell" viewBox="0 0 24 24"><path d="M6.2 9.6a5.8 5.8 0 0 1 11.6 0v4.6l1.7 2.2H4.5l1.7-2.2z"/><path d="M10 20h4"/></symbol>
+<symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="2.8" width="6" height="11.4" rx="3"/><path d="M5.5 11.4a6.5 6.5 0 0 0 13 0M12 17.9V21"/></symbol>
+<symbol id="ic-chev" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+<symbol id="ic-back" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+<symbol id="ic-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 2.1"/></symbol>
+<symbol id="ic-cash" viewBox="0 0 24 24"><rect x="2.8" y="6" width="18.4" height="12" rx="2"/><circle cx="12" cy="12" r="2.7"/></symbol>
+<symbol id="ic-file" viewBox="0 0 24 24"><path d="M6 3.2h7.4L18.5 8v12.8H6z"/><path d="M13.2 3.2V8h5.1"/></symbol>
+<symbol id="ic-image" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.6" cy="9.7" r="1.6"/><path d="M3.6 17.2 9 12l3.6 3.4L16 12.4l4.4 4.3"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.6"/><path d="M15.8 15.8 21 21"/></symbol>
+<symbol id="ic-send" viewBox="0 0 24 24"><path d="M21 3 10.5 13.6"/><path d="M21 3l-6.8 18-3.7-7.4L3 9.9z"/></symbol>
+<symbol id="ic-ai" viewBox="0 0 24 24"><path d="M12 2.6 14 9l6.4 2-6.4 2-2 6.4-2-6.4L3.6 11 10 9z"/></symbol>
+<symbol id="ic-dots" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-wifi-off" viewBox="0 0 24 24"><path d="M3 4l18 16"/><path d="M5 10.5a13 13 0 0 1 4-2.4M2 7.4A17.5 17.5 0 0 1 8 4M16 4.6a17.4 17.4 0 0 1 6 2.8M15 8.4a12.8 12.8 0 0 1 4 2.1"/><path d="M8.8 14.2a7.2 7.2 0 0 1 6.4 0"/><circle cx="12" cy="18.4" r="1.1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-tag" viewBox="0 0 24 24"><path d="M3.5 11.4V4h7.4l9.6 9.6-7.4 7.4z"/><circle cx="7.6" cy="7.6" r="1.4"/></symbol>
+</defs></svg>
+
+<div class="wrap">
+
+<header class="masthead">
+  <span class="eyebrow">SoloDesk · Ứng dụng đồng hành · Flutter iOS + Android</span>
+  <h1>Cả cái bàn làm việc<br>nằm gọn trong <em>một tay</em>.</h1>
+  <p class="lede">Freelancer Việt Nam chốt việc trên Zalo, nhận tiền qua MoMo, và bàn giao bằng ảnh chụp màn hình — gần như toàn bộ trên điện thoại. Bản phác thảo này thiết kế app mobile của SoloDesk theo đúng cách đó: một tay cầm máy, mỗi màn hình chỉ có một việc chính, và mọi thứ liên quan tới tiền đều trông như một tờ phiếu giấy.</p>
+  <div class="meta">
+    <span>15 màn hình</span><span>Tiếng Việt gốc</span><span>390 × 844 pt</span><span>Chạm một tay</span><span>Có trạng thái ngoại tuyến</span>
+  </div>
+</header>
+
+<nav class="jump" aria-label="Chuyển nhanh">
+  <a href="#tokens">Hệ thống</a>
+  <a href="#f1">01 · Mở app</a>
+  <a href="#f2">02 · Pipeline</a>
+  <a href="#f3">03 · AI</a>
+  <a href="#f4">04 · Thực thi</a>
+  <a href="#f5">05 · Tiền</a>
+  <a href="#f6">06 · Tài khoản</a>
+</nav>
+
+<section class="tokens" id="tokens">
+  <div class="tok">
+    <h3>Màu — mỗi màu một nhiệm vụ</h3>
+    <div class="sw"><i style="background:#1A0B26"></i><b>Mực tím than</b><small>#1A0B26 · chữ, nav, nút chính</small></div>
+    <div class="sw"><i style="background:#D8207F"></i><b>Hồng tiền</b><small>#D8207F · doanh thu, công nợ, MoMo</small></div>
+    <div class="sw"><i style="background:#6D28E8"></i><b>Tím AI</b><small>#6D28E8 · mọi thứ do máy sinh</small></div>
+    <div class="sw"><i style="background:#06A47B"></i><b>Ngọc</b><small>#06A47B · đã thu, đã xong</small></div>
+    <div class="sw"><i style="background:#E07C0A"></i><b>Hổ phách</b><small>#E07C0A · sắp đến hạn</small></div>
+    <div class="sw"><i style="background:#F4F0F7"></i><b>Giấy</b><small>#F4F0F7 · nền màn hình</small></div>
+    <p class="mut" style="color:#A896B6;font-size:12px;margin:14px 0 0;line-height:1.6">Quy ước cứng: người dùng nhìn thấy <b style="color:#F06DB0">hồng</b> là biết đang nói tới tiền, thấy <b style="color:#B08BD8">tím</b> là biết nội dung do AI viết và cần mình duyệt.</p>
+  </div>
+  <div class="tok">
+    <h3>Chữ</h3>
+    <div class="tspec"><p style="font-family:var(--disp);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-.02em">Bricolage Grotesque</p><small>Tiêu đề màn hình · 22px / 700 · có dấu tiếng Việt</small></div>
+    <div class="tspec"><p style="font-size:18px;font-weight:500">Be Vietnam Pro — chữ thân bài</p><small>Bộ chữ do người Việt thiết kế, dấu không đè dòng · 13.5px / 400–600</small></div>
+    <div class="tspec"><p style="font-family:var(--mono);font-size:18px;font-weight:600">25.000.000 ₫ · BG-2026-0042</p><small>IBM Plex Mono · số tiền, mã hợp đồng, ngày — chữ số đều cột</small></div>
+  </div>
+  <div class="tok">
+    <h3>Chữ ký thị giác — tờ phiếu</h3>
+    <div class="slip" style="--notch:74px;color:var(--ink)">
+      <div class="between"><span class="lbl">Còn phải thu</span><span class="stamp due">Quá hạn 6 ngày</span></div>
+      <div class="num" style="font-size:29px;color:var(--momo);margin-top:6px">12.500.000 ₫</div>
+      <div class="perf"></div>
+      <div class="between"><span class="mut">Cty TNHH Minh An · Đợt 2/3</span><span class="chip money">Nhắc ngay</span></div>
+    </div>
+    <p class="mut" style="color:#A896B6;font-size:12px;margin:14px 0 0;line-height:1.6">Mọi thẻ liên quan tới tiền đều có cạnh răng cưa và đường xé đứt như biên lai. Người dùng lướt nhanh vẫn nhận ra “đây là tiền” trước khi kịp đọc chữ.</p>
+  </div>
+  <div class="tok">
+    <h3>Quy tắc tương tác</h3>
+    <ul style="margin:0;padding-left:16px;color:#B9A9C7;font-size:13px;line-height:1.7">
+      <li>Hành động chính luôn nằm ở <b style="color:#EFE3F6">1/3 dưới</b> màn hình — ngón cái với tới được.</li>
+      <li>Nút <b style="color:#EFE3F6">＋</b> ở giữa tab bar mở thẳng ghi nhanh bằng giọng nói, không qua menu.</li>
+      <li>Nội dung AI <b style="color:#EFE3F6">không bao giờ tự gửi</b>. Luôn có bước xem trước rồi mới “Duyệt và gửi”.</li>
+      <li>Mất mạng thì app <b style="color:#EFE3F6">không chặn</b> — chỉ đổi sang màu xám và xếp hàng chờ đồng bộ.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 1 ══════════════ -->
+<section class="flow" id="f1">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 01</span>
+    <h2>Mở app — biết ngay hôm nay phải làm gì</h2>
+    <p>Freelancer mở app trung bình 20 giây mỗi lần, thường là lúc đang chờ cà phê. Trang chủ vì thế không phải dashboard: nó là danh sách việc phải xử lý hôm nay, xếp theo mức độ mất tiền nếu bỏ qua.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 01 Đăng nhập -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="body" style="padding-bottom:24px;display:flex;flex-direction:column">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+            <div class="av v" style="width:56px;height:56px;border-radius:18px;font-size:22px;font-family:var(--disp)">S</div>
+            <h2 style="font-family:var(--disp);font-weight:800;font-size:34px;line-height:1.05;letter-spacing:-.03em;margin:24px 0 0">Chào bạn.<br>Việc hôm nay<br>đợi sẵn rồi.</h2>
+            <p class="sub" style="margin:14px 0 0;font-size:14px">Đăng nhập để đồng bộ pipeline, hợp đồng và lịch nhắc thu tiền giữa máy tính và điện thoại.</p>
+            <div class="slip" style="--notch:52px;margin-top:26px;background:#fff">
+              <span class="lbl">Lần đăng nhập gần nhất</span>
+              <div class="row" style="margin-top:9px"><div class="av p">HL</div>
+                <div style="flex:1"><b style="font-size:14px">Hoàng Lan</b><div class="mut">lan.design@gmail.com</div></div>
+                <svg class="i sm"><use href="#ic-chev"/></svg></div>
+            </div>
+          </div>
+          <div>
+            <a class="btn" href="#" style="text-decoration:none"><svg class="i sm"><use href="#ic-check"/></svg> Tiếp tục với Google</a>
+            <a class="btn out" href="#" style="margin-top:9px;text-decoration:none">Đăng nhập bằng email</a>
+            <p class="mut" style="text-align:center;margin:16px 0 0;line-height:1.55">Tiếp tục nghĩa là bạn đồng ý với Điều khoản<br>và Chính sách bảo mật của SoloDesk.</p>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 01</span><h4>Đăng nhập</h4>
+      <ul>
+        <li>Nhớ tài khoản gần nhất để lần sau chỉ cần <b>một chạm</b> — freelancer đổi máy rất hiếm.</li>
+        <li>Google OAuth 2.0 đặt trên cùng vì đây là cách đăng nhập được dùng nhiều nhất, email là lối phụ.</li>
+        <li>Câu chào nói về <b>việc</b>, không nói về sản phẩm — đặt đúng kỳ vọng ngay giây đầu.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 02 Trang chủ -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar">
+          <div class="av p">HL</div>
+          <div style="flex:1"><div class="mut" style="font-size:11px">Thứ Bảy, 25/07</div><div class="t" style="font-size:20px">Hôm nay</div></div>
+          <div class="iconbtn"><svg class="i"><use href="#ic-bell"/></svg><span class="dot"></span></div>
+        </div>
+        <div class="body">
+          <div class="slip" style="--notch:88px">
+            <div class="between"><span class="lbl">Đang chờ thu · tháng 7</span><span class="stamp due">3 hoá đơn</span></div>
+            <div class="num" style="font-size:32px;color:var(--momo);margin-top:8px">31.500.000 ₫</div>
+            <div class="row" style="gap:6px;margin-top:9px"><span class="chip warn">1 sắp đến hạn</span><span class="chip money">2 quá hạn</span></div>
+            <div class="perf"></div>
+            <div class="between"><span class="mut">Đã thu tháng này <b class="num" style="color:var(--jade)">48.000.000 ₫</b></span><svg class="i sm"><use href="#ic-chev"/></svg></div>
+          </div>
+
+          <div class="sec"><span class="lbl">Cần bạn xử lý</span><a href="#">3 việc</a></div>
+
+          <div class="card" style="border-left:3px solid var(--momo)">
+            <div class="row"><div class="av p">MA</div>
+              <div style="flex:1"><b style="font-size:13.5px">Nhắc thanh toán · Minh An</b><div class="mut">Đợt 2 quá hạn 6 ngày · 12.500.000 ₫</div></div></div>
+            <div class="btnrow" style="margin-top:11px"><a class="btn sm money" href="#" style="text-decoration:none"><svg class="i xs"><use href="#ic-send"/></svg> Gửi nhắc qua Zalo</a><a class="btn sm out" href="#" style="width:auto;padding:0 13px;text-decoration:none">Hoãn</a></div>
+          </div>
+
+          <div class="card" style="border-left:3px solid var(--ai)">
+            <div class="row"><div class="av v"><svg class="i sm" style="stroke:#fff"><use href="#ic-ai"/></svg></div>
+              <div style="flex:1"><b style="font-size:13.5px">Báo giá đã soạn xong</b><div class="mut">Landing page — Cty Việt Phát · chờ bạn duyệt</div></div></div>
+            <div class="btnrow" style="margin-top:11px"><a class="btn sm ai" href="#" style="text-decoration:none">Xem và duyệt</a></div>
+          </div>
+
+          <div class="card" style="border-left:3px solid var(--amber)">
+            <div class="row"><div class="av a"><svg class="i sm" style="stroke:#fff"><use href="#ic-clock"/></svg></div>
+              <div style="flex:1"><b style="font-size:13.5px">2 task trễ hạn</b><div class="mut">Dự án Nhận diện Minh An</div></div>
+              <svg class="i sm"><use href="#ic-chev"/></svg></div>
+          </div>
+
+          <div class="sec"><span class="lbl">Lead mới từ form</span><a href="#">Tất cả</a></div>
+          <div class="card"><div class="row"><div class="av j">TN</div>
+            <div style="flex:1"><b style="font-size:13.5px">Trần Nam · Studio Cỏ</b><div class="mut">Chụp sản phẩm · vừa gửi 22 phút trước</div></div>
+            <span class="chip ai">Chấm điểm</span></div></div>
+        </div>
+        <nav class="tabbar">
+          <a class="on" href="#"><svg class="i"><use href="#ic-home"/></svg>Hôm nay</a>
+          <a href="#"><svg class="i"><use href="#ic-board"/></svg>Pipeline</a>
+          <a href="#"><span class="fab"><svg class="i"><use href="#ic-plus"/></svg></span></a>
+          <a href="#"><svg class="i"><use href="#ic-folder"/></svg>Dự án</a>
+          <a href="#"><svg class="i"><use href="#ic-user"/></svg>Tôi</a>
+        </nav>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 02</span><h4>Hôm nay — trang chủ</h4>
+      <ul>
+        <li>Tờ phiếu <b>công nợ</b> nằm trên cùng vì đây là con số freelancer mở app để xem.</li>
+        <li>Mỗi việc kèm sẵn <b>nút hành động</b> ngay trên thẻ — không bắt vào chi tiết mới làm được.</li>
+        <li>Viền trái đổi màu theo loại việc: hồng = tiền, tím = AI chờ duyệt, hổ phách = trễ hạn.</li>
+        <li>Thứ tự thẻ do mức thiệt hại quyết định, không phải theo thời gian tạo.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 03 Thông báo -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t">Thông báo</div><div class="iconbtn ghost"><svg class="i" style="stroke:var(--ink-2)"><use href="#ic-check"/></svg></div></div>
+        <div class="body">
+          <div class="row" style="gap:6px;margin-bottom:12px"><span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Tất cả</span><span class="chip">Tiền</span><span class="chip">Lead mới</span><span class="chip">Task</span></div>
+
+          <div class="lbl" style="margin-bottom:8px">Hôm nay</div>
+          <div class="card" style="background:var(--momo-soft);border-color:#F8CFE4">
+            <div class="row"><svg class="i sm" style="stroke:var(--momo)"><use href="#ic-cash"/></svg><b style="font-size:13.5px;flex:1;color:var(--momo)">Quá hạn thanh toán</b><span class="mut">07:00</span></div>
+            <div class="sub" style="margin-top:6px">Minh An chưa thanh toán đợt 2 — <b class="num">12.500.000 ₫</b>, trễ 6 ngày. Bản nhắc đã soạn sẵn.</div>
+          </div>
+          <div class="card">
+            <div class="row"><svg class="i sm" style="stroke:var(--jade)"><use href="#ic-file"/></svg><b style="font-size:13.5px;flex:1">Có lead mới từ form</b><span class="mut">09:19</span></div>
+            <div class="sub" style="margin-top:6px">Trần Nam gửi yêu cầu chụp 40 sản phẩm, ngân sách khoảng 15 triệu.</div>
+          </div>
+          <div class="card">
+            <div class="row"><svg class="i sm" style="stroke:var(--ai)"><use href="#ic-ai"/></svg><b style="font-size:13.5px;flex:1">Báo giá soạn xong</b><span class="mut">08:42</span></div>
+            <div class="sub" style="margin-top:6px">Bản nháp cho Việt Phát đã sẵn sàng, còn 2 biến chưa điền.</div>
+          </div>
+
+          <div class="lbl" style="margin:18px 0 8px">Hôm qua</div>
+          <div class="card" style="opacity:.62">
+            <div class="row"><svg class="i sm" style="stroke:var(--jade)"><use href="#ic-check"/></svg><b style="font-size:13.5px;flex:1">Đã nhận 15.000.000 ₫</b><span class="mut">16:03</span></div>
+            <div class="sub" style="margin-top:6px">Việt Phát chuyển khoản đợt 1. Hợp đồng chuyển sang Đang chạy.</div>
+          </div>
+          <div class="card" style="opacity:.62">
+            <div class="row"><svg class="i sm" style="stroke:var(--amber)"><use href="#ic-clock"/></svg><b style="font-size:13.5px;flex:1">Task đến hạn hôm nay</b><span class="mut">08:00</span></div>
+            <div class="sub" style="margin-top:6px">“Gửi bản nháp logo vòng 2” — dự án Minh An.</div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 03</span><h4>Thông báo đẩy</h4>
+      <ul>
+        <li>Lọc theo loại vì ba nguồn thông báo (tiền, lead, task) có mức khẩn cấp rất khác nhau.</li>
+        <li>Thông báo tiền được <b>tô nền hồng</b> — loại duy nhất được phép nổi bật.</li>
+        <li>Mỗi thông báo viết đủ số liệu để quyết định ngay, không phải mở chi tiết mới hiểu.</li>
+        <li>Mục đã đọc giảm độ đậm thay vì biến mất, để còn tra lại lịch sử.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 2 ══════════════ -->
+<section class="flow" id="f2">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 02</span>
+    <h2>Pipeline — sáu cột không vừa màn hình, nên đừng ép nó vừa</h2>
+    <p>Kanban sáu cột là của bản web. Trên điện thoại, cột trở thành thanh chọn ngang ở đầu màn hình, còn thân màn hình chỉ hiển thị một cột duy nhất theo chiều dọc — kéo thả bằng ngón cái vốn không đáng tin, nên đổi trạng thái được làm bằng một menu chọn rõ ràng.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 04 Pipeline -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="t">Pipeline</div>
+          <div class="iconbtn"><svg class="i"><use href="#ic-search"/></svg></div>
+          <div class="iconbtn"><svg class="i"><use href="#ic-tag"/></svg></div></div>
+        <div style="padding:0 18px 12px">
+          <div class="row" style="gap:7px;overflow:hidden">
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Lead mới · 4</span>
+            <span class="chip">Đủ điều kiện · 2</span>
+            <span class="chip">Đã gửi BG · 3</span>
+            <span class="chip">Đàm</span>
+          </div>
+          <div class="row" style="gap:3px;margin-top:11px">
+            <i style="flex:4;height:3px;border-radius:9px;background:var(--stage-1)"></i>
+            <i style="flex:2;height:3px;border-radius:9px;background:var(--stage-2)"></i>
+            <i style="flex:3;height:3px;border-radius:9px;background:var(--stage-3)"></i>
+            <i style="flex:1;height:3px;border-radius:9px;background:var(--stage-4)"></i>
+            <i style="flex:3;height:3px;border-radius:9px;background:var(--stage-5)"></i>
+            <i style="flex:2;height:3px;border-radius:9px;background:var(--stage-6)"></i>
+          </div>
+        </div>
+        <div class="body" style="padding-top:2px">
+          <div class="between" style="margin-bottom:10px">
+            <span class="lbl">4 lead · tổng ước tính</span><span class="num" style="font-size:13px;color:var(--momo)">62.000.000 ₫</span>
+          </div>
+
+          <div class="card">
+            <div class="row"><div class="av j">TN</div>
+              <div style="flex:1"><b style="font-size:14px">Chụp 40 sản phẩm</b><div class="mut">Studio Cỏ · Trần Nam</div></div>
+              <span class="chip ai">Chưa chấm</span></div>
+            <div class="between" style="margin-top:11px"><span class="num" style="font-size:13px">~15.000.000 ₫</span><span class="mut">Vào 22 phút trước</span></div>
+          </div>
+
+          <div class="card">
+            <div class="row"><div class="av p">VP</div>
+              <div style="flex:1"><b style="font-size:14px">Landing page ra mắt</b><div class="mut">Cty Việt Phát</div></div>
+              <span class="chip" style="background:#FDECEF;color:#C21F4A;border-color:#F7CBD6">🔥 Hot</span></div>
+            <div class="between" style="margin-top:11px"><span class="num" style="font-size:13px">~28.000.000 ₫</span><span class="mut">Vào 2 ngày trước</span></div>
+            <div class="bar" style="margin-top:10px"><i style="width:34%;background:var(--stage-2)"></i></div>
+          </div>
+
+          <div class="card" style="opacity:.94">
+            <div class="row"><div class="av a">HP</div>
+              <div style="flex:1"><b style="font-size:14px">Bộ ảnh menu quán</b><div class="mut">Hải Phong Coffee</div></div>
+              <span class="chip warn">Ấm</span></div>
+            <div class="between" style="margin-top:11px"><span class="num" style="font-size:13px">~9.000.000 ₫</span><span class="mut">Vào 5 ngày trước</span></div>
+          </div>
+
+          <div class="card" style="opacity:.72">
+            <div class="row"><div class="av" style="background:var(--ink-3)">NL</div>
+              <div style="flex:1"><b style="font-size:14px">Sửa 3 banner</b><div class="mut">Ngọc Linh Shop</div></div>
+              <span class="chip">Nguội</span></div>
+            <div class="between" style="margin-top:11px"><span class="num" style="font-size:13px">~2.000.000 ₫</span><span class="mut">Trả giá gắt · 11 ngày</span></div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <a href="#"><svg class="i"><use href="#ic-home"/></svg>Hôm nay</a>
+          <a class="on" href="#"><svg class="i"><use href="#ic-board"/></svg>Pipeline</a>
+          <a href="#"><span class="fab"><svg class="i"><use href="#ic-plus"/></svg></span></a>
+          <a href="#"><svg class="i"><use href="#ic-folder"/></svg>Dự án</a>
+          <a href="#"><svg class="i"><use href="#ic-user"/></svg>Tôi</a>
+        </nav>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 04</span><h4>Pipeline theo giai đoạn</h4>
+      <ul>
+        <li>Sáu cột Kanban thành <b>thanh chip cuộn ngang</b> — mỗi lần chỉ đọc một giai đoạn, không phải nheo mắt.</li>
+        <li>Thanh màu dưới chip là <b>hình dáng pipeline</b>: liếc một cái biết deal đang dồn ở đâu.</li>
+        <li>Deal nguội tự động <b>mờ dần</b> theo số ngày đứng yên, kèm lý do (“trả giá gắt”).</li>
+        <li>Giá trị ước tính hiện ngay trên thẻ vì đây là tiêu chí sắp xếp thứ tự ưu tiên thật.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 05 Chi tiết deal -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:15px">Nhận diện Minh An</div><div class="iconbtn ghost"><svg class="i" style="color:var(--ink)"><use href="#ic-dots"/></svg></div></div>
+        <div class="body">
+          <div class="card" style="padding:15px">
+            <div class="row"><div class="av p" style="width:44px;height:44px;border-radius:14px;font-size:15px">MA</div>
+              <div style="flex:1"><b style="font-size:15px">Cty TNHH Minh An</b><div class="mut">Chị Hạnh · 0903 xxx 118</div></div>
+              <div class="iconbtn" style="width:34px;height:34px;background:var(--jade-soft);border-color:#C4EBDF"><svg class="i sm" style="stroke:var(--jade)"><use href="#ic-send"/></svg></div></div>
+            <div class="perf" style="border-color:var(--line)"></div>
+            <div class="between"><span class="lbl">Giá trị hợp đồng</span><span class="num" style="font-size:17px">25.000.000 ₫</span></div>
+          </div>
+
+          <div class="card" style="margin-top:10px">
+            <span class="lbl">Giai đoạn</span>
+            <div class="row" style="gap:0;margin:11px 0 9px">
+              <i style="flex:1;height:5px;background:var(--stage-5);border-radius:9px 0 0 9px"></i>
+              <i style="flex:1;height:5px;background:var(--stage-5)"></i>
+              <i style="flex:1;height:5px;background:var(--stage-5)"></i>
+              <i style="flex:1;height:5px;background:var(--stage-5)"></i>
+              <i style="flex:1;height:5px;background:var(--stage-5)"></i>
+              <i style="flex:1;height:5px;background:var(--line);border-radius:0 9px 9px 0"></i>
+            </div>
+            <div class="between"><b style="font-size:13.5px;color:var(--jade)">Đang chạy · bước 5/6</b><span class="chip">Đổi giai đoạn</span></div>
+          </div>
+
+          <div class="row" style="gap:7px;margin:16px 0 10px;overflow:hidden">
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Tổng quan</span>
+            <span class="chip">Dự án</span><span class="chip">Tài liệu</span><span class="chip">File</span><span class="chip">Lịch sử</span>
+          </div>
+
+          <div class="slip" style="--notch:76px">
+            <div class="between"><span class="lbl">Lịch thanh toán</span><span class="stamp due">Đợt 2 quá hạn</span></div>
+            <div style="margin-top:11px">
+              <div class="between" style="margin-bottom:8px"><span class="row" style="gap:7px"><svg class="i xs" style="stroke:var(--jade)"><use href="#ic-check"/></svg><span style="font-size:12.5px">Đợt 1 · Đặt cọc 50%</span></span><span class="num" style="font-size:12.5px;color:var(--jade)">12.500.000 ₫</span></div>
+              <div class="between" style="margin-bottom:8px"><span class="row" style="gap:7px"><svg class="i xs" style="stroke:var(--momo)"><use href="#ic-clock"/></svg><span style="font-size:12.5px;color:var(--momo);font-weight:600">Đợt 2 · Duyệt nháp 30%</span></span><span class="num" style="font-size:12.5px;color:var(--momo)">7.500.000 ₫</span></div>
+              <div class="between"><span class="row" style="gap:7px"><span style="width:13px"></span><span style="font-size:12.5px;color:var(--ink-3)">Đợt 3 · Bàn giao 20%</span></span><span class="num" style="font-size:12.5px;color:var(--ink-3)">5.000.000 ₫</span></div>
+            </div>
+            <div class="perf"></div>
+            <a class="btn sm money" href="#" style="text-decoration:none"><svg class="i xs"><use href="#ic-cash"/></svg> Tạo link MoMo cho đợt 2</a>
+          </div>
+
+          <div class="sec"><span class="lbl">Trao đổi gần nhất</span><a href="#">Thêm ghi chú</a></div>
+          <div class="card"><div class="sub">Chị Hạnh xin lùi duyệt nháp sang tuần sau, sẽ chuyển cọc đợt 2 vào thứ Hai.</div>
+            <div class="mut" style="margin-top:7px">Ghi qua giọng nói · 19/07</div></div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 05</span><h4>Chi tiết thương vụ</h4>
+      <ul>
+        <li>Nút <b>nhắn Zalo</b> đặt cạnh tên khách vì đó là hành động hay dùng nhất trong màn này.</li>
+        <li>Thanh 6 vạch nhắc đúng sáu giai đoạn của bản web — hai nền tảng nói cùng một ngôn ngữ.</li>
+        <li>Lịch thanh toán là tờ phiếu: đã thu màu ngọc, đến hạn màu hồng, chưa tới màu xám.</li>
+        <li>Tab con (Dự án / Tài liệu / File) gom phần mở rộng mà không làm nặng màn hình đầu.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 3 ══════════════ -->
+<section class="flow" id="f3">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 03</span>
+    <h2>AI — nói ra một câu, nhận về một bộ hồ sơ</h2>
+    <p>Ba tầng AI trong đề tài (chấm điểm lead, soạn tài liệu, nhắc lịch) đều đi qua cùng một khuôn mẫu giao diện: <b>máy đề xuất → người xem trước → người bấm duyệt</b>. Không có màn hình nào cho phép AI gửi thẳng ra ngoài cho khách.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 06 Ghi nhanh giọng nói -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen" style="background:#1A0B26;color:#fff">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i" style="stroke:#fff"><use href="#ic-back"/></svg></div><div class="t" style="color:#fff">Ghi nhanh</div><span class="chip" style="background:rgba(255,255,255,.12);color:#EFE3F6;border-color:rgba(255,255,255,.2)">Đang nghe</span></div>
+        <div class="body" style="display:flex;flex-direction:column;padding-bottom:32px">
+          <div style="flex:1">
+            <p style="font-size:13px;color:#B9A9C7;margin:2px 0 0">Cứ nói tự nhiên như đang kể lại cho đồng nghiệp. Tên khách, việc cần làm, ngân sách, deadline — thiếu gì bổ sung sau cũng được.</p>
+            <div class="wavebar" style="margin-top:26px">
+              <i style="--h:22px;animation-delay:0s"></i><i style="--h:46px;animation-delay:.08s"></i><i style="--h:30px;animation-delay:.16s"></i>
+              <i style="--h:58px;animation-delay:.24s"></i><i style="--h:38px;animation-delay:.32s"></i><i style="--h:66px;animation-delay:.4s"></i>
+              <i style="--h:26px;animation-delay:.48s"></i><i style="--h:50px;animation-delay:.56s"></i><i style="--h:34px;animation-delay:.64s"></i>
+              <i style="--h:60px;animation-delay:.72s"></i><i style="--h:24px;animation-delay:.8s"></i><i style="--h:44px;animation-delay:.88s"></i>
+              <i style="--h:32px;animation-delay:.96s"></i><i style="--h:54px;animation-delay:1.04s"></i><i style="--h:20px;animation-delay:1.12s"></i>
+            </div>
+            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:15px;margin-top:22px">
+              <span class="lbl" style="color:#B08BD8">Đang chép lời</span>
+              <p style="margin:9px 0 0;font-size:15px;line-height:1.6;color:#F3ECF7">“Anh Nam bên Studio Cỏ cần chụp bốn mươi sản phẩm, ngân sách khoảng mười lăm triệu, cần xong trước rằm tháng tám<span style="opacity:.45">…</span>”</p>
+            </div>
+            <div class="row" style="gap:6px;margin-top:14px;flex-wrap:wrap">
+              <span class="chip" style="background:rgba(109,40,232,.22);color:#D3BBFB;border-color:rgba(109,40,232,.5)">Khách: Trần Nam</span>
+              <span class="chip" style="background:rgba(109,40,232,.22);color:#D3BBFB;border-color:rgba(109,40,232,.5)">Việc: chụp sản phẩm</span>
+              <span class="chip" style="background:rgba(216,32,127,.22);color:#F8AFD5;border-color:rgba(216,32,127,.5)">~15.000.000 ₫</span>
+              <span class="chip" style="background:rgba(224,124,10,.22);color:#F5C687;border-color:rgba(224,124,10,.5)">Hạn: 27/08</span>
+            </div>
+          </div>
+          <div>
+            <div class="row" style="justify-content:center;gap:22px;margin-bottom:16px">
+              <div class="iconbtn" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18)"><svg class="i" style="stroke:#fff"><use href="#ic-file"/></svg></div>
+              <div style="width:72px;height:72px;border-radius:26px;background:var(--ai);display:grid;place-items:center;box-shadow:0 0 0 8px rgba(109,40,232,.22)"><svg class="i" style="stroke:#fff;width:30px;height:30px"><use href="#ic-mic"/></svg></div>
+              <div class="iconbtn" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18)"><svg class="i" style="stroke:#fff"><use href="#ic-image"/></svg></div>
+            </div>
+            <a class="btn" href="#" style="background:#fff;color:var(--ink);text-decoration:none"><svg class="i sm" style="stroke:var(--ink)"><use href="#ic-check"/></svg> Dừng và tạo lead</a>
+          </div>
+        </div>
+        <div class="homebar" style="background:rgba(255,255,255,.35)"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 06</span><h4>Ghi nhanh bằng giọng nói</h4>
+      <ul>
+        <li>Màn hình <b>đảo sang nền tối</b> để báo hiệu app đang thu âm — không cần đọc chữ cũng biết.</li>
+        <li>Các trường AI bóc tách <b>hiện dần theo thời gian thực</b>, người dùng thấy máy hiểu đúng hay sai ngay khi đang nói.</li>
+        <li>Nút mic to 72pt, đặt chính giữa vùng ngón cái; hai lối phụ (gõ tay, chụp ảnh brief) nằm hai bên.</li>
+        <li>Không mạng vẫn ghi âm được — chép lời và bóc tách xếp hàng đợi đồng bộ.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 07 Kết quả chấm điểm -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:17px">Kết quả chấm điểm</div></div>
+        <div class="body">
+          <div class="card" style="text-align:center;padding:20px 15px;background:linear-gradient(180deg,#FFF3F8,#fff);border-color:#F8CFE4">
+            <div style="width:112px;height:112px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
+              background:conic-gradient(var(--momo) 0 78%,#F3E5EE 78% 100%)">
+              <div style="width:88px;height:88px;border-radius:50%;background:#fff;display:grid;place-items:center;line-height:1.1">
+                <div><div class="num" style="font-size:27px;color:var(--momo)">78</div><div class="lbl" style="font-size:9px">trên 100</div></div>
+              </div>
+            </div>
+            <div style="font-family:var(--disp);font-weight:800;font-size:23px;margin-top:13px;letter-spacing:-.02em">Lead nóng 🔥</div>
+            <div class="sub" style="margin-top:3px">Nên phản hồi trong 24 giờ tới</div>
+          </div>
+
+          <div class="card" style="margin-top:10px;border-left:3px solid var(--ai)">
+            <span class="chip ai"><svg class="i xs" style="stroke:var(--ai)"><use href="#ic-ai"/></svg> AI nhận định</span>
+            <p class="sub" style="margin:10px 0 0;font-size:13px">Khách nêu rõ số lượng (40 sản phẩm), có ngân sách cụ thể và deadline gắn với dịp lễ — ba tín hiệu cho thấy đã có kế hoạch chi tiêu. Không thấy dấu hiệu ép giá. Điểm trừ duy nhất: chưa nói rõ phong cách ảnh và ai duyệt cuối.</p>
+          </div>
+
+          <div class="sec"><span class="lbl">Cần hỏi lại trước khi báo giá</span></div>
+          <div class="card" style="padding:12px 14px"><div class="row"><span style="font-size:13px;flex:1">Ảnh dùng cho sàn TMĐT hay in ấn?</span><svg class="i sm" style="stroke:var(--ink-3)"><use href="#ic-chev"/></svg></div></div>
+          <div class="card" style="padding:12px 14px"><div class="row"><span style="font-size:13px;flex:1">Có cần thuê mẫu và bối cảnh không?</span><svg class="i sm" style="stroke:var(--ink-3)"><use href="#ic-chev"/></svg></div></div>
+
+          <div class="slip" style="--notch:66px;margin-top:14px">
+            <span class="lbl">Khoảng giá gợi ý cho hạng mục này</span>
+            <div class="num" style="font-size:22px;margin-top:6px">14 – 19 triệu ₫</div>
+            <div class="mut" style="margin-top:3px">Dựa trên 6 deal chụp sản phẩm bạn đã chốt</div>
+            <div class="perf"></div>
+            <div class="btnrow"><a class="btn sm ai" href="#" style="text-decoration:none"><svg class="i xs"><use href="#ic-file"/></svg> Soạn báo giá</a><a class="btn sm out" href="#" style="width:auto;padding:0 14px;text-decoration:none">Để sau</a></div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 07</span><h4>Lead Qualifier — kết quả</h4>
+      <ul>
+        <li>Điểm số đi kèm <b>lý do bằng lời</b>, vì con số trần trụi thì người dùng không tin và cũng không học được gì.</li>
+        <li>AI nêu luôn <b>điểm còn thiếu</b> và biến nó thành câu hỏi bấm được — biến nhận định thành việc làm.</li>
+        <li>Khoảng giá gợi ý neo vào <b>lịch sử deal đã chốt của chính người dùng</b>, không phải giá thị trường chung.</li>
+        <li>Nút “Soạn báo giá” nối thẳng sang tầng AI thứ hai, giữ mạch công việc liền một hơi.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 08 Duyệt báo giá -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div>
+          <div style="flex:1"><div class="t" style="font-size:17px">Báo giá BG-2026-0042</div></div>
+          <span class="stamp draft">Bản nháp</span></div>
+        <div class="body">
+          <div class="card" style="background:var(--amber-soft);border-color:#F6DDBB;padding:12px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--amber)"><use href="#ic-clock"/></svg>
+              <span style="font-size:12.5px;flex:1;color:#8A4B04"><b>Còn 2 chỗ trống</b> cần điền trước khi gửi</span>
+              <span class="chip warn">Điền ngay</span></div>
+          </div>
+
+          <div class="card" style="margin-top:10px;padding:0;overflow:hidden">
+            <div style="padding:15px 15px 0">
+              <div class="lbl">Xem trước bản gửi khách</div>
+              <div style="font-family:var(--disp);font-weight:800;font-size:19px;margin-top:9px;letter-spacing:-.02em">ĐỀ XUẤT DỊCH VỤ</div>
+              <div class="mut" style="font-family:var(--mono);margin-top:2px">BG-2026-0042 · hiệu lực đến 08/08/2026</div>
+              <div class="perf" style="margin:12px 0"></div>
+              <div class="between" style="margin-bottom:7px"><span class="mut">Khách hàng</span><b style="font-size:12.5px">Cty TNHH Minh An</b></div>
+              <div class="between" style="margin-bottom:7px"><span class="mut">Phạm vi</span><b style="font-size:12.5px">Logo · Brand guideline</b></div>
+              <div class="between" style="margin-bottom:7px"><span class="mut">Thời gian</span><b style="font-size:12.5px" class="num">01/07 → 31/07</b></div>
+              <div class="between" style="margin-bottom:7px"><span class="mut">Số vòng sửa</span><b style="font-size:12.5px;background:#FDF0E0;color:#8A4B04;padding:1px 6px;border-radius:5px">chưa điền</b></div>
+              <div class="between"><span class="mut">Tổng cộng</span><span class="num" style="font-size:16px;color:var(--momo)">25.000.000 ₫</span></div>
+            </div>
+            <div style="background:var(--paper);padding:12px 15px;margin-top:14px;border-top:1px solid var(--line)">
+              <div class="between"><span class="lbl">Lịch thanh toán</span><span class="chip ok">Đủ 100%</span></div>
+              <div class="row" style="gap:3px;margin-top:9px">
+                <i style="flex:50;height:22px;border-radius:7px 0 0 7px;background:var(--momo);opacity:.9"></i>
+                <i style="flex:30;height:22px;background:var(--momo);opacity:.62"></i>
+                <i style="flex:20;height:22px;border-radius:0 7px 7px 0;background:var(--momo);opacity:.35"></i>
+              </div>
+              <div class="between" style="margin-top:6px"><span class="mut">Cọc 50%</span><span class="mut">Duyệt nháp 30%</span><span class="mut">Bàn giao 20%</span></div>
+            </div>
+          </div>
+
+          <div class="row" style="gap:7px;margin-top:12px">
+            <span class="chip ai"><svg class="i xs" style="stroke:var(--ai)"><use href="#ic-ai"/></svg> GPT-4o soạn · 8 giây</span>
+            <span class="chip">Mẫu: Báo giá tiêu chuẩn</span>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(244,240,247,0),var(--paper) 26%);z-index:22">
+          <div class="btnrow">
+            <a class="btn out" href="#" style="width:auto;padding:0 16px;text-decoration:none">Sửa</a>
+            <a class="btn" href="#" style="text-decoration:none"><svg class="i sm"><use href="#ic-send"/></svg> Duyệt và gửi khách</a>
+          </div>
+          <p class="mut" style="text-align:center;margin:9px 0 0">Gửi qua Zalo OA · kèm link xem bản PDF</p>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 08</span><h4>Duyệt và gửi báo giá</h4>
+      <ul>
+        <li>Con dấu <b>“Bản nháp”</b> nghiêng ở góc — không thể nhầm bản chưa duyệt với bản đã gửi.</li>
+        <li>App <b>chặn gửi</b> khi còn biến bắt buộc trống, và nói rõ còn thiếu mấy chỗ thay vì báo lỗi chung chung.</li>
+        <li>Lịch thanh toán vẽ thành dải tỉ lệ: sai tổng phần trăm là thấy ngay bằng mắt.</li>
+        <li>Ghi rõ mẫu nào và mất bao lâu để sinh — người dùng hiểu chi phí AI mình đang tiêu.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 4 ══════════════ -->
+<section class="flow" id="f4">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 04</span>
+    <h2>Thực thi — chốt xong rồi thì làm và chứng minh đã làm</h2>
+    <p>Phần mở rộng B và C của brief: quản lý task nhẹ và lưu bằng chứng bàn giao. Trên mobile, hai thứ này phục vụ một tình huống rất cụ thể — freelancer vừa gửi file xong, cần chụp lại màn hình và ghim vào dự án trước khi quên.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 09 Task -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div>
+          <div style="flex:1"><div class="mut" style="font-size:11px">Dự án</div><div class="t" style="font-size:18px">Nhận diện Minh An</div></div>
+          <div class="iconbtn"><svg class="i"><use href="#ic-dots"/></svg></div></div>
+        <div class="body">
+          <div class="card" style="padding:14px">
+            <div class="between"><span class="lbl">Tiến độ</span><span class="num" style="font-size:13px">7/11 việc</span></div>
+            <div class="bar" style="margin-top:9px;height:8px"><i style="width:64%;background:linear-gradient(90deg,#6D28E8,#D8207F)"></i></div>
+            <div class="between" style="margin-top:9px"><span class="mut">Bàn giao dự kiến 31/07</span><span class="chip warn">Còn 6 ngày</span></div>
+          </div>
+
+          <div class="card" style="margin-top:10px;border-left:3px solid var(--ai);padding:12px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--ai)"><use href="#ic-ai"/></svg>
+              <span class="sub" style="flex:1;font-size:12.5px">Với nhịp hiện tại, dự án sẽ trễ khoảng 2 ngày. Cân nhắc dời vòng sửa thứ ba.</span></div>
+          </div>
+
+          <div class="row" style="gap:7px;margin:16px 0 10px">
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Cần làm · 4</span>
+            <span class="chip">Đang làm · 2</span><span class="chip">Chờ duyệt · 1</span><span class="chip">Xong</span>
+          </div>
+
+          <div class="card" style="padding:13px 14px;border-color:#F8CFE4">
+            <div class="row" style="align-items:flex-start">
+              <span style="width:19px;height:19px;border-radius:6px;border:2px solid var(--momo);flex:0 0 auto;margin-top:1px"></span>
+              <div style="flex:1"><b style="font-size:13.5px">Gửi bản nháp logo vòng 2</b>
+                <div class="row" style="gap:5px;margin-top:7px"><span class="chip money">Trễ 2 ngày</span><span class="chip">Ưu tiên cao</span></div></div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:13px 14px">
+            <div class="row" style="align-items:flex-start">
+              <span style="width:19px;height:19px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;margin-top:1px"></span>
+              <div style="flex:1"><b style="font-size:13.5px">Dựng brand guideline 12 trang</b>
+                <div class="row" style="gap:5px;margin-top:7px"><span class="chip">Hạn 28/07</span><span class="chip">3/8 mục</span></div></div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:13px 14px">
+            <div class="row" style="align-items:flex-start">
+              <span style="width:19px;height:19px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;margin-top:1px"></span>
+              <div style="flex:1"><b style="font-size:13.5px">Xuất bộ social kit</b>
+                <div class="row" style="gap:5px;margin-top:7px"><span class="chip">Hạn 30/07</span><span class="chip"><svg class="i xs"><use href="#ic-image"/></svg> 2 file</span></div></div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:13px 14px;opacity:.55">
+            <div class="row" style="align-items:flex-start">
+              <span style="width:19px;height:19px;border-radius:6px;background:var(--jade);flex:0 0 auto;display:grid;place-items:center"><svg class="i xs" style="stroke:#fff;stroke-width:3"><use href="#ic-check"/></svg></span>
+              <div style="flex:1"><b style="font-size:13.5px;text-decoration:line-through">Chốt moodboard với khách</b></div>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:26px;right:18px;z-index:22">
+          <div class="row" style="gap:9px">
+            <div class="fab" style="margin:0;width:46px;height:46px;border-radius:15px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 20px -8px rgba(26,11,38,.35)"><svg class="i" style="stroke:var(--ink)"><use href="#ic-mic"/></svg></div>
+            <div class="fab" style="margin:0;width:52px;height:52px"><svg class="i"><use href="#ic-plus"/></svg></div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 09</span><h4>Task trong dự án</h4>
+      <ul>
+        <li>Kanban task cũng thành <b>chip lọc + danh sách dọc</b> — nhất quán với màn Pipeline.</li>
+        <li>Ô tick to 19pt, nằm mép trái để <b>đánh dấu xong bằng ngón cái</b> khi đang cầm máy một tay.</li>
+        <li>Nhắc tiến độ do AI viết đặt ngay dưới thanh phần trăm, đúng chỗ người dùng vừa nhìn.</li>
+        <li>Hai nút nổi: mic để <b>thêm task bằng giọng nói</b>, dấu cộng để gõ tay.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 10 Bằng chứng -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:18px">Bằng chứng bàn giao</div><div class="iconbtn"><svg class="i"><use href="#ic-search"/></svg></div></div>
+        <div class="body">
+          <div class="between" style="margin-bottom:11px">
+            <span class="mut">14 file · dự án Minh An</span>
+            <span class="row" style="gap:5px"><span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Lưới</span><span class="chip">Dòng thời gian</span></span>
+          </div>
+
+          <div class="lbl" style="margin-bottom:8px">Hôm nay · 25/07</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+            <div style="aspect-ratio:1;border-radius:13px;background:linear-gradient(135deg,#6D28E8,#D8207F);position:relative;display:grid;place-items:center">
+              <svg class="i" style="stroke:#fff;opacity:.85"><use href="#ic-image"/></svg>
+              <span style="position:absolute;bottom:5px;left:6px;font-family:var(--mono);font-size:8.5px;color:#fff;opacity:.9">logo_v2.png</span></div>
+            <div style="aspect-ratio:1;border-radius:13px;background:linear-gradient(135deg,#1A0B26,#5A4668);position:relative;display:grid;place-items:center">
+              <svg class="i" style="stroke:#fff;opacity:.85"><use href="#ic-image"/></svg>
+              <span style="position:absolute;bottom:5px;left:6px;font-family:var(--mono);font-size:8.5px;color:#fff;opacity:.9">zalo_gui.jpg</span></div>
+            <div style="aspect-ratio:1;border-radius:13px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;position:relative">
+              <div style="text-align:center"><svg class="i" style="stroke:var(--momo)"><use href="#ic-file"/></svg>
+                <div style="font-family:var(--mono);font-size:8.5px;margin-top:3px;color:var(--ink-2)">guideline.pdf</div>
+                <div class="mut" style="font-size:8.5px">4.2 MB</div></div></div>
+          </div>
+
+          <div class="lbl" style="margin:16px 0 8px">21/07 · Đợt nháp 1</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+            <div style="aspect-ratio:1;border-radius:13px;background:linear-gradient(135deg,#06A47B,#0E5F6B)"></div>
+            <div style="aspect-ratio:1;border-radius:13px;background:linear-gradient(135deg,#E07C0A,#B14C06)"></div>
+            <div style="aspect-ratio:1;border-radius:13px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center">
+              <span class="num" style="font-size:15px;color:var(--ink-3)">+9</span></div>
+          </div>
+
+          <div class="slip" style="--notch:70px;margin-top:16px">
+            <div class="between"><span class="lbl">File đang chọn</span><span class="chip ok">Đã ghi nhận</span></div>
+            <div class="row" style="margin-top:10px"><div class="av v"><svg class="i sm" style="stroke:#fff"><use href="#ic-image"/></svg></div>
+              <div style="flex:1"><b style="font-size:13px">logo_v2.png</b><div class="mut">2.1 MB · tải lên 09:12 · bởi bạn</div></div></div>
+            <div class="perf"></div>
+            <div class="btnrow"><a class="btn sm out" href="#" style="text-decoration:none">Gắn vào task</a><a class="btn sm" href="#" style="text-decoration:none"><svg class="i xs"><use href="#ic-send"/></svg> Tạo link 7 ngày</a></div>
+          </div>
+
+          <div class="between" style="margin-top:14px">
+            <span class="mut">Dung lượng gói Solo Pro</span><span class="num" style="font-size:11.5px">1,8 / 10 GB</span></div>
+          <div class="bar" style="margin-top:6px"><i style="width:18%;background:var(--ai)"></i></div>
+        </div>
+        <div style="position:absolute;bottom:26px;left:18px;right:18px;z-index:22">
+          <a class="btn" href="#" style="text-decoration:none"><svg class="i sm"><use href="#ic-image"/></svg> Chụp hoặc chọn file</a>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 10</span><h4>Kho bằng chứng bàn giao</h4>
+      <ul>
+        <li>Nhóm file theo <b>mốc bàn giao</b>, không theo thư mục — vì tranh chấp luôn hỏi “ngày nào gửi cái gì”.</li>
+        <li>Ảnh chụp màn hình Zalo được coi là một loại bằng chứng chính thức, nằm cùng hàng với file gốc.</li>
+        <li>Link chia sẻ luôn hiện rõ <b>thời hạn 7 ngày</b> ngay trên nút, đúng theo thiết kế presigned URL.</li>
+        <li>Thanh dung lượng gói đặt ở đáy màn hình — nhắc giới hạn ngay tại nơi người dùng sắp vượt.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 5 ══════════════ -->
+<section class="flow" id="f5">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 05</span>
+    <h2>Tiền — phần app phải làm giỏi nhất</h2>
+    <p>Rò rỉ doanh thu vì quên đòi nợ là nỗi đau số một trong brief. Hai màn hình dưới đây gánh việc đó: một để nhìn bức tranh tổng, một để biến “tôi ngại nhắc khách” thành một cú chạm.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 11 Doanh thu -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="t">Doanh thu</div><span class="chip">2026 <svg class="i xs"><use href="#ic-chev"/></svg></span></div>
+        <div class="body">
+          <div class="slip" style="--notch:110px">
+            <span class="lbl">Đã thu · 7 tháng đầu năm</span>
+            <div class="num" style="font-size:33px;margin-top:6px">284.500.000 ₫</div>
+            <div class="row" style="gap:6px;margin-top:8px"><span class="chip ok">↑ 22% so với 2025</span><span class="chip">17 hợp đồng</span></div>
+            <div class="perf"></div>
+            <div style="display:flex;align-items:flex-end;gap:6px;height:78px;margin-top:2px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:32px;border-radius:5px;background:#EFE3F4;display:block"></i><span class="mut" style="font-size:9px">01</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:44px;border-radius:5px;background:#EFE3F4;display:block"></i><span class="mut" style="font-size:9px">02</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:26px;border-radius:5px;background:#EFE3F4;display:block"></i><span class="mut" style="font-size:9px">03</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:52px;border-radius:5px;background:#EFE3F4;display:block"></i><span class="mut" style="font-size:9px">04</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:38px;border-radius:5px;background:#EFE3F4;display:block"></i><span class="mut" style="font-size:9px">05</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:60px;border-radius:5px;background:#F3B7D8;display:block"></i><span class="mut" style="font-size:9px">06</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><i style="width:100%;height:48px;border-radius:5px;background:var(--momo);display:block"></i><span class="mut" style="font-size:9px;color:var(--momo);font-weight:700">07</span></div>
+            </div>
+          </div>
+
+          <div class="row" style="gap:10px;margin-top:10px;align-items:stretch">
+            <div class="card" style="flex:1;margin:0"><span class="lbl">Tỉ lệ chốt</span><div class="num" style="font-size:21px;margin-top:5px">41%</div><div class="mut">17/41 báo giá</div></div>
+            <div class="card" style="flex:1;margin:0"><span class="lbl">Deal trung bình</span><div class="num" style="font-size:21px;margin-top:5px">16,7 tr</div><div class="mut">↑ 1,9 tr</div></div>
+          </div>
+
+          <div class="sec"><span class="lbl">Công nợ theo tuổi nợ</span><a href="#">Chi tiết</a></div>
+          <div class="card" style="padding:14px">
+            <div class="between" style="margin-bottom:9px"><span style="font-size:12.5px">Trong hạn</span><span class="num" style="font-size:12.5px">19.000.000 ₫</span></div>
+            <div class="bar" style="margin-bottom:12px"><i style="width:60%;background:var(--ink-3)"></i></div>
+            <div class="between" style="margin-bottom:9px"><span style="font-size:12.5px;color:var(--amber)">Quá 1–7 ngày</span><span class="num" style="font-size:12.5px;color:var(--amber)">7.500.000 ₫</span></div>
+            <div class="bar" style="margin-bottom:12px"><i style="width:24%;background:var(--amber)"></i></div>
+            <div class="between" style="margin-bottom:9px"><span style="font-size:12.5px;color:var(--momo);font-weight:600">Quá trên 30 ngày</span><span class="num" style="font-size:12.5px;color:var(--momo)">5.000.000 ₫</span></div>
+            <div class="bar"><i style="width:16%;background:var(--momo)"></i></div>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <a href="#"><svg class="i"><use href="#ic-home"/></svg>Hôm nay</a>
+          <a href="#"><svg class="i"><use href="#ic-board"/></svg>Pipeline</a>
+          <a href="#"><span class="fab"><svg class="i"><use href="#ic-plus"/></svg></span></a>
+          <a href="#"><svg class="i"><use href="#ic-folder"/></svg>Dự án</a>
+          <a class="on" href="#"><svg class="i"><use href="#ic-user"/></svg>Tôi</a>
+        </nav>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 11</span><h4>Doanh thu</h4>
+      <ul>
+        <li>Tấm phiếu lớn nhất màn hình dành cho <b>số tiền đã thu thật</b>, không phải doanh thu ghi nhận.</li>
+        <li>Biểu đồ cột chỉ tô đậm tháng hiện tại — 6 tháng trước làm nền so sánh, không tranh sự chú ý.</li>
+        <li>Công nợ chia theo <b>tuổi nợ</b> chứ không theo khách: càng để lâu càng khó đòi, màu càng gắt.</li>
+        <li>Chỉ hai chỉ số phụ (tỉ lệ chốt, deal trung bình) — đủ để ra quyết định giá, không thành báo cáo.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 12 Nhắc thanh toán -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:18px">Nhắc thanh toán</div></div>
+        <div class="body">
+          <div class="slip" style="--notch:74px;border-color:#F8CFE4">
+            <div class="between"><span class="lbl">Gửi cho</span><span class="stamp due">Trễ 6 ngày</span></div>
+            <div class="row" style="margin-top:9px"><div class="av p">MA</div>
+              <div style="flex:1"><b style="font-size:13.5px">Cty TNHH Minh An</b><div class="mut">Đợt 2/3 · đến hạn 19/07</div></div></div>
+            <div class="perf"></div>
+            <div class="between"><span class="mut">Số tiền</span><span class="num" style="font-size:19px;color:var(--momo)">7.500.000 ₫</span></div>
+          </div>
+
+          <div class="sec"><span class="lbl">Giọng văn</span></div>
+          <div class="row" style="gap:7px">
+            <span class="chip">Thân mật</span>
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Lịch sự</span>
+            <span class="chip">Dứt khoát</span>
+          </div>
+
+          <div class="card" style="margin-top:12px;border-left:3px solid var(--ai)">
+            <div class="between"><span class="chip ai"><svg class="i xs" style="stroke:var(--ai)"><use href="#ic-ai"/></svg> AI soạn</span><span class="mut">Sửa được</span></div>
+            <p class="sub" style="margin:11px 0 0;font-size:13px;line-height:1.65">Dạ chào chị Hạnh, em gửi chị nhắc nhẹ về đợt thanh toán thứ hai của dự án nhận diện thương hiệu, trị giá <b>7.500.000 ₫</b>, đến hạn ngày 19/07 ạ.<br><br>Em có tạo sẵn link MoMo bên dưới để chị thanh toán nhanh. Nếu cần em xuất hoá đơn hay lùi lịch thì chị nhắn em nhé. Em cảm ơn chị.</p>
+          </div>
+
+          <div class="card" style="margin-top:10px;padding:12px 14px">
+            <div class="between"><span class="row" style="gap:8px"><svg class="i sm" style="stroke:var(--momo)"><use href="#ic-cash"/></svg><span style="font-size:13px">Đính kèm link MoMo</span></span>
+              <span style="width:44px;height:25px;border-radius:99px;background:var(--momo);position:relative;display:inline-block"><i style="position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:#fff;display:block"></i></span></div>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="between"><span class="row" style="gap:8px"><svg class="i sm" style="stroke:var(--ink-2)"><use href="#ic-clock"/></svg><span style="font-size:13px">Tự nhắc lại sau 3 ngày</span></span>
+              <span style="width:44px;height:25px;border-radius:99px;background:var(--line);position:relative;display:inline-block"><i style="position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;display:block"></i></span></div>
+          </div>
+
+          <div class="row" style="gap:7px;margin-top:12px">
+            <span class="chip ok"><svg class="i xs" style="stroke:var(--jade)"><use href="#ic-check"/></svg> Zalo OA</span>
+            <span class="chip">Email dự phòng</span>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(244,240,247,0),var(--paper) 26%);z-index:22">
+          <div class="btnrow"><a class="btn out" href="#" style="width:auto;padding:0 16px;text-decoration:none">Sửa lời</a>
+            <a class="btn money" href="#" style="text-decoration:none"><svg class="i sm"><use href="#ic-send"/></svg> Gửi ngay</a></div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 12</span><h4>Nhắc thu tiền</h4>
+      <ul>
+        <li>Ba mức giọng văn thay vì chỉ “trang trọng / thân mật” — vì đòi nợ lần bảy khác hẳn lần đầu.</li>
+        <li>Bản nhắc kèm sẵn <b>link MoMo</b>: bỏ đi bước khách phải hỏi lại số tài khoản.</li>
+        <li>Câu chữ nêu rõ số tiền và ngày, đồng thời <b>mở đường lùi</b> (xuất hoá đơn, dời lịch) để giữ quan hệ.</li>
+        <li>Chọn kênh gửi ở ngay trên nút — Zalo là mặc định, email chỉ là dự phòng.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<!-- ══════════════ LUỒNG 6 ══════════════ -->
+<section class="flow" id="f6">
+  <div class="flow-head">
+    <span class="eyebrow">Luồng 06</span>
+    <h2>Tài khoản, mẫu tài liệu và lúc rớt mạng</h2>
+    <p>Ba màn hình khép lại phạm vi mở rộng: tự mua gói qua MoMo, tự quản lý mẫu hợp đồng, và trạng thái ngoại tuyến — thứ mà bản demo hay bỏ quên nhưng lại là yêu cầu phi chức năng ghi rõ trong brief.</p>
+  </div>
+  <div class="rack">
+
+  <!-- 13 Gói -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:18px">Gói dịch vụ</div></div>
+        <div class="body">
+          <div class="row" style="gap:7px;margin-bottom:12px">
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Theo tháng</span>
+            <span class="chip">Theo năm <b style="color:var(--jade)">−28%</b></span>
+          </div>
+
+          <div class="card" style="padding:14px;opacity:.72">
+            <div class="between"><b style="font-size:15px;font-family:var(--disp)">Free</b><span class="num" style="font-size:15px">0 ₫</span></div>
+            <div class="mut" style="margin-top:4px">5 khách · 3 lượt AI · không xuất PDF</div>
+          </div>
+
+          <div class="slip" style="--notch:150px;margin-top:10px;border:2px solid var(--ai);background:linear-gradient(180deg,#F7F2FE,#fff)">
+            <div class="between"><span class="chip ai">Đang dùng · phổ biến nhất</span><span class="stamp draft" style="color:var(--ai)">Solo Pro</span></div>
+            <div class="row" style="align-items:baseline;gap:5px;margin-top:11px">
+              <span class="num" style="font-size:31px">149.000</span><span class="num" style="font-size:14px;color:var(--ink-2)">₫ / tháng</span></div>
+            <div class="mut">Gia hạn ngày 12/08/2026</div>
+            <div class="perf"></div>
+            <div style="font-size:12.5px;line-height:2">
+              <div class="between"><span>Khách hàng &amp; thương vụ</span><b class="num">Không giới hạn</b></div>
+              <div class="between"><span>Lượt AI trong tháng</span><b class="num">18 / 80</b></div>
+              <div class="bar" style="margin:2px 0 6px"><i style="width:22%;background:var(--ai)"></i></div>
+              <div class="between"><span>Dung lượng file</span><b class="num">1,8 / 10 GB</b></div>
+              <div class="between"><span>Dự án chạy song song</span><b class="num">2 / 5</b></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:10px;padding:14px;border-color:var(--ink)">
+            <div class="between"><b style="font-size:15px;font-family:var(--disp)">Business</b><span class="num" style="font-size:15px">399.000 ₫</span></div>
+            <div class="mut" style="margin-top:4px">5 thành viên · AI không giới hạn · PDF không đóng dấu</div>
+            <div class="row" style="gap:5px;margin-top:9px"><span class="chip">Logo riêng trên PDF</span><span class="chip">Hỗ trợ trong 2h</span></div>
+          </div>
+
+          <div class="card" style="margin-top:14px;background:var(--momo-soft);border-color:#F8CFE4;padding:13px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--momo)"><use href="#ic-cash"/></svg>
+              <span class="sub" style="flex:1;font-size:12.5px;color:#9C1259">Thanh toán bằng MoMo, quét mã hoặc mở thẳng ứng dụng. Gói kích hoạt trong vài giây.</span></div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(244,240,247,0),var(--paper) 26%);z-index:22">
+          <a class="btn money" href="#" style="text-decoration:none">Nâng lên Business · 399.000 ₫</a>
+          <p class="mut" style="text-align:center;margin:9px 0 0">Huỷ tự động gia hạn bất cứ lúc nào</p>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 13</span><h4>Gói và thanh toán MoMo</h4>
+      <ul>
+        <li>Gói đang dùng là <b>tấm phiếu ở giữa</b>, kèm mức tiêu thụ thật — bán thêm bằng dữ liệu, không bằng lời quảng cáo.</li>
+        <li>Thanh “18/80 lượt AI” chính là hệ entitlement hiện ra mặt người dùng, đúng theo `PLAN_ENTITLEMENTS`.</li>
+        <li>Gói Free để mờ vì người này đã trả tiền — không nhắc lại lựa chọn đã bỏ qua.</li>
+        <li>Nói trước cách thanh toán và cách huỷ ngay cạnh nút, giảm do dự ở bước cuối.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 14 Mẫu của tôi -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+      <div class="screen">
+        <div class="appbar"><div class="iconbtn ghost"><svg class="i"><use href="#ic-back"/></svg></div><div class="t" style="font-size:18px">Mẫu của tôi</div><div class="iconbtn"><svg class="i"><use href="#ic-plus"/></svg></div></div>
+        <div class="body">
+          <div class="row" style="gap:7px;margin-bottom:12px">
+            <span class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)">Tất cả · 6</span>
+            <span class="chip">Báo giá</span><span class="chip">Hợp đồng</span><span class="chip">Hoá đơn</span>
+          </div>
+
+          <div class="card" style="border-color:var(--ink)">
+            <div class="row"><div class="av v"><svg class="i sm" style="stroke:#fff"><use href="#ic-file"/></svg></div>
+              <div style="flex:1"><b style="font-size:13.5px">Hợp đồng thiết kế nhận diện</b><div class="mut">Của tôi · sửa 3 ngày trước</div></div>
+              <span class="chip ok">Mặc định</span></div>
+            <div class="row" style="gap:5px;margin-top:10px">
+              <span class="chip" style="font-family:var(--mono);font-size:10px">{{client_name}}</span>
+              <span class="chip" style="font-family:var(--mono);font-size:10px">{{price}}</span>
+              <span class="chip" style="font-family:var(--mono);font-size:10px">+9</span></div>
+          </div>
+
+          <div class="card">
+            <div class="row"><div class="av p"><svg class="i sm" style="stroke:#fff"><use href="#ic-file"/></svg></div>
+              <div style="flex:1"><b style="font-size:13.5px">Báo giá gấp — khách quen</b><div class="mut">Chép từ mẫu hệ thống · đã sửa</div></div>
+              <svg class="i sm" style="stroke:var(--ink-3)"><use href="#ic-chev"/></svg></div>
+          </div>
+
+          <div class="card">
+            <div class="row"><div class="av" style="background:var(--ink-3)"><svg class="i sm" style="stroke:#fff"><use href="#ic-file"/></svg></div>
+              <div style="flex:1"><b style="font-size:13.5px">Báo giá dịch vụ tiêu chuẩn</b><div class="mut">Mẫu hệ thống · chỉ đọc</div></div>
+              <span class="chip">Chép</span></div>
+          </div>
+
+          <div class="sec"><span class="lbl">Kiểm tra mẫu đang mở</span></div>
+          <div class="card" style="background:var(--amber-soft);border-color:#F6DDBB;padding:12px 14px">
+            <div class="row" style="align-items:flex-start"><svg class="i sm" style="stroke:var(--amber);margin-top:1px"><use href="#ic-clock"/></svg>
+              <span class="sub" style="flex:1;font-size:12.5px;color:#8A4B04">Mẫu này thiếu điều khoản bản quyền. Tài liệu đã gửi trước đây không thay đổi.</span></div>
+          </div>
+
+          <div class="card" style="margin-top:10px;padding:0;overflow:hidden">
+            <div style="padding:13px 14px"><span class="lbl">Xem trước</span>
+              <div style="font-family:var(--disp);font-weight:800;font-size:15px;margin-top:8px">HỢP ĐỒNG DỊCH VỤ</div>
+              <p class="sub" style="font-size:12px;margin:7px 0 0">Điều 1. Thông tin các bên<br><span style="background:var(--ai-soft);color:var(--ai);font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:4px">{{freelancer_name}}</span> và <span style="background:var(--ai-soft);color:var(--ai);font-family:var(--mono);font-size:10.5px;padding:1px 4px;border-radius:4px">{{client_name}}</span> thống nhất…</p>
+            </div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 14</span><h4>Thư viện mẫu tự quản</h4>
+      <ul>
+        <li>Mẫu hệ thống và mẫu tự tạo nằm chung danh sách, phân biệt bằng <b>nhãn “chỉ đọc”</b> và nút “Chép”.</li>
+        <li>Biến <code style="font-family:var(--mono);font-size:11.5px">{{...}}</code> hiển thị như thẻ tím — cùng màu AI, vì đây là chỗ dữ liệu tự điền vào.</li>
+        <li>Cảnh báo thiếu điều khoản nhắc luôn rằng tài liệu cũ <b>giữ nguyên bản chụp</b>, không bị sửa ngược.</li>
+        <li>Trên mobile chỉ cho <b>xem, chọn mặc định và chép</b>; soạn thảo đầy đủ để trên bản web.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  <!-- 15 Ngoại tuyến -->
+  <figure class="unit">
+    <div class="phone"><div class="notch"></div>
+      <div class="sbar"><span>9:41</span><span class="row" style="gap:6px"><svg class="i xs" style="stroke:var(--ink)"><use href="#ic-wifi-off"/></svg><span class="bat"></span></span></div>
+      <div class="screen">
+        <div style="background:var(--ink);color:#fff;padding:9px 18px;display:flex;align-items:center;gap:9px">
+          <svg class="i sm" style="stroke:#fff"><use href="#ic-wifi-off"/></svg>
+          <span style="font-size:12px;flex:1">Đang ngoại tuyến · dữ liệu lúc 08:14</span>
+          <span class="chip" style="background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.24)">3 chờ gửi</span>
+        </div>
+        <div class="appbar" style="padding-top:12px">
+          <div class="av p">HL</div>
+          <div style="flex:1"><div class="mut" style="font-size:11px">Thứ Bảy, 25/07</div><div class="t" style="font-size:20px">Hôm nay</div></div>
+          <div class="iconbtn"><svg class="i"><use href="#ic-bell"/></svg></div>
+        </div>
+        <div class="body">
+          <div class="slip" style="--notch:80px;filter:grayscale(1);opacity:.72">
+            <div class="between"><span class="lbl">Đang chờ thu · tháng 7</span><span class="chip">Số cũ</span></div>
+            <div class="num" style="font-size:31px;margin-top:8px">31.500.000 ₫</div>
+            <div class="perf"></div>
+            <span class="mut">Sẽ cập nhật lại khi có mạng</span>
+          </div>
+
+          <div class="sec"><span class="lbl">Hàng chờ đồng bộ</span><a href="#">Thử lại</a></div>
+          <div class="card" style="border-left:3px solid var(--ai);padding:12px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--ai)"><use href="#ic-mic"/></svg>
+              <div style="flex:1"><b style="font-size:13px">Lead ghi bằng giọng nói</b><div class="mut">“Anh Nam Studio Cỏ, 40 sản phẩm…”</div></div>
+              <span class="chip ai">Chờ AI</span></div>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--ink-2)"><use href="#ic-check"/></svg>
+              <div style="flex:1"><b style="font-size:13px">Đánh dấu 2 task đã xong</b><div class="mut">Dự án Minh An</div></div>
+              <span class="chip">Đã lưu máy</span></div>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="row"><svg class="i sm" style="stroke:var(--ink-2)"><use href="#ic-image"/></svg>
+              <div style="flex:1"><b style="font-size:13px">1 ảnh bàn giao</b><div class="mut">2,1 MB · tải lên khi có Wi-Fi</div></div>
+              <span class="chip">Chờ Wi-Fi</span></div>
+          </div>
+
+          <div class="card" style="margin-top:14px;padding:14px;text-align:center;border-style:dashed">
+            <svg class="i" style="stroke:var(--ink-3);width:26px;height:26px"><use href="#ic-send"/></svg>
+            <b style="display:block;font-size:13.5px;margin-top:8px">Chưa gửi được tin nhắn nào</b>
+            <p class="mut" style="margin:5px 0 0;line-height:1.55">Nhắc thanh toán và báo giá chỉ gửi đi<br>sau khi máy kết nối lại mạng.</p>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <a class="on" href="#"><svg class="i"><use href="#ic-home"/></svg>Hôm nay</a>
+          <a href="#"><svg class="i"><use href="#ic-board"/></svg>Pipeline</a>
+          <a href="#"><span class="fab" style="background:var(--ink-3)"><svg class="i"><use href="#ic-plus"/></svg></span></a>
+          <a href="#"><svg class="i"><use href="#ic-folder"/></svg>Dự án</a>
+          <a href="#"><svg class="i"><use href="#ic-user"/></svg>Tôi</a>
+        </nav>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <figcaption><span class="no">MÀN 15</span><h4>Chế độ ngoại tuyến</h4>
+      <ul>
+        <li>App <b>không chặn thao tác</b>: vẫn ghi lead, vẫn tick task — chỉ khác là xếp vào hàng chờ.</li>
+        <li>Số liệu cũ chuyển sang <b>xám và ghi rõ giờ chụp</b>, tránh việc người dùng ra quyết định trên dữ liệu lỗi thời.</li>
+        <li>Hàng chờ hiện rõ từng mục và điều kiện gửi (“chờ Wi-Fi”), thay vì một vòng xoay vô hạn.</li>
+        <li>Nút ＋ đổi xám để báo trước: tạo được, nhưng AI phải đợi có mạng mới chạy.</li>
+      </ul>
+    </figcaption>
+  </figure>
+
+  </div>
+</section>
+
+<section class="flow">
+  <div class="flow-head">
+    <span class="eyebrow">Ghi chú bàn giao</span>
+    <h2>Những gì bản phác thảo này đã quyết</h2>
+    <p style="margin-top:16px">Bốn quyết định thiết kế xuyên suốt, để nhóm phát triển và giảng viên hướng dẫn có cùng cách hiểu trước khi dựng Flutter:</p>
+    <ol style="color:#C0B0CE;font-size:14.5px;line-height:1.75;padding-left:20px;margin-top:18px">
+      <li style="margin-bottom:10px"><b style="color:#fff">Màu là ngữ nghĩa, không phải trang trí.</b> Hồng chỉ dùng cho tiền, tím chỉ dùng cho nội dung AI. Không màn nào được phá quy ước này.</li>
+      <li style="margin-bottom:10px"><b style="color:#fff">Kanban không kéo thả trên mobile.</b> Sáu cột đổi thành chip lọc; đổi giai đoạn bằng menu chọn để tránh thao tác trượt tay.</li>
+      <li style="margin-bottom:10px"><b style="color:#fff">AI luôn dừng lại trước một nút duyệt.</b> Ba tầng AI dùng chung khuôn “đề xuất → xem trước → duyệt và gửi”, kèm lý do bằng lời.</li>
+      <li><b style="color:#fff">Ngoại tuyến là một trạng thái được thiết kế</b>, không phải lỗi. Ghi và sửa vẫn chạy, chỉ có việc gửi ra ngoài là phải chờ.</li>
+    </ol>
+    <p style="margin-top:22px;color:#8E7C9C;font-size:13px">SoloDesk 2026 · Bản phác thảo UI mobile · GVHD Lại Đức Hùng</p>
+  </div>
+</section>
+
+</div>

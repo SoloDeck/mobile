@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/clients/domain/entities/client.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/controllers/clients_controller.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
+import 'package:solodesk_mobile/theme/app_gap.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
 
 /// Form to create a new client. On success, pops back to the list.
 class CreateClientPage extends ConsumerStatefulWidget {
@@ -57,65 +59,71 @@ class _CreateClientPageState extends ConsumerState<CreateClientPage> {
     final state = ref.watch(createClientControllerProvider);
     final isSubmitting = state.isLoading;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Thêm khách hàng')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Tên khách hàng *'),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<ClientType>(
-              segments: ClientType.values
-                  .map((t) => ButtonSegment(value: t, label: Text(t.label)))
-                  .toList(),
-              selected: {_type},
-              onSelectionChanged: (s) => setState(() => _type = s.first),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Điện thoại'),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Ghi chú'),
-            ),
-            const SizedBox(height: 16),
-            if (state.hasError)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  state.error.toString(),
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+    return Theme(
+      data: AppTheme.light(),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Thêm khách hàng')),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(AppGap.screen),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Tên khách hàng *'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
+              ),
+              const SizedBox(height: AppGap.lg),
+              SegmentedButton<ClientType>(
+                segments: ClientType.values
+                    .map((t) => ButtonSegment(value: t, label: Text(t.label)))
+                    .toList(),
+                selected: {_type},
+                onSelectionChanged: (s) => setState(() => _type = s.first),
+                style: SegmentedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
                 ),
               ),
-            FilledButton(
-              onPressed: isSubmitting ? null : _submit,
-              child: isSubmitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Lưu khách hàng'),
-            ),
-          ],
+              const SizedBox(height: AppGap.lg),
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              const SizedBox(height: AppGap.lg),
+              TextFormField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Điện thoại'),
+              ),
+              const SizedBox(height: AppGap.lg),
+              TextFormField(
+                controller: _notesController,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Ghi chú'),
+              ),
+              const SizedBox(height: AppGap.lg),
+              if (state.hasError)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppGap.md),
+                  child: Text(
+                    'Lỗi: Không thể tạo khách hàng. Vui lòng thử lại.',
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              FilledButton(
+                onPressed: isSubmitting ? null : _submit,
+                child: isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Lưu khách hàng'),
+              ),
+            ],
+          ),
         ),
       ),
     );

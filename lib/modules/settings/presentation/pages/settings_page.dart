@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solodesk_mobile/core/theme/app_colors.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
 import 'package:solodesk_mobile/modules/settings/domain/value_objects/accent_preset.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/logout_loading_overlay.dart';
+import 'package:solodesk_mobile/theme/app_gap.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
+import 'package:solodesk_mobile/theme/app_colors.dart';
+import 'package:solodesk_mobile/ui/section_header.dart';
+import 'package:solodesk_mobile/ui/solo_icons.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -17,31 +21,34 @@ class SettingsPage extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
     final isLoggingOut = authState.isLoading;
 
-    return LogoutLoadingOverlay(
-      isLoading: isLoggingOut,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Cài đặt')),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const _SectionHeader(label: 'Giao diện'),
-            const SizedBox(height: 12),
-            _ThemeModeSelector(
-              mode: appearance.mode,
-              onChanged: controller.setMode,
-            ),
-            const SizedBox(height: 28),
-            const _SectionHeader(label: 'Màu nhấn'),
-            const SizedBox(height: 12),
-            _AccentSelector(
-              selected: appearance.accent,
-              onChanged: controller.setAccent,
-            ),
-            const SizedBox(height: 40),
-            const Divider(),
-            const SizedBox(height: 8),
-            _LogoutTile(isLoading: isLoggingOut),
-          ],
+    return Theme(
+      data: AppTheme.light(),
+      child: LogoutLoadingOverlay(
+        isLoading: isLoggingOut,
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Cài đặt')),
+          body: ListView(
+            padding: const EdgeInsets.all(AppGap.screen),
+            children: [
+              const SectionHeader('Giao diện'),
+              const SizedBox(height: AppGap.sectionBottom),
+              _ThemeModeSelector(
+                mode: appearance.mode,
+                onChanged: controller.setMode,
+              ),
+              const SizedBox(height: AppGap.sectionTop),
+              const SectionHeader('Màu nhấn'),
+              const SizedBox(height: AppGap.sectionBottom),
+              _AccentSelector(
+                selected: appearance.accent,
+                onChanged: controller.setAccent,
+              ),
+              const SizedBox(height: AppGap.sectionTop),
+              const Divider(),
+              const SizedBox(height: AppGap.sm),
+              _LogoutTile(isLoading: isLoggingOut),
+            ],
+          ),
         ),
       ),
     );
@@ -81,36 +88,19 @@ class _LogoutTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final errorColor = Theme.of(context).colorScheme.error;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(Icons.logout_rounded, color: errorColor),
-      title: Text(
+      leading: Icon(Icons.logout_rounded, color: AppColors.ink),
+      title: const Text(
         'Đăng xuất',
-        style: TextStyle(color: errorColor, fontWeight: FontWeight.w500),
+        style: TextStyle(fontWeight: FontWeight.w500),
       ),
       onTap: isLoading ? null : () => _confirmLogout(context, ref),
     );
   }
 }
 
-// ── unchanged widgets below ──────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-    );
-  }
-}
+// ── Theme-mode and accent selectors ─────────────────────────────────────────
 
 class _ThemeModeSelector extends StatelessWidget {
   const _ThemeModeSelector({required this.mode, required this.onChanged});
@@ -199,14 +189,14 @@ class _AccentSwatch extends StatelessWidget {
                 color: preset.seed,
                 shape: BoxShape.circle,
                 border: isSelected
-                    ? Border.all(color: scheme.onSurface, width: 3)
+                    ? Border.all(color: scheme.onSurface, width: 2)
                     : null,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, color: AppColors.onPrimary)
+                  ? const SoloIcon(SoloIcons.check, label: null, color: AppColors.surface)
                   : null,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppGap.xs),
             Text(preset.label, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
