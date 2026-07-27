@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/clients/domain/entities/client.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/controllers/clients_controller.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 
@@ -58,9 +60,10 @@ class _CreateClientPageState extends ConsumerState<CreateClientPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(createClientControllerProvider);
     final isSubmitting = state.isLoading;
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: const Text('Thêm khách hàng')),
         body: Form(

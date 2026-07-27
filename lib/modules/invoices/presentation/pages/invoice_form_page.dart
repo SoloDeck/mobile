@@ -8,6 +8,8 @@ import 'package:solodesk_mobile/modules/invoices/domain/repositories/invoices_re
 import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoice_detail_controller.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/line_item_editor.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/extensions/context_extensions.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
@@ -46,8 +48,9 @@ class InvoiceFormPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appearance = ref.watch(appearanceControllerProvider);
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: Text(_isEdit ? 'Sửa hóa đơn' : 'Tạo hóa đơn')),
         body: _isEdit

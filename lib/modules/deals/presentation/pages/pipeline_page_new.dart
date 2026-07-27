@@ -5,6 +5,8 @@ import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
 import 'package:solodesk_mobile/modules/deals/domain/value_objects/pipeline_summary.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/providers/deals_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -61,9 +63,10 @@ class PipelinePage extends ConsumerWidget {
     final pipeline = ref.watch(dealPipelineProvider);
     final deals = ref.watch(dealListProvider);
     final combined = _combine(pipeline, deals);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         // Thanh tab do `AppShell` dựng một lần cho cả bốn màn gốc — màn này

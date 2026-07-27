@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/clients/domain/entities/client.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/providers/clients_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_text.dart';
@@ -19,9 +21,10 @@ class ClientDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.watch(clientDetailProvider(clientId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: Text(client.value?.name ?? 'Chi tiết khách hàng')),
         body: AsyncValueWidget<Client>(

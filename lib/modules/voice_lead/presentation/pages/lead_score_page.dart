@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/modules/voice_lead/domain/entities/voice_lead_draft.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -51,9 +53,10 @@ class LeadScorePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final draft = ref.watch(voiceLeadProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

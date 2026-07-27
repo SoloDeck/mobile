@@ -22,7 +22,7 @@ class SettingsPage extends ConsumerWidget {
     final isLoggingOut = authState.isLoading;
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: LogoutLoadingOverlay(
         isLoading: isLoggingOut,
         child: Scaffold(

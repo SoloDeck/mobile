@@ -6,6 +6,8 @@ import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_qu
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoices_list_controller.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_card.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/error_retry_widget.dart';
 import 'package:solodesk_mobile/shared/widgets/loading_shimmer.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -58,9 +60,10 @@ class _InvoicesPageState extends ConsumerState<InvoicesPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(invoicesListControllerProvider);
     final activeFilter = state.value?.filter ?? const InvoiceListFilter();
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: const Text('Hóa đơn')),
         floatingActionButton: FloatingActionButton.extended(

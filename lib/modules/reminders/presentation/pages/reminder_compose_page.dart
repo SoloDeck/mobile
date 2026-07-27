@@ -8,6 +8,8 @@ import 'package:solodesk_mobile/modules/reminders/domain/value_objects/reminder_
 import 'package:solodesk_mobile/modules/reminders/domain/value_objects/reminder_type.dart';
 import 'package:solodesk_mobile/modules/reminders/presentation/controllers/reminder_compose_controller.dart';
 import 'package:solodesk_mobile/modules/reminders/presentation/providers/reminders_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -70,11 +72,12 @@ class ReminderComposePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dataAsync = ref.watch(reminderComposeDataProvider(invoiceId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     // Bọc `Theme` mới vì app vẫn đang chạy `AppTheme` cũ ở gốc — không bọc thì
     // toàn màn ra sai màu.
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

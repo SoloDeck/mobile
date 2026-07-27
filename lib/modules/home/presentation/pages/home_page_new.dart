@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summary.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/providers/analytics_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -43,9 +45,10 @@ class HomeTodayPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summary = ref.watch(dashboardSummaryProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         // Thanh tab do `AppShell` dựng một lần cho cả bốn màn gốc — màn này

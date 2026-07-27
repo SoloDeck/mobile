@@ -10,6 +10,8 @@ import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_am
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_status_badge.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/payment_record_tile.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/record_payment_sheet.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/extensions/context_extensions.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
@@ -29,6 +31,7 @@ class InvoiceDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final invoice = ref.watch(invoiceDetailProvider(invoiceId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     ref.listen(invoiceDetailControllerProvider, (previous, next) {
       if (next.hasError) {
@@ -41,7 +44,7 @@ class InvoiceDetailPage extends ConsumerWidget {
     });
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: const Text('Chi tiết hóa đơn')),
         body: AsyncValueWidget<Invoice>(

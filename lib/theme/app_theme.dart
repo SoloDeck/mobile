@@ -19,10 +19,29 @@ import 'package:solodesk_mobile/theme/tone.dart';
 abstract final class AppTheme {
   /// Bản phác thảo chỉ có một chế độ sáng. Chưa thiết kế chế độ tối cho tầng này
   /// — MÀN 06 là một màn nền tối, không phải một theme tối.
-  static ThemeData light() {
-    const scheme = ColorScheme.light(
-      primary: AppColors.ink,
-      onPrimary: AppColors.surface,
+  ///
+  /// [seed] là màu nhấn người dùng chọn ở "Cài đặt" (xem `AccentPreset`). Nó
+  /// **chỉ** đổi `colorScheme.primary`/`onPrimary` — nơi Material tự vẽ khi
+  /// không có widget `lib/ui/` nào phủ lên, ví dụ viền `TextField` khi focus,
+  /// con trỏ nhập chữ, `Switch`/`Checkbox`/`Radio`, `CircularProgressIndicator`.
+  ///
+  /// Nó **không** đổi [Tone] hay bất kỳ hằng số nào trong [AppColors]: hồng
+  /// (tiền), tím (AI chờ duyệt), ngọc (đã xong), hổ phách (sắp hạn) là ngữ
+  /// nghĩa cố định của bản phác thảo, không phải chỗ để cá nhân hoá — đổi
+  /// chúng theo màu nhấn sẽ phá quy tắc 2 trong `AGENTS.md`. Vì vậy phần lớn
+  /// `lib/ui/` (vốn đọc thẳng `AppColors`/`Tone` thay vì `Theme.of(context)`)
+  /// sẽ không đổi màu theo [seed] — đó là chủ ý, không phải thiếu sót.
+  ///
+  /// Không truyền [seed] (mặc định `null`) giữ nguyên `primary` mực than như
+  /// trước — mọi golden test và màn chưa nối dây accent không đổi giao diện.
+  static ThemeData light({Color? seed}) {
+    final seedScheme = seed == null
+        ? null
+        : ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light);
+
+    final scheme = ColorScheme.light(
+      primary: seedScheme?.primary ?? AppColors.ink,
+      onPrimary: seedScheme?.onPrimary ?? AppColors.surface,
       secondary: AppColors.ai,
       onSecondary: AppColors.surface,
       surface: AppColors.surface,

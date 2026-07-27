@@ -8,6 +8,8 @@ import 'package:solodesk_mobile/modules/proposals/domain/value_objects/payment_s
 import 'package:solodesk_mobile/modules/proposals/domain/value_objects/proposal_status.dart';
 import 'package:solodesk_mobile/modules/proposals/presentation/controllers/proposal_review_controller.dart';
 import 'package:solodesk_mobile/modules/proposals/presentation/providers/proposals_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -58,9 +60,10 @@ class ProposalReviewPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reviewAsync = ref.watch(proposalReviewProvider(proposalId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

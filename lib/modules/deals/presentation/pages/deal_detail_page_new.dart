@@ -9,6 +9,8 @@ import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_form_page.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -96,9 +98,10 @@ class DealDetailPage extends ConsumerWidget {
     // Nút ba chấm cần `deal` để dựng đường dẫn tạo hoá đơn; lúc đang tải thì
     // chưa có, nút đứng im chứ cây widget không đổi.
     final deal = dealAsync.value;
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

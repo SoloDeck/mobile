@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/clients/domain/entities/client.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/providers/clients_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
@@ -18,9 +20,10 @@ class ClientsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clients = ref.watch(clientListProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         appBar: AppBar(title: const Text('Khách hàng')),
         floatingActionButton: FloatingActionButton.extended(

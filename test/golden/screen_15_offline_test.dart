@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_offline_page.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -18,10 +19,12 @@ Future<void> _pump(WidgetTester tester) async {
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   await tester.pumpWidget(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      home: const HomeOfflinePage(),
+    ProviderScope(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        home: const HomeOfflinePage(),
+      ),
     ),
   );
   await tester.pumpAndSettle();

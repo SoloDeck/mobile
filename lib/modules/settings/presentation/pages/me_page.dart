@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/providers/auth_state_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_text.dart';
@@ -35,9 +37,10 @@ class MePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

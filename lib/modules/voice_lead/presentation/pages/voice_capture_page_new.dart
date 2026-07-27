@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/audio/voice_capture_service.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -202,6 +204,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
 
   @override
   Widget build(BuildContext context) {
+    final appearance = ref.watch(appearanceControllerProvider);
     final draft = ref.watch(voiceLeadProvider);
     final clientName = draft?.suggestedClientName?.trim();
     final dealTitle = draft?.suggestedDealTitle.trim();
@@ -216,7 +219,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
     final transcript = _transcript.trim();
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         // Màu nền riêng của màn này — không phải theme tối, xem doc comment lớp.
         backgroundColor: AppColors.ink,

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
@@ -69,8 +71,10 @@ class LoginLandingPage extends ConsumerWidget {
       }
     });
 
+    final appearance = ref.watch(appearanceControllerProvider);
+
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: const Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(
