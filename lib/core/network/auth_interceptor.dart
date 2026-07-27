@@ -56,8 +56,5 @@ class AuthInterceptor extends Interceptor {
 
 @Riverpod(keepAlive: true)
 AuthInterceptor authInterceptor(Ref ref) {
-  return AuthInterceptor(
-    ref.read(tokenManagerProvider),
-    ref.container,
-  );
+  return AuthInterceptor(ref.read(tokenManagerProvider), ref.container);
 }

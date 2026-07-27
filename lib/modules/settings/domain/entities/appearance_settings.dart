@@ -4,10 +4,7 @@ import 'package:solodesk_mobile/modules/settings/domain/value_objects/accent_pre
 /// User's appearance personalization: theme mode + accent color.
 @immutable
 class AppearanceSettings {
-  const AppearanceSettings({
-    required this.mode,
-    required this.accent,
-  });
+  const AppearanceSettings({required this.mode, required this.accent});
 
   final ThemeMode mode;
   final AccentPreset accent;
@@ -38,14 +35,14 @@ class AppearanceSettings {
 /// Maps [ThemeMode] to/from a stable storage string.
 extension ThemeModeStorage on ThemeMode {
   String get storageValue => switch (this) {
-        ThemeMode.system => 'system',
-        ThemeMode.light => 'light',
-        ThemeMode.dark => 'dark',
-      };
+    ThemeMode.system => 'system',
+    ThemeMode.light => 'light',
+    ThemeMode.dark => 'dark',
+  };
 
   static ThemeMode fromStorage(String? value) => switch (value) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
-      };
+    'light' => ThemeMode.light,
+    'dark' => ThemeMode.dark,
+    _ => ThemeMode.system,
+  };
 }

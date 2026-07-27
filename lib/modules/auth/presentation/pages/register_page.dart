@@ -55,8 +55,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     ref.listen(authControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
         final error = next.error;
-        final message =
-            error is AppException ? error.message : 'Something went wrong';
+        final message = error is AppException
+            ? error.message
+            : 'Something went wrong';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(

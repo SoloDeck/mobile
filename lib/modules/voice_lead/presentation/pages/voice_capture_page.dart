@@ -65,7 +65,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
     final initialized = await svc.initialize();
     if (!initialized) {
       setState(() {
-        _errorMessage = 'Không thể khởi tạo microphone. Kiểm tra quyền truy cập.';
+        _errorMessage =
+            'Không thể khởi tạo microphone. Kiểm tra quyền truy cập.';
         _voiceState = _VoiceState.error;
       });
       return;
@@ -93,10 +94,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
     try {
       final useCase = ref.read(captureAndQualifyLeadUseCaseProvider);
       // clientId is empty for voice capture flow — deal is created as a fresh lead
-      final draft = await useCase(
-        transcribedText: _transcript,
-        clientId: '',
-      );
+      final draft = await useCase(transcribedText: _transcript, clientId: '');
       setState(() {
         _draft = draft;
         _voiceState = _VoiceState.qualified;
@@ -194,7 +192,11 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
     return Column(
       children: [
         const SizedBox(height: 16),
-        _WaveformAnimation(level: _soundLevel, controller: _waveCtrl, color: cs.primary),
+        _WaveformAnimation(
+          level: _soundLevel,
+          controller: _waveCtrl,
+          color: cs.primary,
+        ),
         const SizedBox(height: 24),
         if (_transcript.isNotEmpty)
           Expanded(
@@ -212,8 +214,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
               child: Text(
                 'Đang lắng nghe…',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ),
@@ -254,8 +256,9 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
         const SizedBox(height: 16),
         Text(
           draft.suggestedDealTitle,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         if (draft.suggestedClientName != null) ...[
           const SizedBox(height: 8),
@@ -270,8 +273,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
             child: Text(
               _transcript,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -284,8 +287,11 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline,
-              size: 48, color: Theme.of(context).colorScheme.error),
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(height: 16),
           Text(_errorMessage ?? 'Có lỗi xảy ra'),
           const SizedBox(height: 24),
@@ -301,41 +307,41 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage>
   Widget _buildActions(ColorScheme cs) {
     return switch (_voiceState) {
       _VoiceState.idle || _VoiceState.error => FilledButton.icon(
-          key: const Key('record_button'),
-          onPressed: _toggleRecording,
-          icon: const Icon(Icons.mic),
-          label: const Text('Bắt đầu ghi âm'),
-        ),
+        key: const Key('record_button'),
+        onPressed: _toggleRecording,
+        icon: const Icon(Icons.mic),
+        label: const Text('Bắt đầu ghi âm'),
+      ),
       _VoiceState.recording => FilledButton.icon(
-          key: const Key('stop_button'),
-          onPressed: _toggleRecording,
-          style: FilledButton.styleFrom(
-            backgroundColor: cs.error,
-            foregroundColor: cs.onError,
-          ),
-          icon: const Icon(Icons.stop),
-          label: const Text('Dừng ghi âm'),
+        key: const Key('stop_button'),
+        onPressed: _toggleRecording,
+        style: FilledButton.styleFrom(
+          backgroundColor: cs.error,
+          foregroundColor: cs.onError,
         ),
+        icon: const Icon(Icons.stop),
+        label: const Text('Dừng ghi âm'),
+      ),
       _VoiceState.qualifying || _VoiceState.creating => const SizedBox.shrink(),
       _VoiceState.qualified => Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                key: const Key('cancel_confirm_button'),
-                onPressed: _cancel,
-                child: const Text('Huỷ'),
-              ),
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              key: const Key('cancel_confirm_button'),
+              onPressed: _cancel,
+              child: const Text('Huỷ'),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton(
-                key: const Key('confirm_button'),
-                onPressed: _confirm,
-                child: const Text('Tạo thương vụ'),
-              ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton(
+              key: const Key('confirm_button'),
+              onPressed: _confirm,
+              child: const Text('Tạo thương vụ'),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     };
   }
 }
@@ -357,8 +363,7 @@ class _ScoreBadge extends StatelessWidget {
       key: Key('score_badge_$recommendation'),
       label: Text(
         label,
-        style: TextStyle(
-            color: semantic.onScore, fontWeight: FontWeight.w600),
+        style: TextStyle(color: semantic.onScore, fontWeight: FontWeight.w600),
       ),
       backgroundColor: color,
       padding: EdgeInsets.zero,
@@ -390,7 +395,8 @@ class _WaveformAnimation extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: List.generate(7, (i) {
               final base = level * 50 + 10;
-              final height = base * (0.5 + 0.5 * sin(controller.value * pi + i * 0.8));
+              final height =
+                  base * (0.5 + 0.5 * sin(controller.value * pi + i * 0.8));
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: AnimatedContainer(

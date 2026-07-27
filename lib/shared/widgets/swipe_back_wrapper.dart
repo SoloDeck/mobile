@@ -71,8 +71,7 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
     super.dispose();
   }
 
-  bool _checkCanPop() =>
-      widget.canPop?.call() ?? context.canPop();
+  bool _checkCanPop() => widget.canPop?.call() ?? context.canPop();
 
   void _pop() => widget.onPop != null ? widget.onPop!() : context.pop();
 
@@ -98,7 +97,8 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
     final w = MediaQuery.sizeOf(context).width;
     final velocity = details.primaryVelocity ?? 0;
 
-    if (_offset > w * widget.popThreshold || velocity > widget.velocityThreshold) {
+    if (_offset > w * widget.popThreshold ||
+        velocity > widget.velocityThreshold) {
       _pop();
       // For tab-level navigation the host widget stays alive, so reset the
       // transform immediately so the incoming tab renders at position 0.
@@ -123,14 +123,14 @@ class _SwipeBackWrapperState extends State<SwipeBackWrapper>
       gestures: {
         _LeftEdgeDragRecognizer:
             GestureRecognizerFactoryWithHandlers<_LeftEdgeDragRecognizer>(
-          () => _LeftEdgeDragRecognizer(edgeWidth: widget.edgeWidth),
-          (r) {
-            r
-              ..onStart = _onStart
-              ..onUpdate = _onUpdate
-              ..onEnd = _onEnd;
-          },
-        ),
+              () => _LeftEdgeDragRecognizer(edgeWidth: widget.edgeWidth),
+              (r) {
+                r
+                  ..onStart = _onStart
+                  ..onUpdate = _onUpdate
+                  ..onEnd = _onEnd;
+              },
+            ),
       },
       child: Transform.translate(
         offset: Offset(_offset, 0),

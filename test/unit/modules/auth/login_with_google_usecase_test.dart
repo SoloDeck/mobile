@@ -33,8 +33,9 @@ void main() {
   );
 
   void stubExchangeAndSave() {
-    when(() => repository.loginWithGoogle(idToken: 'id-token'))
-        .thenAnswer((_) async => token);
+    when(
+      () => repository.loginWithGoogle(idToken: 'id-token'),
+    ).thenAnswer((_) async => token);
     when(
       () => tokenManager.saveTokens(
         accessToken: token.accessToken,
@@ -50,7 +51,9 @@ void main() {
       final result = await useCase();
 
       expect(result, isFalse);
-      verifyNever(() => repository.loginWithGoogle(idToken: any(named: 'idToken')));
+      verifyNever(
+        () => repository.loginWithGoogle(idToken: any(named: 'idToken')),
+      );
     });
 
     test('exchanges the id token and saves the session on success', () async {
@@ -70,14 +73,19 @@ void main() {
   });
 
   group('trySilentLogin()', () {
-    test('returns true without calling Google when a local session exists', () async {
-      when(() => tokenManager.getAccessToken()).thenAnswer((_) async => 'existing');
+    test(
+      'returns true without calling Google when a local session exists',
+      () async {
+        when(
+          () => tokenManager.getAccessToken(),
+        ).thenAnswer((_) async => 'existing');
 
-      final result = await useCase.trySilentLogin();
+        final result = await useCase.trySilentLogin();
 
-      expect(result, isTrue);
-      verifyNever(() => google.signInSilently());
-    });
+        expect(result, isTrue);
+        verifyNever(() => google.signInSilently());
+      },
+    );
 
     test('exchanges a silent id token when no local session exists', () async {
       when(() => tokenManager.getAccessToken()).thenAnswer((_) async => null);
@@ -95,14 +103,19 @@ void main() {
       ).called(1);
     });
 
-    test('returns false when there is no session and silent auth fails', () async {
-      when(() => tokenManager.getAccessToken()).thenAnswer((_) async => null);
-      when(() => google.signInSilently()).thenAnswer((_) async => null);
+    test(
+      'returns false when there is no session and silent auth fails',
+      () async {
+        when(() => tokenManager.getAccessToken()).thenAnswer((_) async => null);
+        when(() => google.signInSilently()).thenAnswer((_) async => null);
 
-      final result = await useCase.trySilentLogin();
+        final result = await useCase.trySilentLogin();
 
-      expect(result, isFalse);
-      verifyNever(() => repository.loginWithGoogle(idToken: any(named: 'idToken')));
-    });
+        expect(result, isFalse);
+        verifyNever(
+          () => repository.loginWithGoogle(idToken: any(named: 'idToken')),
+        );
+      },
+    );
   });
 }

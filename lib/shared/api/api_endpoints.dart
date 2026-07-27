@@ -4,7 +4,8 @@ abstract final class ApiEndpoints {
   static const authLogin = '/auth/login';
   static const authRefresh = '/auth/refresh';
   static const authLogout = '/auth/logout';
-  static const authMe = '/auth/me';
+  // Không có `/auth/me`: hồ sơ người dùng nằm ở [usersMe]. Hằng số cũ đã bị bỏ
+  // vì nó trỏ vào một đường dẫn backend chưa từng phục vụ.
   static const authGoogle = '/auth/google';
   static const authForgotPassword = '/auth/password-reset/request';
   static const authResetPassword = '/auth/password-reset/confirm';
@@ -41,7 +42,19 @@ abstract final class ApiEndpoints {
   static const proposals = '/proposals';
   static String proposalById(String id) => '/proposals/$id';
   static String proposalSend(String id) => '/proposals/$id/send';
-  static String proposalGenerate = '/proposals/generate';
+  static String proposalStatus(String id) => '/proposals/$id/status';
+  static String proposalPdf(String id) => '/proposals/$id/pdf';
+
+  /// Sinh lại nội dung cho một báo giá đã có (chỉ chạy được khi còn `draft`).
+  static String proposalGenerateContent(String id) => '/proposals/$id/generate';
+
+  /// Sinh báo giá mới từ một thương vụ.
+  ///
+  /// Đây là đường AI duy nhất mobile được dùng. `POST /proposals/ai-generate`
+  /// đang hỏng ở backend (router dựng client Gemini nhưng service gọi API kiểu
+  /// Groq) nên cố tình không có hằng số cho nó.
+  static String proposalGenerateFromDeal(String dealId) =>
+      '/proposals/generate-from-deal/$dealId';
 
   // Contracts
   static const contracts = '/contracts';
@@ -58,6 +71,21 @@ abstract final class ApiEndpoints {
   // Reminders
   static const reminders = '/reminders';
   static String reminderById(String id) => '/reminders/$id';
+
+  // Subscriptions
+  //
+  // Không có endpoint usage/quota: bảng `usage_records` tồn tại ở backend
+  // nhưng không lộ ra REST. Vì vậy màn Gói chỉ hiện được hạn mức, không hiện
+  // được số lượt đã dùng.
+  static const subscriptionPlans = '/subscriptions/plans';
+  static const subscriptionMe = '/subscriptions/me';
+  static const subscriptionCheckout = '/subscriptions/checkout';
+  static const subscriptionCancel = '/subscriptions/cancel';
+
+  // Payments
+  static String paymentIntentById(String id) => '/payments/intents/$id';
+  static String paymentIntentCancel(String id) =>
+      '/payments/intents/$id/cancel';
 
   // Analytics
   static const analyticsDashboard = '/analytics/dashboard';

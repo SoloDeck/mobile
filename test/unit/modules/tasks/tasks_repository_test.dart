@@ -88,13 +88,15 @@ void main() {
       priority: Priority.high,
     );
 
-    final captured = verify(
-      () => remote.createTask(
-        entityType: TaskOwner.project,
-        entityId: 'p1',
-        request: captureAny(named: 'request'),
-      ),
-    ).captured.single as CreateTaskRequestDto;
+    final captured =
+        verify(
+              () => remote.createTask(
+                entityType: TaskOwner.project,
+                entityId: 'p1',
+                request: captureAny(named: 'request'),
+              ),
+            ).captured.single
+            as CreateTaskRequestDto;
 
     expect(captured.title, 'Viết tài liệu');
     expect(captured.priority, Priority.high);

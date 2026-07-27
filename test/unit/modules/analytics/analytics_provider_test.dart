@@ -15,27 +15,30 @@ class _FakeAnalyticsRepository implements AnalyticsRepository {
 }
 
 void main() {
-  test('dashboardSummaryProvider exposes metrics from the repository', () async {
-    const summary = DashboardSummary(
-      totalClients: 12,
-      activeDeals: 5,
-      totalRevenue: 75000000,
-      pendingInvoices: 3,
-    );
-    final container = ProviderContainer(
-      overrides: [
-        analyticsRepositoryProvider.overrideWithValue(
-          const _FakeAnalyticsRepository(summary),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+  test(
+    'dashboardSummaryProvider exposes metrics from the repository',
+    () async {
+      const summary = DashboardSummary(
+        totalClients: 12,
+        activeDeals: 5,
+        totalRevenue: 75000000,
+        pendingInvoices: 3,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          analyticsRepositoryProvider.overrideWithValue(
+            const _FakeAnalyticsRepository(summary),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final result = await container.read(dashboardSummaryProvider.future);
+      final result = await container.read(dashboardSummaryProvider.future);
 
-    expect(result.totalClients, 12);
-    expect(result.activeDeals, 5);
-    expect(result.totalRevenue, 75000000);
-    expect(result.pendingInvoices, 3);
-  });
+      expect(result.totalClients, 12);
+      expect(result.activeDeals, 5);
+      expect(result.totalRevenue, 75000000);
+      expect(result.pendingInvoices, 3);
+    },
+  );
 }

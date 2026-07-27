@@ -36,10 +36,7 @@ class ProjectDetailPage extends ConsumerWidget {
           data: (p) => TabBarView(
             children: [
               _ProjectInfo(project: p),
-              TaskListWidget(
-                entityType: TaskOwner.project,
-                entityId: p.id,
-              ),
+              TaskListWidget(entityType: TaskOwner.project, entityId: p.id),
             ],
           ),
         ),
@@ -63,7 +60,10 @@ class _ProjectInfo extends StatelessWidget {
         const SizedBox(height: 8),
         ProjectStatusBadge(status: project.status),
         const Divider(height: 32),
-        _Row(label: 'Tiến độ', value: '${project.doneCount}/${project.taskCount}'),
+        _Row(
+          label: 'Tiến độ',
+          value: '${project.doneCount}/${project.taskCount}',
+        ),
         _Row(label: 'Mô tả', value: project.description ?? '—'),
         _Row(
           label: 'Bắt đầu',
@@ -73,8 +73,7 @@ class _ProjectInfo extends StatelessWidget {
         ),
         _Row(
           label: 'Kết thúc',
-          value:
-              project.endDate == null ? '—' : _formatDate(project.endDate!),
+          value: project.endDate == null ? '—' : _formatDate(project.endDate!),
         ),
       ],
     );

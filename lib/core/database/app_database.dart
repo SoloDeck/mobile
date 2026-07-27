@@ -120,6 +120,83 @@ class InvoiceRows extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('ProposalRow')
+class ProposalRows extends Table {
+  @override
+  String get tableName => 'proposals';
+
+  TextColumn get id => text()();
+  TextColumn get dealId => text()();
+  TextColumn get ownerUserId => text()();
+  IntColumn get versionNumber => integer()();
+  TextColumn get status => text()();
+
+  /// `content` phía backend là JSONB tự do — lưu nguyên chuỗi JSON, không tách
+  /// cột, để phiên bản app sau không làm mất khoá lạ.
+  TextColumn get contentJson => text()();
+  BoolColumn get aiGenerated => boolean().withDefault(const Constant(false))();
+  TextColumn get createdAt => text()();
+
+  /// Ghép từ thương vụ để danh sách ngoại tuyến còn đọc được tên khách.
+  TextColumn get clientName => text().nullable()();
+  TextColumn get shareToken => text().nullable()();
+  TextColumn get shareExpiresAt => text().nullable()();
+  TextColumn get sentAt => text().nullable()();
+  TextColumn get respondedAt => text().nullable()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('ReminderRow')
+class ReminderRows extends Table {
+  @override
+  String get tableName => 'reminders';
+
+  TextColumn get id => text()();
+  TextColumn get ownerUserId => text()();
+  TextColumn get targetType => text()();
+  TextColumn get targetId => text()();
+  TextColumn get reminderType => text()();
+  TextColumn get channel => text()();
+  TextColumn get status => text()();
+  TextColumn get scheduledAt => text()();
+  TextColumn get messagePreview => text().nullable()();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Kho lưu trữ chính của thư viện mẫu — **không phải cache**.
+///
+/// Backend không có module templates (chỉ có `/admin/templates` dành cho
+/// quản trị viên, freelancer gọi bị 403), nên đây là nơi duy nhất chứa mẫu của
+/// người dùng. Mất bảng này là mất công sức người dùng: không hàm nào được
+/// xoá sạch nó.
+@DataClassName('TemplateRow')
+class TemplateRows extends Table {
+  @override
+  String get tableName => 'templates';
+
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get category => text()();
+
+  /// Biến `{{...}}` được suy ra khi đọc, không lưu cột riêng.
+  TextColumn get body => text()();
+  BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  TextColumn get sourceTemplateId => text().nullable()();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftAccessor(tables: [ClientRows])
 class ClientRowsDao extends DatabaseAccessor<AppDatabase>
     with _$ClientRowsDaoMixin {
@@ -190,25 +267,122 @@ class InvoiceRowsDao extends DatabaseAccessor<AppDatabase>
   }
 }
 
+@DriftAccessor(tables: [ProposalRows])
+class ProposalRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$ProposalRowsDaoMixin {
+  ProposalRowsDao(super.db);
+
+  Future<List<ProposalRow>> getAll() => select(proposalRows).get();
+
+  Future<void> upsertAll(Iterable<ProposalRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(proposalRows, rows.toList());
+    });
+  }
+}
+
+@DriftAccessor(tables: [ReminderRows])
+class ReminderRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$ReminderRowsDaoMixin {
+  ReminderRowsDao(super.db);
+
+  Future<List<ReminderRow>> getAll() => select(reminderRows).get();
+
+  Future<void> upsertAll(Iterable<ReminderRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(reminderRows, rows.toList());
+    });
+  }
+
+  /// `GET /reminders` trả về **toàn bộ** tập dữ liệu chứ không phân trang, nên
+  /// cách đồng bộ đúng là thay sạch. Nếu chỉ upsert thì nhắc hẹn đã bị huỷ ở
+  /// máy chủ sẽ nằm lại trong cache mãi.
+  Future<void> replaceAll(Iterable<ReminderRowsCompanion> rows) async {
+    await transaction(() async {
+      await delete(reminderRows).go();
+      await batch((batch) {
+        batch.insertAll(reminderRows, rows.toList());
+      });
+    });
+  }
+}
+
+@DriftAccessor(tables: [TemplateRows])
+class TemplateRowsDao extends DatabaseAccessor<AppDatabase>
+    with _$TemplateRowsDaoMixin {
+  TemplateRowsDao(super.db);
+
+  Future<List<TemplateRow>> getAll() => select(templateRows).get();
+
+  Future<TemplateRow?> getById(String id) =>
+      (select(templateRows)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<void> upsertAll(Iterable<TemplateRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(templateRows, rows.toList());
+    });
+  }
+
+  /// Gieo mẫu hệ thống mà không đè lên bản người dùng đã sửa.
+  Future<void> insertIfAbsent(Iterable<TemplateRowsCompanion> rows) async {
+    await batch((batch) {
+      batch.insertAll(
+        templateRows,
+        rows.toList(),
+        mode: InsertMode.insertOrIgnore,
+      );
+    });
+  }
+
+  Future<void> deleteById(String id) async {
+    await (delete(templateRows)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// Đặt mẫu mặc định cho một loại — mỗi loại chỉ được có đúng một mẫu mặc định.
+  Future<void> setDefault(String id, String category) async {
+    await transaction(() async {
+      await (update(templateRows)..where((t) => t.category.equals(category)))
+          .write(const TemplateRowsCompanion(isDefault: Value(false)));
+      // Chốt cả `category` để một id lạc loại không thể trở thành mặc định
+      // của loại khác.
+      await (update(templateRows)
+            ..where((t) => t.id.equals(id) & t.category.equals(category)))
+          .write(const TemplateRowsCompanion(isDefault: Value(true)));
+    });
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
 @DriftDatabase(
-  tables: [ClientRows, DealRows, ProjectRows, TaskRows, InvoiceRows],
+  tables: [
+    ClientRows,
+    DealRows,
+    ProjectRows,
+    TaskRows,
+    InvoiceRows,
+    ProposalRows,
+    ReminderRows,
+    TemplateRows,
+  ],
   daos: [
     ClientRowsDao,
     DealRowsDao,
     ProjectRowsDao,
     TaskRowsDao,
     InvoiceRowsDao,
+    ProposalRowsDao,
+    ReminderRowsDao,
+    TemplateRowsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -226,6 +400,11 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await m.createTable(invoiceRows);
+      }
+      if (from < 5) {
+        await m.createTable(proposalRows);
+        await m.createTable(reminderRows);
+        await m.createTable(templateRows);
       }
     },
   );

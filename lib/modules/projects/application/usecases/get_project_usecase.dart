@@ -11,7 +11,10 @@ class GetProjectUseCase {
   /// Fetches the project linked to [dealId], creating one named [name] if none
   /// exists yet. Used by the deal detail "Dự án" tab so a deal always has a
   /// project to attach tasks to.
-  Future<Project> forDeal({required String dealId, required String name}) async {
+  Future<Project> forDeal({
+    required String dealId,
+    required String name,
+  }) async {
     final existing = await _repository.listProjects(dealId: dealId);
     if (existing.isNotEmpty) return existing.first;
     return _repository.createProject(name: name, dealId: dealId);

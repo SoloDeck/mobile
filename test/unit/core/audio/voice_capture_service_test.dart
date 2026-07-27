@@ -28,12 +28,15 @@ void main() {
       verifyNever(() => mockSpeech.initialize());
     });
 
-    test('initialize calls speech initialize when permission granted', () async {
-      when(() => mockSpeech.initialize()).thenAnswer((_) async => true);
-      final result = await service.initialize();
-      expect(result, isTrue);
-      verify(() => mockSpeech.initialize()).called(1);
-    });
+    test(
+      'initialize calls speech initialize when permission granted',
+      () async {
+        when(() => mockSpeech.initialize()).thenAnswer((_) async => true);
+        final result = await service.initialize();
+        expect(result, isTrue);
+        verify(() => mockSpeech.initialize()).called(1);
+      },
+    );
 
     test('isListening delegates to speech service', () {
       when(() => mockSpeech.isListening).thenReturn(false);
@@ -58,22 +61,23 @@ void main() {
     });
 
     test('startListening delegates to speech service', () async {
-      when(() => mockSpeech.startListening(
-            onResult: any(named: 'onResult'),
-            onDone: any(named: 'onDone'),
-            onSoundLevel: any(named: 'onSoundLevel'),
-          )).thenAnswer((_) async {});
+      when(
+        () => mockSpeech.startListening(
+          onResult: any(named: 'onResult'),
+          onDone: any(named: 'onDone'),
+          onSoundLevel: any(named: 'onSoundLevel'),
+        ),
+      ).thenAnswer((_) async {});
 
-      await service.startListening(
-        onResult: (_, __) {},
-        onDone: () {},
-      );
+      await service.startListening(onResult: (_, __) {}, onDone: () {});
 
-      verify(() => mockSpeech.startListening(
-            onResult: any(named: 'onResult'),
-            onDone: any(named: 'onDone'),
-            onSoundLevel: any(named: 'onSoundLevel'),
-          )).called(1);
+      verify(
+        () => mockSpeech.startListening(
+          onResult: any(named: 'onResult'),
+          onDone: any(named: 'onDone'),
+          onSoundLevel: any(named: 'onSoundLevel'),
+        ),
+      ).called(1);
     });
   });
 }

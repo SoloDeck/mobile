@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solodesk_mobile/core/theme/app_colors.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
 import 'package:solodesk_mobile/modules/settings/domain/value_objects/accent_preset.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/logout_loading_overlay.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -103,9 +105,9 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 }
@@ -196,13 +198,12 @@ class _AccentSwatch extends StatelessWidget {
               decoration: BoxDecoration(
                 color: preset.seed,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? scheme.onSurface : Colors.transparent,
-                  width: 3,
-                ),
+                border: isSelected
+                    ? Border.all(color: scheme.onSurface, width: 3)
+                    : null,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white)
+                  ? const Icon(Icons.check, color: AppColors.onPrimary)
                   : null,
             ),
             const SizedBox(height: 6),

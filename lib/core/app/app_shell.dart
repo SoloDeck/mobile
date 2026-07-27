@@ -2,7 +2,16 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/theme/app_colors.dart';
+import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 
+/// Khung của bốn màn gốc — Hôm nay, Pipeline, Dự án, Tôi.
+///
+/// Thanh tab dựng ở đây một lần thay vì trong từng màn: bốn màn gốc đều là con
+/// của `StatefulShellRoute`, nên đặt `SoloNavBar` bên trong mỗi màn sẽ dựng lại
+/// nó mỗi lần đổi tab và mất luôn chỗ nối `goBranch`. Các màn gốc vì thế
+/// **không** tự đặt `SoloNavBar` — riêng MÀN 15 (ngoại tuyến) là ngoại lệ vì nó
+/// nằm ngoài shell và mang biến thể `offline: true`.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -17,67 +26,29 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-
     return Scaffold(
-      // navigationShell renders as SwipeableTabBody (wired in app_router.dart
-      // via navigatorContainerBuilder) — no extra wrapper needed here.
-      body: navigationShell,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => GoRouter.of(context).push(RouteNames.voiceCapture),
-        child: const Icon(Icons.mic),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        height: 76,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        notchMargin: 8,
-        shape: const CircularNotchedRectangle(),
-        child: Row(
-          children: [
-            Expanded(
-              child: _NavItem(
-                icon: Icons.home_rounded,
-                label: 'Trang chủ',
-                selected: location == RouteNames.home || location == '/',
-                onTap: () => _goToTab(0),
+      backgroundColor: AppColors.paper,
+      // Stack chứ không phải `bottomNavigationBar`: nút ＋ của SoloNavBar nhô
+      // lên 16pt khỏi mép trên thanh tab, mà slot bottomNavigationBar của
+      // Scaffold cắt đúng ở mép đó.
+      body: Stack(
+        children: [
+          // navigationShell renders as SwipeableTabBody (wired in app_router.dart
+          // via navigatorContainerBuilder) — no extra wrapper needed here.
+          navigationShell,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              top: false,
+              child: SoloNavBar(
+                index: navigationShell.currentIndex,
+                onSelect: _goToTab,
+                onQuickCapture: () =>
+                    GoRouter.of(context).push(RouteNames.voiceCapture),
               ),
             ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.view_kanban_outlined,
-                label: 'Pipeline',
-                selected: location.startsWith(RouteNames.deals),
-                onTap: () => _goToTab(1),
-              ),
-            ),
-            const SizedBox(width: 58),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.people_outline_rounded,
-                label: 'Khách hàng',
-                selected: location.startsWith(RouteNames.clients),
-                onTap: () => _goToTab(2),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.receipt_long_outlined,
-                label: 'Hóa đơn',
-                selected: location.startsWith(RouteNames.invoices),
-                onTap: () => _goToTab(4),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.bar_chart_rounded,
-                label: 'Báo cáo',
-                selected: location.startsWith(RouteNames.analytics),
-                onTap: () => _goToTab(3),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -296,87 +267,5 @@ class _TabEdgeDragRecognizer extends HorizontalDragGestureRecognizer {
     if (event.localPosition.dx <= edgeWidth && canActivate()) {
       super.addPointer(event);
     }
-  }
-}
-
-class _NavItem extends StatefulWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  State<_NavItem> createState() => _NavItemState();
-}
-
-class _NavItemState extends State<_NavItem>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.94,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onTapDown(TapDownDetails _) => _controller.reverse();
-  void _onTapUp(TapUpDetails _) => _controller.forward();
-  void _onTapCancel() => _controller.forward();
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = widget.selected
-        ? colorScheme.primary
-        : colorScheme.onSurfaceVariant;
-
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _controller,
-        child: SizedBox(
-          height: 60,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, color: color, size: 24),
-              const SizedBox(height: 4),
-              Text(
-                widget.label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: widget.selected
-                      ? FontWeight.w600
-                      : FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

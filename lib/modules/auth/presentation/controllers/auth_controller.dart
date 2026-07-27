@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/security/token_manager.dart';
 import 'package:solodesk_mobile/modules/auth/application/usecases/fetch_me_usecase.dart';
@@ -106,8 +108,21 @@ class AuthController extends _$AuthController {
         ref.read(authRepositoryProvider),
       ).execute();
       ref.read(currentUserProvider.notifier).set(user);
-    } catch (_) {
-      // Ignore — the session is still valid even if profile load failed.
+    } catch (error) {
+      // The session stays valid when the profile load fails, so this never
+      // surfaces in the UI — but it should not vanish either. ErrorInterceptor
+      // calls handler.reject, so PrettyDioLogger never logs failures, and the
+      // bare `catch (_)` that used to live here was the second swallow: a
+      // broken /me left no trace at all.
+      //
+      // Logs a compact form on purpose — a DioException's toString() carries
+      // requestOptions, headers included, and that means the bearer token.
+      if (kDebugMode) {
+        final detail = error is DioException
+            ? '${error.type} ${error.response?.statusCode ?? ''} ${error.error}'
+            : '$error';
+        debugPrint('Could not load the current user (/auth/me): $detail');
+      }
     }
   }
 }

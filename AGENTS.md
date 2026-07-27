@@ -251,3 +251,84 @@ presentation/ → application/ → domain/
 | Route names | `SCREAMING_SNAKE` constant | `RouteNames.dealDetail` |
 | Freezed entities | `@freezed class` | `@freezed class Deal` |
 
+---
+
+# SoloDesk UI — Design Source of Truth
+
+*(Bộ quy tắc tầng giao diện. Xem `docs/adr/solodesk-ui-config-conflicts.md` — phần cấu trúc
+thư mục dưới đây hiện chưa khớp với "Architecture" ở trên, mâu thuẫn đang chờ quyết.)*
+
+App đồng hành cho freelancer Việt Nam. CRM + hợp đồng + nhắc thu tiền.
+
+## Nguồn sự thật về thiết kế
+
+`design/solodesk-mobile-ui.html` chứa toàn bộ 15 màn hình đã được duyệt, mỗi màn có
+chú thích lý do thiết kế bên dưới. **Luôn đọc màn hình tương ứng trong file này trước
+khi viết bất kỳ widget nào.** Đừng suy diễn giao diện từ tên màn hình.
+
+Số màn hình được đánh dấu bằng `<span class="no">MÀN 07</span>` trong file HTML.
+
+## Lệnh
+
+```bash
+flutter analyze                    # phải sạch trước khi báo xong
+flutter test                       # gồm cả golden test
+flutter test --update-goldens      # chỉ chạy khi thiết kế đổi CÓ CHỦ Ý
+dart format lib test
+python3 tools/sync_tokens.py design/solodesk-mobile-ui.html lib/theme/app_colors.dart
+```
+
+## Quy tắc không được vi phạm
+
+Bảy điều dưới đây là quyết định thiết kế đã chốt, không phải gợi ý. Nếu một yêu cầu
+buộc phải phá một trong số này, **dừng lại và hỏi** thay vì tự quyết.
+
+1. **Không hardcode màu.** Mọi `Color` phải đến từ `AppColors`. Không có
+   `Color(0xFF...)` nào trong `lib/features/**`. `app_colors.dart` là file tự sinh —
+   sửa `design/solodesk-mobile-ui.html` rồi chạy lại `tools/sync_tokens.py`.
+
+2. **Màu mang ngữ nghĩa.** Hồng (`momo`) chỉ dùng cho tiền. Tím (`ai`) chỉ dùng cho
+   nội dung do AI sinh và đang chờ duyệt. Ngọc (`jade`) = đã thu/đã xong. Hổ phách
+   (`amber`) = sắp đến hạn. Dùng `Tone.money` / `Tone.ai` thay vì gọi màu trực tiếp.
+
+3. **`SlipCard` chỉ dùng cho tiền.** Thẻ thường dùng `Card`. Tấm phiếu răng cưa xuất
+   hiện ở chỗ không liên quan tiền là làm hỏng quy ước thị giác của cả app.
+
+4. **Kanban không kéo thả trên mobile.** Sáu giai đoạn hiển thị bằng chip lọc cuộn
+   ngang + danh sách dọc. Đổi giai đoạn bằng menu chọn. Đừng thêm `Draggable`,
+   `ReorderableListView` hay thư viện kéo thả nào.
+
+5. **AI không bao giờ tự gửi ra ngoài.** Mọi nội dung máy sinh phải qua màn xem trước
+   với nút "Duyệt và gửi". Không có đường tắt nào từ kết quả AI thẳng tới API gửi tin.
+
+6. **Không dùng package `google_fonts`.** Font bundle trong `assets/fonts/`. App phải
+   chạy ngoại tuyến ngay lần mở đầu tiên.
+
+7. **Ngoại tuyến không chặn thao tác.** Ghi lead, tick task, sửa nội dung vẫn chạy khi
+   mất mạng và xếp vào hàng chờ. Chỉ hành động gửi ra ngoài mới bị chặn.
+
+## Cấu trúc
+
+```
+design/          bản phác thảo HTML — nguồn sự thật
+tools/           script sinh token
+lib/theme/       token: màu, chữ, ThemeData
+lib/ui/          widget dùng chung (SlipCard, StatusChip, Money, SoloNavBar…)
+lib/features/    một thư mục cho mỗi màn hình
+test/golden/     ảnh vàng của widget và màn hình
+```
+
+## Trước khi báo xong một màn hình
+
+- `flutter analyze` sạch, không cảnh báo mới.
+- Golden test của màn đó đã chạy qua.
+- Không có `Color(0xFF...)`, `TextStyle(fontFamily: '...')` hay số bo góc viết cứng
+  trong file vừa tạo. Bo góc lấy từ `AppRadius`, khoảng cách từ `AppGap`.
+- Viết một dòng nêu rõ **màn nào trong file HTML** đã được đối chiếu.
+
+## Ngôn ngữ
+
+Chuỗi hiển thị viết bằng tiếng Việt, giọng văn theo đúng bản phác thảo: động từ chủ
+động, câu ngắn, không dùng thuật ngữ kỹ thuật với người dùng cuối ("Nhắc thanh toán"
+chứ không phải "Trigger reminder"). Comment trong code viết tiếng Việt.
+

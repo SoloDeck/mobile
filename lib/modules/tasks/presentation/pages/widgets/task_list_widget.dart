@@ -30,8 +30,7 @@ class TaskListWidget extends ConsumerWidget {
 
     return AsyncValueWidget<List<Task>>(
       value: tasks,
-      onRetry: () =>
-          ref.invalidate(taskListProvider(entityType, entityId)),
+      onRetry: () => ref.invalidate(taskListProvider(entityType, entityId)),
       data: (items) {
         if (items.isEmpty) {
           return const Padding(

@@ -15,8 +15,14 @@ Future<String?> authGuard(
   return null;
 }
 
+/// Các màn mở được khi chưa có phiên. Thiếu một cái ở đây thì guard đá người
+/// dùng về `/login` ngay khi họ mở nó — `loginEmail` là màn form của chính
+/// `/login`, còn `resetPassword` mở từ link trong email nên người bấm vào gần
+/// như luôn ở trạng thái chưa đăng nhập.
 const _authRoutes = {
   RouteNames.login,
+  RouteNames.loginEmail,
   RouteNames.register,
   RouteNames.forgotPassword,
+  RouteNames.resetPassword,
 };
