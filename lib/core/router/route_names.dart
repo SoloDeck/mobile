@@ -28,6 +28,7 @@ abstract final class RouteNames {
 
   static const deals = '/deals';
   static const dealDetail = '/deals/:id';
+  static const dealManualNew = '/deals/new-manual';
 
   static const projects = '/projects';
   static const projectDetail = '/projects/:id';
@@ -89,6 +90,13 @@ abstract final class RouteNames {
   static const templates = '/templates';
 
   static const settings = '/settings';
+
+  /// MÀN 05 — hồ sơ cá nhân, mở ra từ tab "Tôi".
+  ///
+  /// Đường dẫn gốc chứ không phải con của `/me`, cùng lý do đã ghi ở
+  /// [RouteNames.me]: đường dẫn con của một nhánh shell sẽ dựng bên trong
+  /// shell và chồng thêm một thanh tab.
+  static const profile = '/profile';
 
   /// MÀN 06 — ghi nhanh bằng giọng nói.
   static const voiceCapture = '/voice-capture';
