@@ -5,6 +5,7 @@ import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summ
 import 'package:solodesk_mobile/modules/analytics/domain/repositories/analytics_repository.dart';
 import 'package:solodesk_mobile/modules/analytics/infrastructure/repository/analytics_repository_impl.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/pages/revenue_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
@@ -13,6 +14,7 @@ import 'package:solodesk_mobile/ui/perforated_divider.dart';
 import 'package:solodesk_mobile/ui/slip_card.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// `totalRevenue` là field duy nhất của `DashboardSummary` mà MÀN 11 dùng —
 /// đúng bằng số tiền đã thu của bản phác thảo (`284.500.000 ₫`) để các assert
@@ -43,6 +45,7 @@ Future<void> _pump(WidgetTester tester) async {
         analyticsRepositoryProvider.overrideWithValue(
           const _FakeAnalyticsRepository(_summary),
         ),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

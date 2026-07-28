@@ -38,6 +38,15 @@ class InvoiceStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StatusChip(status.label, tone: status.tone, icon: status.icon);
+    // StatusChip alone only exposes its visible label to screen readers; add
+    // an explicit "Trạng thái: …" label so the status reads unambiguously,
+    // and exclude the chip's own (redundant) semantics to avoid double
+    // announcement.
+    return Semantics(
+      label: 'Trạng thái: ${status.label}',
+      child: ExcludeSemantics(
+        child: StatusChip(status.label, tone: status.tone, icon: status.icon),
+      ),
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/voice_lead/domain/entities/voice_lead_draft.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/lead_score_page.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/accent_card.dart';
@@ -14,6 +15,7 @@ import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Bơm đúng kết quả chấm điểm mà bản phác thảo MÀN 07 vẽ ("78/100", "Lead
 /// nóng 🔥") qua `voiceLeadProvider` — điểm số và nhận định trong màn thật lấy
@@ -32,7 +34,10 @@ Future<void> _pump(WidgetTester tester) async {
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [voiceLeadProvider.overrideWithValue(_draft)],
+      overrides: [
+        voiceLeadProvider.overrideWithValue(_draft),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+      ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: LeadScorePage(),
@@ -155,6 +160,9 @@ void main() {
             voiceLeadProvider.overrideWithValue(
               _draft.copyWith(recommendation: 'warm'),
             ),
+            settingsRepositoryProvider.overrideWithValue(
+              FakeSettingsRepository(),
+            ),
           ],
           child: const MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -180,6 +188,9 @@ void main() {
             voiceLeadProvider.overrideWithValue(
               _draft.copyWith(recommendation: 'cold'),
             ),
+            settingsRepositoryProvider.overrideWithValue(
+              FakeSettingsRepository(),
+            ),
           ],
           child: const MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -200,8 +211,13 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            settingsRepositoryProvider.overrideWithValue(
+              FakeSettingsRepository(),
+            ),
+          ],
+          child: const MaterialApp(
             debugShowCheckedModeBanner: false,
             home: LeadScorePage(),
           ),

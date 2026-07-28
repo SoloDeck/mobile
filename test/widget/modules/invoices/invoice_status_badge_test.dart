@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_status_badge.dart';
+import 'package:solodesk_mobile/ui/solo_icons.dart';
 
 void main() {
   testWidgets('shows the vi label and an icon (status not by colour alone)', (
@@ -17,7 +18,14 @@ void main() {
     );
 
     expect(find.text('Quá hạn'), findsOneWidget);
-    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    // Icons in this app are drawn with the custom SoloIcon vector set, not
+    // Flutter's Material `Icon`/`IconData` — see lib/ui/solo_icons.dart.
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is SoloIcon && widget.icon == SoloIcons.clock,
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('exposes a semantics label for accessibility', (tester) async {

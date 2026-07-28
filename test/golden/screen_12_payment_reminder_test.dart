@@ -17,6 +17,7 @@ import 'package:solodesk_mobile/modules/reminders/domain/value_objects/reminder_
 import 'package:solodesk_mobile/modules/reminders/domain/value_objects/reminder_type.dart';
 import 'package:solodesk_mobile/modules/reminders/infrastructure/repository/reminders_repository_impl.dart';
 import 'package:solodesk_mobile/modules/reminders/presentation/pages/reminder_compose_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/accent_card.dart';
@@ -27,6 +28,7 @@ import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Repo giả trả về đúng một `Invoice` cố định — đủ cho
 /// `reminderComposeDataProvider` (nó chỉ gọi `getInvoice`). Các phương thức
@@ -172,6 +174,7 @@ Future<void> _pump(WidgetTester tester) async {
         ),
         // Ghim mốc 25/07/2026: hạn 19/07 → "TRỄ 6 NGÀY".
         appClockProvider.overrideWithValue(() => DateTime(2026, 7, 25)),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

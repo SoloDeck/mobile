@@ -91,7 +91,7 @@ void main() {
   });
 
   testWidgets('ảnh vàng — thẻ và năm biến thể nút', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(370, 340));
+    await tester.binding.setSurfaceSize(const Size(370, 400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(

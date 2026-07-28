@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/notifications/presentation/pages/notifications_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/ui/filter_chip_bar.dart';
 import 'package:solodesk_mobile/ui/icon_button_box.dart';
@@ -9,14 +10,18 @@ import 'package:solodesk_mobile/ui/solo_app_bar.dart';
 import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 Future<void> _pump(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   await tester.pumpWidget(
-    const ProviderScope(
-      child: MaterialApp(
+    ProviderScope(
+      overrides: [
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+      ],
+      child: const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: NotificationsPage(),
       ),

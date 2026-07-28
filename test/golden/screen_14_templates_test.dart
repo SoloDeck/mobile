@@ -7,6 +7,7 @@ import 'package:solodesk_mobile/modules/templates/domain/repositories/templates_
 import 'package:solodesk_mobile/modules/templates/domain/value_objects/template_category.dart';
 import 'package:solodesk_mobile/modules/templates/infrastructure/repository/templates_repository_impl.dart';
 import 'package:solodesk_mobile/modules/templates/presentation/pages/templates_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/avatar.dart';
@@ -16,6 +17,7 @@ import 'package:solodesk_mobile/ui/slip_card.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Trả về danh sách mẫu CỐ ĐỊNH truyền vào constructor — golden test này chỉ
 /// đọc (không có bài nào bấm nút "Chép"), nên `copyTemplate`/
@@ -128,6 +130,7 @@ Future<void> _pump(WidgetTester tester) async {
           _FakeTemplatesRepository([tDefault, tCopied, tSystem]),
         ),
         appClockProvider.overrideWithValue(() => DateTime(2026, 7, 25)),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -5,8 +5,8 @@ import 'package:solodesk_mobile/ui/solo_icons.dart';
 
 void main() {
   group('SoloIcons — bộ icon', () {
-    test('có đúng 20 icon như khối <defs> của bản phác thảo', () {
-      expect(SoloIcons.byName.length, 20);
+    test('có đúng 30 icon như khối <defs> của bản phác thảo', () {
+      expect(SoloIcons.byName.length, 30);
     });
 
     test('mọi id khớp với id <symbol> mà nó đại diện', () {
@@ -98,7 +98,7 @@ void main() {
   });
 
   // Ảnh vàng này không có chữ nên chụp được ngay, không phụ thuộc font thật.
-  testWidgets('ảnh vàng — cả 20 icon ở ba cỡ', (tester) async {
+  testWidgets('ảnh vàng — cả 30 icon ở ba cỡ', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 300));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 

@@ -253,7 +253,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
     final dealTitle = draft?.suggestedDealTitle.trim();
     final fieldClient = (clientName != null && clientName.isNotEmpty)
         ? 'Khách: $clientName'
-        : null;
+        : _MockData.fieldClient;
     final fieldTask = (dealTitle != null && dealTitle.isNotEmpty)
         ? 'Việc: $dealTitle'
         : _MockData.fieldTask;
@@ -306,8 +306,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
                         spacing: AppGap.betweenChips,
                         runSpacing: AppGap.betweenChips,
                         children: [
-                          if (fieldClient != null)
-                            _FieldChip(fieldClient, tone: Tone.ai),
+                          _FieldChip(fieldClient, tone: Tone.ai),
                           _FieldChip(fieldTask, tone: Tone.ai),
                           const _FieldChip(
                             _MockData.fieldBudget,
@@ -841,6 +840,11 @@ abstract final class _MockData {
   /// thật không vượt khỏi hình dáng bản phác thảo.
   static const double minBar = 20;
   static const double barRange = 46;
+
+  /// CHƯA NỐI API — dùng làm khách hàng mặc định khi `voiceLeadProvider`
+  /// còn `null` (chưa ghi âm xong / chưa qualify). Khi có `VoiceLeadDraft`,
+  /// `VoiceCapturePage` thay bằng `draft.suggestedClientName` thật.
+  static const String fieldClient = 'Khách: Trần Nam';
 
   /// CHƯA NỐI API — dùng làm việc cần làm mặc định khi `voiceLeadProvider`
   /// còn `null`. Khi có `VoiceLeadDraft`, thay bằng `draft.suggestedDealTitle`

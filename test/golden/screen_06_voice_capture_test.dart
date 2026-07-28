@@ -6,6 +6,7 @@ import 'package:solodesk_mobile/core/audio/voice_capture_service.dart';
 import 'package:solodesk_mobile/modules/voice_lead/domain/entities/voice_lead_draft.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/pages/voice_capture_page_new.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 import 'package:solodesk_mobile/ui/icon_button_box.dart';
@@ -14,6 +15,7 @@ import 'package:solodesk_mobile/ui/solo_app_bar.dart';
 import 'package:solodesk_mobile/ui/solo_icons.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 class _MockVoiceCaptureService extends Mock implements VoiceCaptureService {}
 
@@ -53,6 +55,7 @@ Future<_MockVoiceCaptureService> _pump(
       overrides: [
         voiceLeadProvider.overrideWithValue(draft),
         voiceCaptureServiceProvider.overrideWithValue(svc),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

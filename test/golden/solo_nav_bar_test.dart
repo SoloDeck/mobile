@@ -128,6 +128,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Column(
+          key: Key('golden-root'),
           mainAxisSize: MainAxisSize.min,
           children: [
             SoloNavBar(index: 0),
@@ -139,7 +140,7 @@ void main() {
     );
 
     await expectLater(
-      find.byType(Column),
+      find.byKey(const Key('golden-root')),
       matchesGoldenFile('goldens/solo_nav_bar.png'),
     );
   }, skip: !soloFontsLoaded);
