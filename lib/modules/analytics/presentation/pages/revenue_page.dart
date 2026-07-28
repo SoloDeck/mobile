@@ -53,17 +53,35 @@ import 'package:solodesk_mobile/ui/status_chip.dart';
 ///
 /// `ref.watch(dashboardSummaryProvider)` chỉ cấp bốn field (`totalClients`,
 /// `activeDeals`, `totalRevenue`, `pendingInvoices`). Duy nhất `totalRevenue`
-/// khớp trực tiếp — dùng cho "Đã thu · 7 tháng đầu năm". Mọi số liệu khác của
-/// màn này (biểu đồ 7 cột, so sánh cùng kỳ, số hợp đồng, tỉ lệ chốt, deal
-/// trung bình, công nợ theo tuổi nợ) không có field nào cấp — xem
-/// `_MockData` để biết chi tiết còn thiếu.
-class RevenuePage extends ConsumerWidget {
+/// khớp trực tiếp — dùng cho "Đã thu · 7 tháng đầu năm", và **không đổi theo
+/// năm chọn** vì backend chưa có bộ lọc năm cho endpoint này. Mọi số liệu
+/// khác của màn này (biểu đồ 7 cột, so sánh cùng kỳ, số hợp đồng, tỉ lệ chốt,
+/// deal trung bình, công nợ theo tuổi nợ) không có field nào cấp — xem
+/// `_MockData` để biết chi tiết còn thiếu, và `_YearlyMockData` cho biến thể
+/// theo năm của chỗ dữ liệu giả đó.
+///
+/// ## Chip chọn năm
+///
+/// `StatusChip` tự nó không có vùng chạm 44pt (xem doc comment của nó) nên
+/// không đội `onTap` lên thẳng nó — bọc riêng bằng `_YearChip`, cùng khuôn
+/// `Semantics(button: true)` + `GestureDetector` mà `IconButtonBox` dùng.
+/// Chọn năm mở `_showYearPickerSheet`, cùng kiểu `showModalBottomSheet` với
+/// `_showDealMenu` ở MÀN 05 (`useSafeArea: true`, bo góc trên `AppRadius.card`).
+class RevenuePage extends ConsumerStatefulWidget {
   const RevenuePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RevenuePage> createState() => _RevenuePageState();
+}
+
+class _RevenuePageState extends ConsumerState<RevenuePage> {
+  int _selectedYear = 2026;
+
+  @override
+  Widget build(BuildContext context) {
     final summary = ref.watch(dashboardSummaryProvider);
     final appearance = ref.watch(appearanceControllerProvider);
+    final yearData = _MockData.forYear(_selectedYear);
 
     return Theme(
       data: AppTheme.light(seed: appearance.accent.seed),
@@ -83,10 +101,11 @@ class RevenuePage extends ConsumerWidget {
                   label: 'Quay lại',
                   onTap: () => context.pop(),
                 ),
-                actions: const [
-                  StatusChip(
-                    _MockData.yearChipLabel,
-                    trailingIcon: SoloIcons.chevron,
+                actions: [
+                  _YearChip(
+                    selectedYear: _selectedYear,
+                    onYearSelected: (year) =>
+                        setState(() => _selectedYear = year),
                   ),
                 ],
               ),
@@ -104,7 +123,12 @@ class RevenuePage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _CollectedSlip(collectedAmount: s.totalRevenue),
+                        _CollectedSlip(
+                          collectedAmount: s.totalRevenue,
+                          yoyChip: yearData.yoyChip,
+                          contractsChip: yearData.contractsChip,
+                          monthHeights: yearData.monthHeights,
+                        ),
                         const SizedBox(height: AppGap.row),
                         // IntrinsicHeight: `crossAxisAlignment.stretch` cần
                         // Row có chiều cao xác định để kéo giãn hai thẻ
@@ -114,23 +138,23 @@ class RevenuePage extends ConsumerWidget {
                         // không phải biểu đồ cột (biểu đồ cũng được bọc
                         // SizedBox height cố định để không lặp lại lỗi
                         // tương tự).
-                        const IntrinsicHeight(
+                        IntrinsicHeight(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
                                 child: _StatCard(
                                   label: _MockData.closeRateLabel,
-                                  value: _MockData.closeRateValue,
-                                  caption: _MockData.closeRateCaption,
+                                  value: yearData.closeRateValue,
+                                  caption: yearData.closeRateCaption,
                                 ),
                               ),
-                              SizedBox(width: AppGap.row),
+                              const SizedBox(width: AppGap.row),
                               Expanded(
                                 child: _StatCard(
                                   label: _MockData.avgDealLabel,
-                                  value: _MockData.avgDealValue,
-                                  caption: _MockData.avgDealCaption,
+                                  value: yearData.avgDealValue,
+                                  caption: yearData.avgDealCaption,
                                 ),
                               ),
                             ],
@@ -140,7 +164,14 @@ class RevenuePage extends ConsumerWidget {
                           _MockData.agingSectionLabel,
                           actionLabel: _MockData.agingActionLabel,
                         ),
-                        const _DebtAgingCard(),
+                        _DebtAgingCard(
+                          onTimeAmount: yearData.onTimeAmount,
+                          onTimeRatio: yearData.onTimeRatio,
+                          overdueShortAmount: yearData.overdueShortAmount,
+                          overdueShortRatio: yearData.overdueShortRatio,
+                          overdueLongAmount: yearData.overdueLongAmount,
+                          overdueLongRatio: yearData.overdueLongRatio,
+                        ),
                       ],
                     ),
                   ),
@@ -154,17 +185,164 @@ class RevenuePage extends ConsumerWidget {
   }
 }
 
+/// Vùng chạm bọc quanh `StatusChip` chọn năm ở góc phải `SoloAppBar`.
+/// `StatusChip` không được thêm `onTap` (xem doc comment của nó — dùng chung
+/// toàn app, không có vùng chạm 44pt) nên hành động bấm sống ở đây, cùng
+/// khuôn `Semantics(button: true)` + `GestureDetector` mà `IconButtonBox`
+/// dùng: hình vẽ giữ nguyên kích thước của chip, còn hộp bố cục nới ra tối
+/// thiểu 44 × 44 bằng `ConstrainedBox`.
+class _YearChip extends StatelessWidget {
+  const _YearChip({required this.selectedYear, required this.onYearSelected});
+
+  final int selectedYear;
+  final ValueChanged<int> onYearSelected;
+
+  /// Cạnh vùng chạm tối thiểu theo quy tắc tiếp cận — cùng giá trị với
+  /// `IconButtonBox.tapTarget`.
+  static const double _tapTarget = 44;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Chọn năm',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () =>
+            _showYearPickerSheet(context, selectedYear, onYearSelected),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: _tapTarget,
+            minHeight: _tapTarget,
+          ),
+          child: Center(
+            child: StatusChip(
+              '$selectedYear',
+              trailingIcon: SoloIcons.chevron,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bảng chọn năm, mở từ `_YearChip`. Cùng khuôn `showModalBottomSheet` với
+/// `_showDealMenu` ở MÀN 05: `useSafeArea: true`, nền `AppColors.surface`,
+/// bo góc trên `AppRadius.card`. Ba năm liệt kê cứng vì `_MockData.forYear`
+/// hiện chỉ có dữ liệu giả cho 2024–2026 — thêm năm nào thì thêm dữ liệu giả
+/// tương ứng ở đó trước.
+Future<void> _showYearPickerSheet(
+  BuildContext context,
+  int selectedYear,
+  ValueChanged<int> onYearSelected,
+) {
+  const years = [2024, 2025, 2026];
+
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+    ),
+    builder: (sheetContext) => Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppGap.screen,
+        AppGap.sectionTop,
+        AppGap.screen,
+        AppGap.xxl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SectionLabel('Chọn năm'),
+          const SizedBox(height: AppGap.sectionBottom),
+          for (final year in years)
+            _YearOption(
+              year: year,
+              selected: year == selectedYear,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                onYearSelected(year);
+              },
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Một dòng năm trong bảng chọn năm. Năm đang chọn in đậm và có dấu tích —
+/// trạng thái không truyền tải chỉ bằng màu.
+class _YearOption extends StatelessWidget {
+  const _YearOption({
+    required this.year,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int year;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: AppRadius.cardAll,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppGap.card,
+          vertical: AppGap.lg,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                '$year',
+                style: AppText.bodyStrong.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : null,
+                ),
+              ),
+            ),
+            if (selected)
+              const SoloIcon(
+                SoloIcons.check,
+                label: null,
+                size: SoloIcon.xs,
+                color: AppColors.momo,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Tấm phiếu tiền đã thu. Là `SlipCard` vì đúng là tiền — nhưng `Tone.neutral`
 /// chứ không phải `Tone.ok`: đây là số **tham chiếu** tổng doanh thu đã thu,
 /// không phải trạng thái "vừa được đánh dấu đã thu" của một khoản cụ thể như
 /// MÀN 02. HTML không khai màu cho `.num` này nên nó thừa hưởng `--ink`.
 ///
 /// [collectedAmount] đến từ `DashboardSummary.totalRevenue` — field duy nhất
-/// của `dashboardSummaryProvider` khớp trực tiếp với dữ liệu màn này.
+/// của `dashboardSummaryProvider` khớp trực tiếp với dữ liệu màn này, và
+/// **không đổi theo năm chọn** (xem doc comment của `RevenuePage`).
+/// [yoyChip], [contractsChip] và [monthHeights] là dữ liệu giả, đổi theo năm
+/// — xem `_YearlyMockData`.
 class _CollectedSlip extends StatelessWidget {
-  const _CollectedSlip({required this.collectedAmount});
+  const _CollectedSlip({
+    required this.collectedAmount,
+    required this.yoyChip,
+    required this.contractsChip,
+    required this.monthHeights,
+  });
 
   final double collectedAmount;
+  final String yoyChip;
+  final String contractsChip;
+  final List<double> monthHeights;
 
   @override
   Widget build(BuildContext context) {
@@ -178,16 +356,16 @@ class _CollectedSlip extends StatelessWidget {
           const SizedBox(height: AppGap.xs),
           Money.hero(collectedAmount, tone: Tone.neutral),
           const SizedBox(height: AppGap.md),
-          const Wrap(
+          Wrap(
             spacing: AppGap.xs,
             runSpacing: AppGap.xs,
             children: [
-              StatusChip(_MockData.yoyChip, tone: Tone.ok),
-              StatusChip(_MockData.contractsChip),
+              StatusChip(yoyChip, tone: Tone.ok),
+              StatusChip(contractsChip),
             ],
           ),
           const PerforatedDivider(),
-          const _MonthlyBarChart(),
+          _MonthlyBarChart(monthHeights: monthHeights),
         ],
       ),
     );
@@ -206,17 +384,23 @@ class _CollectedSlip extends StatelessWidget {
 /// `SingleChildScrollView` phía ngoài và `hasSize` assert khi dựng.
 ///
 /// Mỗi cột dựng bằng `Expanded` + `FractionallySizedBox` theo *tỉ lệ* chiều
-/// cao dữ liệu (`monthHeights[i] / monthHeights.max`), không phải chép thẳng
-/// pixel HTML làm chiều cao cứng cho thanh cột: chưa có font thật nên nhãn
-/// tháng (`AppText.mut`) đo bằng font thay thế cao hơn ước tính của bản phác
-/// thảo, ghép với chiều cao cột cứng 60px sẽ tràn đáy khung 78px. Chia theo
-/// tỉ lệ trong phần `Expanded` còn lại sau khi trừ nhãn giữ đúng hình dạng
-/// biểu đồ mà luôn vừa khung, bất kể font nào đang được dùng để đo.
+/// cao dữ liệu ([monthHeights] chia cho cột cao nhất trong chính năm đang
+/// chọn), không phải chép thẳng pixel HTML làm chiều cao cứng cho thanh cột:
+/// chưa có font thật nên nhãn tháng (`AppText.mut`) đo bằng font thay thế cao
+/// hơn ước tính của bản phác thảo, ghép với chiều cao cột cứng 60px sẽ tràn
+/// đáy khung 78px. Chia theo tỉ lệ trong phần `Expanded` còn lại sau khi trừ
+/// nhãn giữ đúng hình dạng biểu đồ mà luôn vừa khung, bất kể font nào đang
+/// được dùng để đo. [monthHeights] là dữ liệu giả, đổi theo năm — xem
+/// `_YearlyMockData`; nhãn tháng (`_MockData.monthLabels`) thì không đổi.
 class _MonthlyBarChart extends StatelessWidget {
-  const _MonthlyBarChart();
+  const _MonthlyBarChart({required this.monthHeights});
+
+  final List<double> monthHeights;
 
   @override
   Widget build(BuildContext context) {
+    final tallest = monthHeights.reduce((a, b) => a > b ? a : b);
+
     return Semantics(
       label: 'Biểu đồ doanh thu 7 tháng đầu năm, tháng 07 là tháng hiện tại',
       child: SizedBox(
@@ -226,7 +410,13 @@ class _MonthlyBarChart extends StatelessWidget {
           children: [
             for (var i = 0; i < _MockData.monthLabels.length; i++) ...[
               if (i > 0) const SizedBox(width: AppGap.sm),
-              Expanded(child: _MonthBar(index: i)),
+              Expanded(
+                child: _MonthBar(
+                  index: i,
+                  height: monthHeights[i],
+                  tallestHeight: tallest,
+                ),
+              ),
             ],
           ],
         ),
@@ -236,9 +426,15 @@ class _MonthlyBarChart extends StatelessWidget {
 }
 
 class _MonthBar extends StatelessWidget {
-  const _MonthBar({required this.index});
+  const _MonthBar({
+    required this.index,
+    required this.height,
+    required this.tallestHeight,
+  });
 
   final int index;
+  final double height;
+  final double tallestHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -247,8 +443,7 @@ class _MonthBar extends StatelessWidget {
     // cố ý không tranh sự chú ý. Không dùng aiSoft (tím dành riêng cho AI chờ
     // duyệt) và không dùng momoLine (token viền, không phải token nền).
     final barColor = isCurrent ? AppColors.momo : AppColors.momoSoft;
-    final heightFactor =
-        _MockData.monthHeights[index] / _MockData.tallestMonthHeight;
+    final heightFactor = height / tallestHeight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,37 +513,52 @@ class _StatCard extends StatelessWidget {
 }
 
 /// Công nợ chia theo tuổi nợ. Ba hàng, màu càng gắt khi càng để lâu — đúng ý
-/// figcaption "càng để lâu càng khó đòi".
+/// figcaption "càng để lâu càng khó đòi". Toàn bộ số liệu là dữ liệu giả, đổi
+/// theo năm — xem `_YearlyMockData`.
 class _DebtAgingCard extends StatelessWidget {
-  const _DebtAgingCard();
+  const _DebtAgingCard({
+    required this.onTimeAmount,
+    required this.onTimeRatio,
+    required this.overdueShortAmount,
+    required this.overdueShortRatio,
+    required this.overdueLongAmount,
+    required this.overdueLongRatio,
+  });
+
+  final int onTimeAmount;
+  final double onTimeRatio;
+  final int overdueShortAmount;
+  final double overdueShortRatio;
+  final int overdueLongAmount;
+  final double overdueLongRatio;
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    return Card(
       child: Padding(
-        padding: EdgeInsets.all(AppGap.card),
+        padding: const EdgeInsets.all(AppGap.card),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             _DebtAgingRow(
               label: _MockData.onTimeLabel,
-              amount: _MockData.onTimeAmount,
-              ratio: _MockData.onTimeRatio,
+              amount: onTimeAmount,
+              ratio: onTimeRatio,
               tone: Tone.neutral,
             ),
-            SizedBox(height: AppGap.lg),
+            const SizedBox(height: AppGap.lg),
             _DebtAgingRow(
               label: _MockData.overdueShortLabel,
-              amount: _MockData.overdueShortAmount,
-              ratio: _MockData.overdueShortRatio,
+              amount: overdueShortAmount,
+              ratio: overdueShortRatio,
               tone: Tone.warn,
             ),
-            SizedBox(height: AppGap.lg),
+            const SizedBox(height: AppGap.lg),
             _DebtAgingRow(
               label: _MockData.overdueLongLabel,
-              amount: _MockData.overdueLongAmount,
-              ratio: _MockData.overdueLongRatio,
+              amount: overdueLongAmount,
+              ratio: overdueLongRatio,
               tone: Tone.money,
               bold: true,
             ),
@@ -405,39 +615,68 @@ class _DebtAgingRow extends StatelessWidget {
   }
 }
 
-/// Dữ liệu giả lấy đúng từ bản phác thảo.
+/// Nhóm số liệu giả biến theo năm chọn ở `_YearChip` — mọi field ở đây CHƯA
+/// NỐI API, xem doc comment của `_MockData`. `monthHeights` dùng đơn vị tỉ lệ
+/// tương đối như bản gốc, không phải tiền thật; `onTimeAmount`/
+/// `overdueShortAmount`/`overdueLongAmount` là VNĐ nguyên; `onTimeRatio`/
+/// `overdueShortRatio`/`overdueLongRatio` trong khoảng 0–1. Ba năm trong
+/// `_MockData._byYear` chỉ để việc đổi năm có gì đó đổi theo — số nhỏ dần về
+/// 2024, lớn dần về 2026, không có ý nghĩa tài chính thật.
+class _YearlyMockData {
+  const _YearlyMockData({
+    required this.yoyChip,
+    required this.contractsChip,
+    required this.monthHeights,
+    required this.closeRateValue,
+    required this.closeRateCaption,
+    required this.avgDealValue,
+    required this.avgDealCaption,
+    required this.onTimeAmount,
+    required this.onTimeRatio,
+    required this.overdueShortAmount,
+    required this.overdueShortRatio,
+    required this.overdueLongAmount,
+    required this.overdueLongRatio,
+  });
+
+  final String yoyChip;
+  final String contractsChip;
+  final List<double> monthHeights;
+  final String closeRateValue;
+  final String closeRateCaption;
+  final String avgDealValue;
+  final String avgDealCaption;
+  final int onTimeAmount;
+  final double onTimeRatio;
+  final int overdueShortAmount;
+  final double overdueShortRatio;
+  final int overdueLongAmount;
+  final double overdueLongRatio;
+}
+
+/// Dữ liệu giả lấy đúng từ bản phác thảo (năm 2026 — năm mặc định khi mở
+/// màn), cộng phần biến theo năm ở [_YearlyMockData]/[forYear].
 ///
 /// CHƯA NỐI API — biểu đồ 7 cột theo tháng (`monthHeights`/`monthLabels`),
 /// "↑ 22% so với 2025" (`yoyChip`), "17 hợp đồng" (`contractsChip`), tỉ lệ
 /// chốt, deal trung bình, và công nợ theo ba nhóm tuổi nợ. Backend có
 /// `/analytics/revenue` và `/analytics/win-rate` nhưng mobile chưa dựng client
-/// cho hai endpoint này — đợt sau. `collectedAmount` không còn ở đây: nó đã
-/// nối vào `DashboardSummary.totalRevenue` qua `dashboardSummaryProvider`
-/// (xem `_CollectedSlip`).
+/// cho hai endpoint này — đợt sau, khi đó `forYear` sẽ gọi API thật theo năm
+/// thay vì tra map cứng. `collectedAmount` không còn ở đây: nó đã nối vào
+/// `DashboardSummary.totalRevenue` qua `dashboardSummaryProvider` (xem
+/// `_CollectedSlip`), và **không** đổi theo năm chọn.
 ///
 /// Là class chứ không phải record vì Dart không cho đọc field của record
 /// trong biểu thức `const`, mà phần lớn widget của màn này phải const được.
 /// Tên viết hoa theo lint `camel_case_types` của repo.
 abstract final class _MockData {
   static const String title = 'Doanh thu';
-  static const String yearChipLabel = '2026';
 
   static const String collectedLabel = 'Đã thu · 7 tháng đầu năm';
-  static const String yoyChip = '↑ 22% so với 2025';
-  static const String contractsChip = '17 hợp đồng';
 
   /// Khung cao của biểu đồ — đúng `height:78px` ở HTML dòng 918.
   static const double chartHeight = 78;
 
-  /// Chiều cao cột theo đúng pixel trong bản phác thảo — đây là dữ liệu doanh
-  /// thu từng tháng, không phải khoảng cách bố cục, nên không lấy từ `AppGap`.
-  /// Dùng làm tỉ lệ tương đối giữa các cột (xem `_MonthBar`), không phải
-  /// chiều cao tuyệt đối.
-  static const List<double> monthHeights = [32, 44, 26, 52, 38, 60, 48];
-
-  /// Cột cao nhất — tháng 06 trong bản phác thảo, dùng làm mẫu số quy đổi
-  /// [monthHeights] thành tỉ lệ 0–1.
-  static const double tallestMonthHeight = 60;
   static const List<String> monthLabels = [
     '01',
     '02',
@@ -449,25 +688,67 @@ abstract final class _MockData {
   ];
 
   static const String closeRateLabel = 'Tỉ lệ chốt';
-  static const String closeRateValue = '41%';
-  static const String closeRateCaption = '17/41 báo giá';
-
   static const String avgDealLabel = 'Deal trung bình';
-  static const String avgDealValue = '16,7 tr';
-  static const String avgDealCaption = '↑ 1,9 tr';
 
   static const String agingSectionLabel = 'Công nợ theo tuổi nợ';
   static const String agingActionLabel = 'Chi tiết';
 
   static const String onTimeLabel = 'Trong hạn';
-  static const int onTimeAmount = 19000000;
-  static const double onTimeRatio = 0.60;
-
   static const String overdueShortLabel = 'Quá 1–7 ngày';
-  static const int overdueShortAmount = 7500000;
-  static const double overdueShortRatio = 0.24;
-
   static const String overdueLongLabel = 'Quá trên 30 ngày';
-  static const int overdueLongAmount = 5000000;
-  static const double overdueLongRatio = 0.16;
+
+  /// Dữ liệu giả theo từng năm, khớp bản phác thảo ở 2026. `_showYearPickerSheet`
+  /// chỉ liệt kê ba năm này — thêm năm nào vào bảng chọn thì thêm dữ liệu giả
+  /// tương ứng ở đây trước.
+  static const Map<int, _YearlyMockData> _byYear = {
+    2024: _YearlyMockData(
+      yoyChip: '↑ 9% so với 2023',
+      contractsChip: '9 hợp đồng',
+      monthHeights: [16, 22, 14, 28, 20, 32, 26],
+      closeRateValue: '30%',
+      closeRateCaption: '9/30 báo giá',
+      avgDealValue: '11,5 tr',
+      avgDealCaption: '↑ 0,6 tr',
+      onTimeAmount: 11000000,
+      onTimeRatio: 0.55,
+      overdueShortAmount: 5200000,
+      overdueShortRatio: 0.28,
+      overdueLongAmount: 4300000,
+      overdueLongRatio: 0.17,
+    ),
+    2025: _YearlyMockData(
+      yoyChip: '↑ 15% so với 2024',
+      contractsChip: '13 hợp đồng',
+      monthHeights: [24, 34, 20, 40, 30, 46, 38],
+      closeRateValue: '36%',
+      closeRateCaption: '13/36 báo giá',
+      avgDealValue: '14,2 tr',
+      avgDealCaption: '↑ 1,1 tr',
+      onTimeAmount: 15000000,
+      onTimeRatio: 0.58,
+      overdueShortAmount: 6200000,
+      overdueShortRatio: 0.26,
+      overdueLongAmount: 4600000,
+      overdueLongRatio: 0.16,
+    ),
+    2026: _YearlyMockData(
+      yoyChip: '↑ 22% so với 2025',
+      contractsChip: '17 hợp đồng',
+      monthHeights: [32, 44, 26, 52, 38, 60, 48],
+      closeRateValue: '41%',
+      closeRateCaption: '17/41 báo giá',
+      avgDealValue: '16,7 tr',
+      avgDealCaption: '↑ 1,9 tr',
+      onTimeAmount: 19000000,
+      onTimeRatio: 0.60,
+      overdueShortAmount: 7500000,
+      overdueShortRatio: 0.24,
+      overdueLongAmount: 5000000,
+      overdueLongRatio: 0.16,
+    ),
+  };
+
+  /// Năm không có trong [_byYear] (chưa nên xảy ra vì bảng chọn chỉ đưa ra ba
+  /// năm ở trên) rơi về 2026 thay vì ném lỗi.
+  static _YearlyMockData forYear(int year) => _byYear[year] ?? _byYear[2026]!;
 }

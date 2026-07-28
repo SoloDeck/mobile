@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summary.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/providers/analytics_provider.dart';
+import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/providers/deals_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
@@ -35,10 +39,12 @@ import 'package:solodesk_mobile/ui/status_chip.dart';
 /// - Thứ tự thẻ do **mức thiệt hại** quyết định, không phải thời gian tạo.
 ///
 /// Nối một phần: `dashboardSummaryProvider` cấp `pendingInvoices` cho con dấu
-/// "N hoá đơn" trên tờ phiếu công nợ. Phần còn lại của màn — số tiền công nợ,
-/// hai chip sắp đến hạn/quá hạn, số đã thu tháng này, ba thẻ việc và thẻ lead
-/// mới — chưa có provider tương ứng nên vẫn là dữ liệu giả, xem `_MockData` và
-/// các doc comment `CHƯA NỐI API` bên dưới.
+/// "N hoá đơn" trên tờ phiếu công nợ, và `dealListProvider` cấp lead mới nhất
+/// (deal ở `DealStage.newLead`, mới tạo nhất) cho thẻ "Lead mới từ form" —
+/// không có lead nào thì ẩn cả khối, không hiện dữ liệu giả. Phần còn lại của
+/// màn — số tiền công nợ, hai chip sắp đến hạn/quá hạn, số đã thu tháng này,
+/// ba thẻ việc — chưa có provider tương ứng nên vẫn là dữ liệu giả, xem
+/// `_MockData` và các doc comment `CHƯA NỐI API` bên dưới.
 class HomeTodayPage extends ConsumerWidget {
   const HomeTodayPage({super.key});
 
@@ -46,6 +52,8 @@ class HomeTodayPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summary = ref.watch(dashboardSummaryProvider);
     final appearance = ref.watch(appearanceControllerProvider);
+    final deals = ref.watch(dealListProvider).value;
+    final latestNewLead = _latestNewLead(deals);
 
     return Theme(
       data: AppTheme.light(seed: appearance.accent.seed),
@@ -57,11 +65,11 @@ class HomeTodayPage extends ConsumerWidget {
           bottom: false,
           child: Column(
             children: [
-              const SoloAppBar(
+              SoloAppBar(
                 title: _MockData.title,
                 overline: _MockData.date,
                 titleSize: SoloAppBar.md,
-                leading: Avatar.initials(
+                leading: const Avatar.initials(
                   _MockData.userInitials,
                   tone: Tone.money,
                 ),
@@ -70,6 +78,7 @@ class HomeTodayPage extends ConsumerWidget {
                     SoloIcons.bell,
                     label: 'Thông báo',
                     showDot: true,
+                    onTap: () => context.push(RouteNames.notifications),
                   ),
                 ],
               ),
@@ -100,11 +109,13 @@ class HomeTodayPage extends ConsumerWidget {
                         const _QuoteDraftTask(),
                         const SizedBox(height: AppGap.betweenCards),
                         const _OverdueTasksTask(),
-                        const SectionHeader(
-                          'Lead mới từ form',
-                          actionLabel: 'Tất cả',
-                        ),
-                        const _NewLeadCard(),
+                        if (latestNewLead != null) ...[
+                          const SectionHeader(
+                            'Lead mới từ form',
+                            actionLabel: 'Tất cả',
+                          ),
+                          _NewLeadCard(deal: latestNewLead),
+                        ],
                       ],
                     ),
                   ),
@@ -116,6 +127,21 @@ class HomeTodayPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Deal mới nhất ở giai đoạn `DealStage.newLead`, dùng cho thẻ "Lead mới từ
+/// form". `null` khi chưa tải xong danh sách deal hoặc không có lead nào —
+/// cả hai trường hợp đều ẩn khối, không hiện dữ liệu giả.
+Deal? _latestNewLead(List<Deal>? deals) {
+  if (deals == null) return null;
+  Deal? latest;
+  for (final deal in deals) {
+    if (deal.stage != DealStage.newLead) continue;
+    if (latest == null || deal.createdAt.isAfter(latest.createdAt)) {
+      latest = deal;
+    }
+  }
+  return latest;
 }
 
 /// Tấm phiếu công nợ. Là `SlipCard` vì nội dung đúng là tiền phải đòi.
@@ -302,25 +328,55 @@ class _OverdueTasksTask extends StatelessWidget {
 /// Lead mới — `Card` thường, không phải `AccentCard`: nó là thông tin, chưa phải
 /// việc phải xử lý hôm nay.
 ///
-/// CHƯA NỐI API — chưa có provider cấp lead mới từ form; dữ liệu giả chép từ
-/// bản phác thảo.
+/// Nối thật với [Deal] mới nhất ở `DealStage.newLead`, xem `_latestNewLead`.
 class _NewLeadCard extends StatelessWidget {
-  const _NewLeadCard();
+  const _NewLeadCard({required this.deal});
+
+  final Deal deal;
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    final clientName = deal.clientName?.trim();
+    final displayName = clientName != null && clientName.isNotEmpty
+        ? clientName
+        : 'Khách hàng chưa đặt tên';
+
+    return Card(
       child: Padding(
-        padding: EdgeInsets.all(AppGap.card),
+        padding: const EdgeInsets.all(AppGap.card),
         child: _TaskHeader(
-          avatar: Avatar.initials('TN', tone: Tone.ok),
-          title: 'Trần Nam · Studio Cỏ',
-          subtitle: 'Chụp sản phẩm · vừa gửi 22 phút trước',
-          trailing: StatusChip('Chấm điểm', tone: Tone.ai),
+          avatar: clientName != null && clientName.isNotEmpty
+              ? Avatar.initials(_initialsFor(clientName), tone: Tone.ok)
+              : const Avatar.icon(SoloIcons.user, tone: Tone.ok),
+          title: '$displayName · ${deal.title}',
+          subtitle: _relativeTimeVi(deal.createdAt),
+          trailing: const StatusChip('Chấm điểm', tone: Tone.ai),
         ),
       ),
     );
   }
+}
+
+/// Hai chữ cái viết tắt từ tên khách hàng, kiểu "Trần Nam" → "TN". Lấy chữ cái
+/// đầu của từ đầu tiên và từ cuối cùng — khớp cách các avatar khác trong bản
+/// phác thảo viết tắt tên (họ + tên), không phải hai từ đầu.
+String _initialsFor(String name) {
+  final words = name.trim().split(RegExp(r'\s+'));
+  if (words.isEmpty || words.first.isEmpty) return '?';
+  if (words.length == 1) return words.first.substring(0, 1).toUpperCase();
+  return (words.first.substring(0, 1) + words.last.substring(0, 1))
+      .toUpperCase();
+}
+
+/// Thời gian tương đối kiểu "vừa gửi N phút trước" từ `Deal.createdAt`.
+String _relativeTimeVi(DateTime createdAt) {
+  final diff = DateTime.now().difference(createdAt);
+  if (diff.inMinutes < 1) return 'vừa gửi';
+  if (diff.inMinutes < 60) return 'vừa gửi ${diff.inMinutes} phút trước';
+  if (diff.inHours < 24) return 'gửi ${diff.inHours} giờ trước';
+  if (diff.inDays == 1) return 'gửi hôm qua';
+  if (diff.inDays < 7) return 'gửi ${diff.inDays} ngày trước';
+  return 'gửi ${createdAt.day}/${createdAt.month}';
 }
 
 /// Hàng avatar + hai dòng chữ, lặp ở cả bốn thẻ của màn này.

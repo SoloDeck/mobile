@@ -76,18 +76,41 @@ class ReminderComposePage extends ConsumerWidget {
 
     // Bọc `Theme` mới vì app vẫn đang chạy `AppTheme` cũ ở gốc — không bọc thì
     // toàn màn ra sai màu.
+    //
+    // `SoloAppBar` nằm ngay trên `Scaffold`/`Column` gốc, ở NGOÀI
+    // `AsyncValueWidget` — chỉ phần nội dung bên dưới mới chuyển giữa
+    // loading/error/data. Trước đây `SoloAppBar` nằm trong nhánh `data:` nên
+    // khi hoá đơn đang tải hoặc lỗi thì không có nút quay lại nào cả, người
+    // dùng bị kẹt màn. Đối chiếu cách đặt app bar của `InvoicesPage` /
+    // `LeadScorePage`.
     return Theme(
       data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(
           bottom: false,
-          child: AsyncValueWidget<ReminderComposeData>(
-            value: dataAsync,
-            onRetry: () =>
-                ref.invalidate(reminderComposeDataProvider(invoiceId)),
-            data: (data) =>
-                _ReminderComposeBody(invoiceId: invoiceId, data: data),
+          child: Column(
+            children: [
+              SoloAppBar(
+                title: 'Nhắc thanh toán',
+                titleSize: SoloAppBar.sm,
+                leading: IconButtonBox(
+                  SoloIcons.back,
+                  label: 'Quay lại',
+                  ghost: true,
+                  onTap: () => context.pop(),
+                ),
+              ),
+              Expanded(
+                child: AsyncValueWidget<ReminderComposeData>(
+                  value: dataAsync,
+                  onRetry: () =>
+                      ref.invalidate(reminderComposeDataProvider(invoiceId)),
+                  data: (data) =>
+                      _ReminderComposeBody(invoiceId: invoiceId, data: data),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -95,8 +118,13 @@ class ReminderComposePage extends ConsumerWidget {
   }
 }
 
-/// Toàn bộ nội dung màn sau khi hoá đơn đã tải xong — `Stack` gốc (Column cuộn
-/// + `BottomActionBar` nổi đáy), giữ nguyên hình dạng bản mock cũ.
+/// Nội dung màn sau khi hoá đơn đã tải xong — `Stack` gốc (nội dung cuộn +
+/// `BottomActionBar` nổi đáy), giữ nguyên hình dạng bản mock cũ. `SoloAppBar`
+/// KHÔNG còn nằm ở đây — nó đã chuyển lên `Scaffold`/`Column` gốc của
+/// [ReminderComposePage] để luôn hiện kể cả khi widget này chưa được dựng
+/// (đang loading/error). Widget này giờ chỉ lấp đầy phần `Expanded` còn lại
+/// bên dưới app bar, nên dùng `Positioned.fill` thay vì tự bọc `Column` với
+/// app bar riêng.
 ///
 /// Là `ConsumerWidget` (không phải `StatelessWidget`) vì phần lớn widget con
 /// cần `ref` để đọc/điều khiển `reminderComposeControllerProvider(invoiceId)`.
@@ -118,68 +146,54 @@ class _ReminderComposeBody extends ConsumerWidget {
 
     return Stack(
       children: [
-        Column(
-          children: [
-            SoloAppBar(
-              title: 'Nhắc thanh toán',
-              titleSize: SoloAppBar.sm,
-              leading: IconButtonBox(
-                SoloIcons.back,
-                label: 'Quay lại',
-                ghost: true,
-                onTap: () => context.pop(),
-              ),
+        Positioned.fill(
+          // SingleChildScrollView chứ không phải ListView: nội dung dựng
+          // hết một lượt để test còn tìm được phần dưới màn.
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              AppGap.screen,
+              0,
+              AppGap.screen,
+              AppGap.navBarInset,
             ),
-            Expanded(
-              // SingleChildScrollView chứ không phải ListView: nội dung dựng
-              // hết một lượt để test còn tìm được phần dưới màn.
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppGap.screen,
-                  0,
-                  AppGap.screen,
-                  AppGap.navBarInset,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _PaymentSlip(invoice: invoice, overdueDays: overdueDays),
+                const SizedBox(height: AppGap.sectionTop),
+                const SectionLabel('Giọng văn'),
+                const SizedBox(height: AppGap.sectionBottom),
+                _ToneChipRow(
+                  selected: draft.tone,
+                  onSelect: (tone) => ref.read(controller).setTone(tone),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _PaymentSlip(invoice: invoice, overdueDays: overdueDays),
-                    const SizedBox(height: AppGap.sectionTop),
-                    const SectionLabel('Giọng văn'),
-                    const SizedBox(height: AppGap.sectionBottom),
-                    _ToneChipRow(
-                      selected: draft.tone,
-                      onSelect: (tone) => ref.read(controller).setTone(tone),
-                    ),
-                    const SizedBox(height: AppGap.lg),
-                    _DraftCard(body: draft.body),
-                    const SizedBox(height: AppGap.betweenCards),
-                    _ToggleCard(
-                      icon: SoloIcons.cash,
-                      iconColor: AppColors.momo,
-                      label: 'Đính kèm link MoMo',
-                      on: draft.attachPaymentLink,
-                      onTap: () => ref.read(controller).toggleMomoLink(),
-                    ),
-                    const SizedBox(height: AppGap.betweenCards),
-                    _ToggleCard(
-                      icon: SoloIcons.clock,
-                      iconColor: AppColors.ink2,
-                      label: 'Tự nhắc lại sau 3 ngày',
-                      on: draft.repeatAfterDays != null,
-                      onTap: () => ref.read(controller).toggleRepeat(),
-                    ),
-                    const SizedBox(height: AppGap.lg),
-                    _ChannelChipRow(
-                      selected: draft.channel,
-                      onSelect: (channel) =>
-                          ref.read(controller).setChannel(channel),
-                    ),
-                  ],
+                const SizedBox(height: AppGap.lg),
+                _DraftCard(body: draft.body),
+                const SizedBox(height: AppGap.betweenCards),
+                _ToggleCard(
+                  icon: SoloIcons.cash,
+                  iconColor: AppColors.momo,
+                  label: 'Đính kèm link MoMo',
+                  on: draft.attachPaymentLink,
+                  onTap: () => ref.read(controller).toggleMomoLink(),
                 ),
-              ),
+                const SizedBox(height: AppGap.betweenCards),
+                _ToggleCard(
+                  icon: SoloIcons.clock,
+                  iconColor: AppColors.ink2,
+                  label: 'Tự nhắc lại sau 3 ngày',
+                  on: draft.repeatAfterDays != null,
+                  onTap: () => ref.read(controller).toggleRepeat(),
+                ),
+                const SizedBox(height: AppGap.lg),
+                _ChannelChipRow(
+                  selected: draft.channel,
+                  onSelect: (channel) =>
+                      ref.read(controller).setChannel(channel),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         Align(
           alignment: Alignment.bottomCenter,

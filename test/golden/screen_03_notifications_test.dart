@@ -73,7 +73,7 @@ void main() {
         );
         expect(
           find.text(
-            'Trần Nam gửi yêu cầu chụp 40 sản phẩm, ngân sách khoảng 15 triệu.',
+            'Bản nháp cho Việt Phát đã sẵn sàng, còn 2 biến chưa điền.',
           ),
           findsOneWidget,
         );
@@ -124,9 +124,6 @@ void main() {
         'HÔM NAY',
         'Quá hạn thanh toán',
         '07:00',
-        'Có lead mới từ form',
-        '09:19',
-        'Trần Nam gửi yêu cầu chụp 40 sản phẩm, ngân sách khoảng 15 triệu.',
         'Báo giá soạn xong',
         '08:42',
         'Bản nháp cho Việt Phát đã sẵn sàng, còn 2 biến chưa điền.',

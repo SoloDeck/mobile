@@ -55,11 +55,20 @@ import 'package:solodesk_mobile/ui/status_chip.dart';
 /// hay lý do đứng yên ("Trả giá gắt"). Phần đó vẫn lấy từ `_heatFor`, lặp lại
 /// bốn kiểu mock theo thứ tự danh sách chỉ để giữ đúng hình dáng bản phác
 /// thảo; khi backend có điểm số độ nóng deal thật, thay bằng dữ liệu đó.
-class PipelinePage extends ConsumerWidget {
+class PipelinePage extends ConsumerStatefulWidget {
   const PipelinePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PipelinePage> createState() => _PipelinePageState();
+}
+
+class _PipelinePageState extends ConsumerState<PipelinePage> {
+  // Giai đoạn đang được chọn trên `FilterChipBar` — mặc định giai đoạn đầu
+  // ("Khách mới") để giữ nguyên hành vi lần mở màn đầu tiên.
+  int _selectedStageIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final pipeline = ref.watch(dealPipelineProvider);
     final deals = ref.watch(dealListProvider);
     final combined = _combine(pipeline, deals);
@@ -89,8 +98,13 @@ class PipelinePage extends ConsumerWidget {
                     ref.invalidate(dealPipelineProvider);
                     ref.invalidate(dealListProvider);
                   },
-                  data: (data) =>
-                      _PipelineBody(summaries: data.$1, deals: data.$2),
+                  data: (data) => _PipelineBody(
+                    summaries: data.$1,
+                    deals: data.$2,
+                    selectedIndex: _selectedStageIndex,
+                    onStageSelected: (index) =>
+                        setState(() => _selectedStageIndex = index),
+                  ),
                 ),
               ),
             ],
@@ -123,10 +137,21 @@ AsyncValue<(List<StageSummary>, List<Deal>)> _combine(
 /// Thân màn sau khi cả hai provider đã có dữ liệu: dải chip lọc, thanh vạch
 /// tỉ trọng, và danh sách thẻ deal cuộn dọc.
 class _PipelineBody extends StatelessWidget {
-  const _PipelineBody({required this.summaries, required this.deals});
+  const _PipelineBody({
+    required this.summaries,
+    required this.deals,
+    required this.selectedIndex,
+    required this.onStageSelected,
+  });
 
   final List<StageSummary> summaries;
   final List<Deal> deals;
+
+  /// Vị trí chip giai đoạn đang chọn — chỉ số này khớp 1:1 với `activeStages`
+  /// bên dưới (thứ tự `DealStage.values` sau khi loại `lost`), vì cả hai đều
+  /// dựng từ cùng danh sách `summaries`.
+  final int selectedIndex;
+  final ValueChanged<int> onStageSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -139,14 +164,30 @@ class _PipelineBody extends StatelessWidget {
     ];
     final stageWeights = [for (final summary in activeStages) summary.count];
 
-    final totalEstimate = deals.fold<double>(
+    // `selectedIndex` chọn giai đoạn đang lọc; kẹp lại phòng khi
+    // `activeStages` đổi độ dài giữa hai lần build (ví dụ dữ liệu tải lại).
+    final clampedIndex = activeStages.isEmpty
+        ? 0
+        : selectedIndex.clamp(0, activeStages.length - 1);
+    final selectedStage = activeStages.isEmpty
+        ? null
+        : activeStages[clampedIndex].stage;
+    final filteredDeals = selectedStage == null
+        ? deals
+        : deals.where((deal) => deal.stage == selectedStage).toList();
+
+    final totalEstimate = filteredDeals.fold<double>(
       0,
       (sum, deal) => sum + (deal.estimatedValue ?? deal.actualValue ?? 0),
     );
 
     return Column(
       children: [
-        FilterChipBar(labels: stageLabels, selectedIndex: 0),
+        FilterChipBar(
+          labels: stageLabels,
+          selectedIndex: clampedIndex,
+          onSelected: onStageSelected,
+        ),
         const SizedBox(height: AppGap.xs),
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -158,7 +199,7 @@ class _PipelineBody extends StatelessWidget {
           child: StageBar.proportional(weights: stageWeights),
         ),
         Expanded(
-          child: deals.isEmpty
+          child: filteredDeals.isEmpty
               ? const _EmptyPipeline()
               // SingleChildScrollView chứ không phải ListView: nội dung dưới
               // màn (deal nguội cuối danh sách) vẫn phải kiểm tra được bằng
@@ -174,13 +215,13 @@ class _PipelineBody extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _PipelineTotalRow(
-                        dealCount: deals.length,
+                        dealCount: filteredDeals.length,
                         totalEstimate: totalEstimate,
                       ),
                       const SizedBox(height: AppGap.betweenCards),
-                      for (var i = 0; i < deals.length; i++) ...[
+                      for (var i = 0; i < filteredDeals.length; i++) ...[
                         if (i > 0) const SizedBox(height: AppGap.betweenCards),
-                        _LeadCard(deal: deals[i], heat: _heatFor(i)),
+                        _LeadCard(deal: filteredDeals[i], heat: _heatFor(i)),
                       ],
                     ],
                   ),

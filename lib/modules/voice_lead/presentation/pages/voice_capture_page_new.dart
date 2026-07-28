@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:solodesk_mobile/core/audio/voice_capture_service.dart';
+import 'package:solodesk_mobile/core/media/image_attachment_service.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
@@ -86,6 +88,11 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
   _Phase _phase = _Phase.recording;
   String _transcript = '';
   String? _errorMessage;
+
+  /// Tên tệp ảnh brief vừa chọn/chụp, hiện trong một chip cạnh các trường AI
+  /// bóc tách. Chỉ lưu cục bộ ở State — chưa có API tải lên nên không có chỗ
+  /// nào trong `voiceLeadProvider`/`VoiceLeadDraft` cho trường này.
+  String? _attachedImageName;
 
   /// Chiều cao 15 vạch sóng. Khởi tạo đúng bộ số của bản phác thảo nên khung
   /// hình lúc chưa nghe thấy gì trùng khít ảnh vàng; mỗi mức âm mới đẩy một giá
@@ -202,6 +209,42 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
     }
   }
 
+  /// Cho chọn "Chụp ảnh" hoặc "Chọn từ thư viện" rồi giao việc xin quyền/mở
+  /// máy ảnh-thư viện cho `ImageAttachmentService` — màn chỉ giữ tên tệp để
+  /// hiện chip, chưa tải lên đâu cả (chưa có API).
+  Future<void> _pickAttachment() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Chụp ảnh'),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Chọn từ thư viện'),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    final service = ref.read(imageAttachmentServiceProvider);
+    final file = source == ImageSource.camera
+        ? await service.pickFromCamera()
+        : await service.pickFromGallery();
+    if (file == null || !mounted) return;
+
+    setState(() => _attachedImageName = file.name);
+    // TODO: upload this attachment once a backend endpoint exists
+  }
+
   @override
   Widget build(BuildContext context) {
     final appearance = ref.watch(appearanceControllerProvider);
@@ -210,7 +253,7 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
     final dealTitle = draft?.suggestedDealTitle.trim();
     final fieldClient = (clientName != null && clientName.isNotEmpty)
         ? 'Khách: $clientName'
-        : _MockData.fieldClient;
+        : null;
     final fieldTask = (dealTitle != null && dealTitle.isNotEmpty)
         ? 'Việc: $dealTitle'
         : _MockData.fieldTask;
@@ -263,7 +306,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
                         spacing: AppGap.betweenChips,
                         runSpacing: AppGap.betweenChips,
                         children: [
-                          _FieldChip(fieldClient, tone: Tone.ai),
+                          if (fieldClient != null)
+                            _FieldChip(fieldClient, tone: Tone.ai),
                           _FieldChip(fieldTask, tone: Tone.ai),
                           const _FieldChip(
                             _MockData.fieldBudget,
@@ -273,6 +317,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
                             _MockData.fieldDeadline,
                             tone: Tone.warn,
                           ),
+                          if (_attachedImageName != null)
+                            _AttachmentChip(_attachedImageName!),
                         ],
                       ),
                     ],
@@ -287,6 +333,8 @@ class _VoiceCapturePageState extends ConsumerState<VoiceCapturePage> {
                   _Phase.error => _start,
                   _Phase.qualifying => null,
                 },
+                onManualEntry: () => context.push(RouteNames.dealManualNew),
+                onAttachImage: _pickAttachment,
               ),
             ],
           ),
@@ -538,6 +586,36 @@ class _FieldChip extends StatelessWidget {
   }
 }
 
+/// Chip báo đã đính kèm một ảnh brief — cùng hình dáng [_FieldChip] nhưng
+/// không phải trường AI bóc tách được nên tô trung tính (`Tone.neutral` không
+/// hợp vì đó là màu nền giấy sáng; dùng lại `_DarkPalette.chip*` như
+/// [_ListeningChip] cho đúng nền tối của màn này) thay vì mượn màu `Tone.ai`.
+class _AttachmentChip extends StatelessWidget {
+  const _AttachmentChip(this.fileName);
+
+  final String fileName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppGap.md,
+        vertical: AppGap.chipVertical,
+      ),
+      decoration: BoxDecoration(
+        color: _DarkPalette.chipFill,
+        borderRadius: AppRadius.chipAll,
+        border: Border.all(color: _DarkPalette.chipBorder),
+      ),
+      child: Text(
+        'Đã đính kèm: $fileName',
+        style: AppText.chip.copyWith(color: _DarkPalette.transcript),
+        softWrap: false,
+      ),
+    );
+  }
+}
+
 /// Vùng hành động ở đáy: hai lối phụ hai bên nút mic to, rồi nút chính.
 /// Nằm ở 1/3 dưới màn, đúng quy tắc bố cục — màn này không cuộn tới đây nên
 /// không cần `BottomActionBar` (dải đó fade sang `AppColors.paper`, sai màu
@@ -547,6 +625,8 @@ class _BottomActions extends StatelessWidget {
     required this.label,
     required this.busy,
     required this.onPrimary,
+    required this.onManualEntry,
+    required this.onAttachImage,
   });
 
   final String label;
@@ -556,6 +636,12 @@ class _BottomActions extends StatelessWidget {
   final bool busy;
 
   final Future<void> Function()? onPrimary;
+
+  /// Mở MÀN "Gõ tay" (`RouteNames.dealManualNew`).
+  final VoidCallback onManualEntry;
+
+  /// Mở luồng chọn/chụp ảnh brief.
+  final VoidCallback onAttachImage;
 
   @override
   Widget build(BuildContext context) {
@@ -572,13 +658,21 @@ class _BottomActions extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const _SideIconButton(SoloIcons.file, label: 'Gõ tay'),
+              _SideIconButton(
+                SoloIcons.file,
+                label: 'Gõ tay',
+                onTap: onManualEntry,
+              ),
               const SizedBox(width: AppGap.xxl),
               // Nút mic làm đúng việc nút chính làm: bản phác thảo vẽ nó ở giữa
               // vùng ngón cái nên đó là chỗ tay chạm tới trước.
               _MicButton(onTap: busy ? null : onPrimary),
               const SizedBox(width: AppGap.xxl),
-              const _SideIconButton(SoloIcons.image, label: 'Chụp ảnh brief'),
+              _SideIconButton(
+                SoloIcons.image,
+                label: 'Chụp ảnh brief',
+                onTap: onAttachImage,
+              ),
             ],
           ),
           const SizedBox(height: AppGap.xl),
@@ -620,13 +714,14 @@ class _BottomActions extends StatelessWidget {
 /// biến thể có sẵn của `IconButtonBox` (nó chỉ đổi màu theo `Tone`, không có
 /// tone nào là "kính mờ trên nền tối").
 class _SideIconButton extends StatelessWidget {
-  const _SideIconButton(this.icon, {required this.label});
+  const _SideIconButton(this.icon, {required this.label, this.onTap});
 
   static const double _size = 38;
   static const double _tapTarget = 44;
 
   final SoloIconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -634,11 +729,7 @@ class _SideIconButton extends StatelessWidget {
       button: true,
       label: label,
       child: GestureDetector(
-        // CHƯA NỐI — "Gõ tay" cần một màn nhập lead thủ công và "Chụp ảnh
-        // brief" cần luồng tải ảnh; repo chưa có cái nào. Giữ nút để đúng bố
-        // cục bản phác thảo, đừng nối bừa sang màn tạo khách hàng: đó là việc
-        // khác.
-        onTap: () {},
+        onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           width: _tapTarget,
@@ -750,11 +841,6 @@ abstract final class _MockData {
   /// thật không vượt khỏi hình dáng bản phác thảo.
   static const double minBar = 20;
   static const double barRange = 46;
-
-  /// CHƯA NỐI API — dùng làm khách hàng mặc định khi `voiceLeadProvider`
-  /// còn `null` (chưa ghi âm xong / chưa qualify). Khi có `VoiceLeadDraft`,
-  /// `VoiceCapturePage` thay bằng `draft.suggestedClientName` thật.
-  static const String fieldClient = 'Khách: Trần Nam';
 
   /// CHƯA NỐI API — dùng làm việc cần làm mặc định khi `voiceLeadProvider`
   /// còn `null`. Khi có `VoiceLeadDraft`, thay bằng `draft.suggestedDealTitle`
