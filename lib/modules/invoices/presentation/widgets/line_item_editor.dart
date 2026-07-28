@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/repositories/invoices_repository.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
 
 /// Editable list of invoice line items. Each row captures description, quantity
 /// and unit price and shows the live line amount; the widget reports the current
@@ -191,7 +192,6 @@ class _RowEditor extends StatelessWidget {
                   onPressed: onRemove,
                   icon: const Icon(Icons.close_rounded),
                   tooltip: 'Xoá hạng mục',
-                  visualDensity: VisualDensity.compact,
                 ),
             ],
           ),
@@ -233,7 +233,7 @@ class _RowEditor extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Thành tiền', style: theme.textTheme.bodySmall),
-              MoneyText(row.amount, style: theme.textTheme.titleSmall),
+              Money(row.amount, tone: Tone.neutral),
             ],
           ),
         ],

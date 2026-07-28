@@ -11,6 +11,7 @@ import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_qu
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/payment_method.dart';
 import 'package:solodesk_mobile/modules/invoices/infrastructure/repository/invoices_repository_impl.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
@@ -24,6 +25,7 @@ import 'package:solodesk_mobile/ui/stamp_badge.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Repo giả trả về đúng một `Deal` cố định — đủ cho `dealDetailProvider`.
 ///
@@ -199,6 +201,7 @@ Future<void> _pump(WidgetTester tester, {_FakeDealsRepository? deals}) async {
         invoicesRepositoryProvider.overrideWithValue(
           _FakeInvoicesRepository(_testInvoices),
         ),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

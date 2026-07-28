@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/modules/voice_lead/domain/entities/voice_lead_draft.dart';
 import 'package:solodesk_mobile/modules/voice_lead/presentation/providers/voice_lead_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -51,9 +53,10 @@ class LeadScorePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final draft = ref.watch(voiceLeadProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(
@@ -97,7 +100,7 @@ class LeadScorePage extends ConsumerWidget {
                             const SizedBox(height: AppGap.betweenCards),
                             const _QuestionRow(_MockData.question2),
                             const SizedBox(height: AppGap.card),
-                            const _PriceRangeSlip(),
+                            _PriceRangeSlip(draft: draft),
                           ],
                         ),
                       ),
@@ -376,10 +379,14 @@ class _QuestionRow extends StatelessWidget {
 /// `MonoText` chứ không phải `Money` vì đây là một ước tính, không phải một
 /// khoản tiền chính xác.
 class _PriceRangeSlip extends StatelessWidget {
-  const _PriceRangeSlip();
+  const _PriceRangeSlip({required this.draft});
+
+  final VoiceLeadDraft draft;
 
   @override
   Widget build(BuildContext context) {
+    final dealId = draft.createdDealId;
+
     return SlipCard(
       notch: 66,
       child: Column(
@@ -396,9 +403,21 @@ class _PriceRangeSlip extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  // Sang MÀN 08 để AI soạn bản nháp báo giá — vẫn phải qua
-                  // người dùng duyệt trước khi gửi khách, đúng quy tắc 5.
-                  onPressed: () => context.push(RouteNames.proposalReview),
+                  // `RouteNames.proposalReview` (`/proposals/:id/review`) cần
+                  // một báo giá đã tồn tại. `VoiceLeadDraft` (xem
+                  // `_MockData` cuối file) chỉ mang `createdDealId` — BE ở
+                  // bước này mới tạo Deal, chưa tạo Proposal nào để mở MÀN 08
+                  // thẳng từ đây, nên không dùng `proposalReviewOf`.
+                  // Có `createdDealId` thì đưa sang deal vừa tạo để người
+                  // dùng tự khởi tạo báo giá từ đó; không có thì lùi về
+                  // Pipeline — cả hai đều là màn có thật, không phải template
+                  // vỡ.
+                  // TODO(proposal-from-lead): nối thẳng sang MÀN 08 khi BE
+                  // trả kèm id báo giá được tạo cùng deal (hoặc có API tạo
+                  // báo giá từ deal), thay vì đi vòng qua deal detail/pipeline.
+                  onPressed: () => (dealId != null && dealId.isNotEmpty)
+                      ? context.push('${RouteNames.deals}/$dealId')
+                      : context.push(RouteNames.deals),
                   style: AppTheme.filled(tone: Tone.ai, small: true),
                   icon: const SoloIcon(
                     SoloIcons.file,

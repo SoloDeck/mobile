@@ -109,6 +109,13 @@ void main() {
   ) async {
     final router = await _pump(tester);
 
+    // Pipeline lọc theo MỘT giai đoạn tại một thời điểm (mặc định giai đoạn
+    // đầu, "Khách mới" — xem `_PipelinePageState._selectedStageIndex` trong
+    // `pipeline_page_new.dart`), nên thẻ deal thứ hai (giai đoạn "Đã sàng lọc")
+    // chưa hiện cho tới khi chạm đúng chip giai đoạn của nó.
+    await tester.tap(find.textContaining('Đã sàng lọc'));
+    await tester.pumpAndSettle();
+
     await tester.tap(
       find.ancestor(
         of: find.text('Landing page ra mắt'),

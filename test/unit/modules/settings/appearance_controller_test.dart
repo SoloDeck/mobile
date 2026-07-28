@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/settings/domain/entities/appearance_settings.dart';
+import 'package:solodesk_mobile/modules/settings/domain/entities/business_profile.dart';
+import 'package:solodesk_mobile/modules/settings/domain/entities/invoice_defaults.dart';
+import 'package:solodesk_mobile/modules/settings/domain/entities/notification_preferences.dart';
 import 'package:solodesk_mobile/modules/settings/domain/repositories/settings_repository.dart';
 import 'package:solodesk_mobile/modules/settings/domain/value_objects/accent_preset.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
@@ -9,6 +12,10 @@ import 'package:solodesk_mobile/modules/settings/presentation/providers/settings
 /// In-memory [SettingsRepository] standing in for SecureStorage.
 class _FakeSettingsRepository implements SettingsRepository {
   AppearanceSettings _stored;
+  NotificationPreferences _notificationPreferences =
+      NotificationPreferences.defaults;
+  InvoiceDefaults _invoiceDefaults = InvoiceDefaults.defaults;
+  BusinessProfile _businessProfile = BusinessProfile.defaults;
 
   _FakeSettingsRepository(this._stored);
 
@@ -22,6 +29,29 @@ class _FakeSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveAccent(AccentPreset accent) async =>
       _stored = _stored.copyWith(accent: accent);
+
+  @override
+  Future<NotificationPreferences> loadNotificationPreferences() async =>
+      _notificationPreferences;
+
+  @override
+  Future<void> saveNotificationPreferences(
+    NotificationPreferences value,
+  ) async => _notificationPreferences = value;
+
+  @override
+  Future<InvoiceDefaults> loadInvoiceDefaults() async => _invoiceDefaults;
+
+  @override
+  Future<void> saveInvoiceDefaults(InvoiceDefaults value) async =>
+      _invoiceDefaults = value;
+
+  @override
+  Future<BusinessProfile> loadBusinessProfile() async => _businessProfile;
+
+  @override
+  Future<void> saveBusinessProfile(BusinessProfile value) async =>
+      _businessProfile = value;
 }
 
 ProviderContainer _containerWith(_FakeSettingsRepository repo) {

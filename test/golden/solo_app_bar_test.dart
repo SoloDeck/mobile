@@ -169,6 +169,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Column(
+          key: Key('golden-root'),
           mainAxisSize: MainAxisSize.min,
           children: [
             // MÀN 04
@@ -218,7 +219,7 @@ void main() {
     );
 
     await expectLater(
-      find.byType(Column),
+      find.byKey(const Key('golden-root')),
       matchesGoldenFile('goldens/solo_app_bar.png'),
     );
   }, skip: !soloFontsLoaded);

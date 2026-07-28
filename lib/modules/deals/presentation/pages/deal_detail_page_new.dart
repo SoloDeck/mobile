@@ -9,6 +9,8 @@ import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_form_page.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -62,13 +64,23 @@ import 'package:solodesk_mobile/ui/status_chip.dart';
 /// riêng của `DealStageX.canTransitionTo` vì thứ tự đó không được export ra
 /// ngoài entity). Thanh vạch coi `lost` là "đã dừng", không cố ép vào một vị trí
 /// 1–6.
-class DealDetailPage extends ConsumerWidget {
+class DealDetailPage extends ConsumerStatefulWidget {
   const DealDetailPage({super.key, required this.dealId});
 
   final String dealId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DealDetailPage> createState() => _DealDetailPageState();
+}
+
+class _DealDetailPageState extends ConsumerState<DealDetailPage> {
+  // Tab con đang được chọn trên `FilterChipBar` — mặc định tab đầu ("Tổng
+  // quan") để giữ nguyên hành vi lần mở màn đầu tiên.
+  int _selectedSubTabIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final dealId = widget.dealId;
     final dealAsync = ref.watch(dealDetailProvider(dealId));
 
     // Báo lỗi đổi giai đoạn ở cấp màn, không đặt trong bảng chọn: bảng đã đóng
@@ -96,9 +108,10 @@ class DealDetailPage extends ConsumerWidget {
     // Nút ba chấm cần `deal` để dựng đường dẫn tạo hoá đơn; lúc đang tải thì
     // chưa có, nút đứng im chứ cây widget không đổi.
     final deal = dealAsync.value;
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(
@@ -158,32 +171,36 @@ class DealDetailPage extends ConsumerWidget {
                         // ngang máy, đúng FilterChipBar.padding mặc định.
                         FilterChipBar(
                           labels: _MockData.subTabs,
-                          selectedIndex: 0,
-                          onSelected: (_) {},
+                          selectedIndex: _selectedSubTabIndex,
+                          onSelected: (i) =>
+                              setState(() => _selectedSubTabIndex = i),
                         ),
                         const SizedBox(height: AppGap.betweenCards),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppGap.screen,
+                        if (_selectedSubTabIndex == 0) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppGap.screen,
+                            ),
+                            child: _PaymentSlip(dealId: deal.id),
                           ),
-                          child: _PaymentSlip(dealId: deal.id),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppGap.screen,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppGap.screen,
+                            ),
+                            child: SectionHeader(
+                              'Trao đổi gần nhất',
+                              actionLabel: 'Thêm ghi chú',
+                              onAction: () {},
+                            ),
                           ),
-                          child: SectionHeader(
-                            'Trao đổi gần nhất',
-                            actionLabel: 'Thêm ghi chú',
-                            onAction: () {},
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppGap.screen,
+                            ),
+                            child: _RecentNoteCard(),
                           ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppGap.screen,
-                          ),
-                          child: _RecentNoteCard(),
-                        ),
+                        ] else
+                          const _EmptySubTab(),
                       ],
                     ),
                   ),
@@ -800,6 +817,27 @@ class _MoMoLinkButton extends StatelessWidget {
         color: AppColors.surface,
       ),
       label: Text('Tạo link MoMo cho hóa đơn $invoiceNumber'),
+    );
+  }
+}
+
+/// Chỗ trống cho các tab con chưa có dữ liệu/provider đứng sau (Dự án / Tài
+/// liệu / File / Lịch sử) — xem ghi chú "CHƯA NỐI API" ở `_MockData.subTabs`.
+/// Cùng kiểu chữ với `_EmptyPipeline` trong `pipeline_page_new.dart`.
+class _EmptySubTab extends StatelessWidget {
+  const _EmptySubTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(AppGap.screen),
+        child: Text(
+          'Chưa có dữ liệu cho mục này.',
+          style: AppText.mut,
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
   }
 }

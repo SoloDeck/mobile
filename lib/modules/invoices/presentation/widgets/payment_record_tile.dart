@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/payment_method.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
+import 'package:solodesk_mobile/theme/app_text.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
 
 /// One recorded payment in the invoice's payment history.
 class PaymentRecordTile extends StatelessWidget {
@@ -25,7 +27,7 @@ class PaymentRecordTile extends StatelessWidget {
           size: 20,
         ),
       ),
-      title: MoneyText(payment.amount, style: theme.textTheme.titleSmall),
+      title: Money(payment.amount, tone: Tone.ok, style: AppText.numMd),
       subtitle: Text(
         payment.referenceNote == null
             ? subtitle

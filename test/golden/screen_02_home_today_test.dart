@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/analytics/domain/entities/dashboard_summary.dart';
 import 'package:solodesk_mobile/modules/analytics/presentation/providers/analytics_provider.dart';
+import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/providers/deals_provider.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page_new.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
@@ -13,6 +16,7 @@ import 'package:solodesk_mobile/ui/slip_card.dart';
 import 'package:solodesk_mobile/ui/stamp_badge.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Tổng dashboard giả cho golden test — `pendingInvoices: 3` khớp đúng
 /// con dấu "3 hoá đơn" chép nguyên văn từ bản phác thảo. Các field khác không
@@ -24,6 +28,27 @@ const _summary = DashboardSummary(
   pendingInvoices: 3,
 );
 
+/// 22 phút 30 giây trước lúc file test được nạp — `_NewLeadCard` tính
+/// "vừa gửi N phút trước" bằng `DateTime.now().difference(createdAt)` tại lúc
+/// dựng khung hình, nên chừa đệm 30 giây để `diff.inMinutes` vẫn chốt ở 22
+/// dù test có chạy chậm vài giây.
+final _leadCreatedAt = DateTime.now().subtract(
+  const Duration(minutes: 22, seconds: 30),
+);
+
+/// Lead mới nhất ở `DealStage.newLead`, dùng cho thẻ "Lead mới từ form".
+/// Tên khách hàng và giai đoạn khớp fixture `Trần Nam` ở
+/// `screen_04_pipeline_test.dart` để giữ chất giọng chung của bản mockup.
+final _newLead = Deal(
+  id: 'lead-1',
+  ownerUserId: 'u1',
+  clientId: 'c-lead',
+  title: 'Chụp sản phẩm',
+  stage: DealStage.newLead,
+  createdAt: _leadCreatedAt,
+  clientName: 'Trần Nam',
+);
+
 Future<void> _pump(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -32,6 +57,8 @@ Future<void> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         dashboardSummaryProvider.overrideWith((ref) async => _summary),
+        dealListProvider.overrideWith((ref) async => [_newLead]),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -136,8 +163,11 @@ void main() {
         '2 task trễ hạn',
         'Dự án Nhận diện Minh An',
         'LEAD MỚI TỪ FORM',
-        'Trần Nam · Studio Cỏ',
-        'Chụp sản phẩm · vừa gửi 22 phút trước',
+        // `_NewLeadCard` ghép tiêu đề là "clientName · deal.title" và dòng phụ
+        // CHỈ là thời gian tương đối (không ghép tên deal vào) — xem
+        // `_NewLeadCard.build()` và `_relativeTimeVi()` trong home_page_new.dart.
+        'Trần Nam · Chụp sản phẩm',
+        'vừa gửi 22 phút trước',
       ]) {
         // findsWidgets chứ không phải findsOneWidget: “Hôm nay” xuất hiện đúng
         // hai lần trong bản phác thảo — tiêu đề màn và nhãn tab.

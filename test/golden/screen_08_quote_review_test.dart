@@ -12,6 +12,7 @@ import 'package:solodesk_mobile/modules/proposals/domain/value_objects/proposal_
 import 'package:solodesk_mobile/modules/proposals/domain/value_objects/proposal_status.dart';
 import 'package:solodesk_mobile/modules/proposals/infrastructure/repository/proposals_repository_impl.dart';
 import 'package:solodesk_mobile/modules/proposals/presentation/pages/proposal_review_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/templates/domain/entities/template.dart';
 import 'package:solodesk_mobile/modules/templates/domain/repositories/templates_repository.dart';
 import 'package:solodesk_mobile/modules/templates/domain/value_objects/template_category.dart';
@@ -26,6 +27,7 @@ import 'package:solodesk_mobile/ui/stamp_badge.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Golden test này chỉ mở MÀN 08 ở chế độ xem — không có bài nào bấm "Duyệt
 /// và gửi khách" (nút bị khoá vì còn 2 chỗ trống) hay chuyển trạng thái, nên
@@ -205,6 +207,7 @@ Future<void> _pump(WidgetTester tester) async {
           _FakeTemplatesRepository([template]),
         ),
         appClockProvider.overrideWithValue(() => DateTime(2026, 7, 25)),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

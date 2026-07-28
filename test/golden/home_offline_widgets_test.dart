@@ -13,7 +13,7 @@ import '../flutter_test_config.dart';
 Widget _host(Widget child) => MaterialApp(
   debugShowCheckedModeBanner: false,
   theme: AppTheme.light(),
-  home: ColoredBox(
+  home: Material(
     color: AppColors.paper,
     child: Padding(padding: const EdgeInsets.all(AppGap.xl), child: child),
   ),
@@ -162,14 +162,15 @@ void main() {
   testWidgets(
     'ảnh vàng — dải báo ngoại tuyến, chip chờ gửi, khung viền đứt nét',
     (tester) async {
-      await tester.binding.setSurfaceSize(const Size(390, 320));
+      await tester.binding.setSurfaceSize(const Size(390, 420));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
         _host(
-          const Column(
+          Column(
+            key: const Key('golden-root'),
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+            children: const [
               OfflineBanner(
                 message: 'Đang ngoại tuyến · dữ liệu lúc 08:14',
                 pendingLabel: '3 chờ gửi',
@@ -182,7 +183,7 @@ void main() {
       );
 
       await expectLater(
-        find.byType(Column).first,
+        find.byKey(const Key('golden-root')),
         matchesGoldenFile('goldens/home_offline_widgets.png'),
       );
     },

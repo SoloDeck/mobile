@@ -1,7 +1,7 @@
 name: solodesk_mobile
 description: SoloDesk Mobile — AI-powered CRM for Vietnamese freelancers.
 publish_to: 'none'
-version: 1.3.0+4
+version: 1.4.0+5
 
 environment:
   sdk: ^3.8.0
@@ -54,6 +54,13 @@ dependencies:
 
   # Payments — mở deeplink/liên kết thanh toán MoMo
   url_launcher: ^6.3.1
+
+  # Media pickers
+  image_picker: ^1.1.2
+  file_picker: ^8.3.7
+
+  # Deep linking — nhận lại solodesk://payment-result khi MoMo trả quyền về app
+  app_links: ^7.2.1
 
 dev_dependencies:
   flutter_test:

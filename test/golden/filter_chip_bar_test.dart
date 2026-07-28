@@ -88,10 +88,13 @@ void main() {
         _host(const FilterChipBar(labels: _stages, selectedIndex: 0)),
       );
 
-      final before = tester.getTopLeft(find.text('Lead mới · 4')).dx;
+      // "Lead mới · 4" nằm ở đầu dải nên khi cuộn đủ xa nó bị ListView nhả
+      // khỏi cây widget (ra ngoài cacheExtent) — dùng chip kế tiếp, vẫn còn
+      // trên màn hình cả trước lẫn sau khi cuộn, để đo độ dịch chuyển.
+      final before = tester.getTopLeft(find.text('Đủ điều kiện · 2')).dx;
       await tester.drag(find.byType(FilterChipBar), const Offset(-120, 0));
       await tester.pump();
-      final after = tester.getTopLeft(find.text('Lead mới · 4')).dx;
+      final after = tester.getTopLeft(find.text('Đủ điều kiện · 2')).dx;
 
       expect(after, lessThan(before));
     });

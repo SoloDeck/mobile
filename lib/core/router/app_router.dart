@@ -16,6 +16,7 @@ import 'package:solodesk_mobile/modules/clients/presentation/pages/client_detail
 import 'package:solodesk_mobile/modules/clients/presentation/pages/clients_page.dart';
 import 'package:solodesk_mobile/modules/clients/presentation/pages/create_client_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page_new.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/pages/manual_lead_entry_page.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/pipeline_page_new.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_offline_page.dart';
 import 'package:solodesk_mobile/modules/home/presentation/pages/home_page_new.dart';
@@ -28,8 +29,11 @@ import 'package:solodesk_mobile/modules/projects/presentation/pages/project_deta
 import 'package:solodesk_mobile/modules/projects/presentation/pages/project_tasks_page.dart';
 import 'package:solodesk_mobile/modules/projects/presentation/pages/projects_page.dart';
 import 'package:solodesk_mobile/modules/proposals/presentation/pages/proposal_review_page.dart';
+import 'package:solodesk_mobile/modules/proposals/presentation/pages/proposals_pending_list_page.dart';
 import 'package:solodesk_mobile/modules/reminders/presentation/pages/reminder_compose_page.dart';
+import 'package:solodesk_mobile/modules/reminders/presentation/pages/reminders_list_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/me_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/pages/profile_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/settings_page.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/pages/plans_page.dart';
 import 'package:solodesk_mobile/modules/tasks/presentation/pages/task_detail_page.dart';
@@ -159,6 +163,10 @@ GoRouter router(Ref ref) {
       _pushed(RouteNames.plans, (_) => const PlansPage()),
       _pushed(RouteNames.templates, (_) => const TemplatesPage()),
       _pushed(RouteNames.settings, (_) => const SettingsPage()),
+      _pushed(RouteNames.profile, (_) => const ProfilePage()),
+      _pushed(RouteNames.proposals, (_) => const ProposalsPendingListPage()),
+      _pushed(RouteNames.reminders, (_) => const RemindersListPage()),
+      _pushed(RouteNames.dealManualNew, (_) => const ManualLeadEntryPage()),
       _pushed(
         RouteNames.taskDetail,
         (s) => TaskDetailPage(taskId: s.pathParameters['id']!),

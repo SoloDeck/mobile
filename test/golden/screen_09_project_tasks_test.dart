@@ -6,6 +6,7 @@ import 'package:solodesk_mobile/modules/projects/domain/repositories/projects_re
 import 'package:solodesk_mobile/modules/projects/domain/value_objects/project_status.dart';
 import 'package:solodesk_mobile/modules/projects/infrastructure/repository/projects_repository_impl.dart';
 import 'package:solodesk_mobile/modules/projects/presentation/pages/project_tasks_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/entities/checklist_item.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/entities/task.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/repositories/tasks_repository.dart';
@@ -24,6 +25,7 @@ import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 const _projectId = 'p1';
 
@@ -173,6 +175,7 @@ Future<void> _pump(WidgetTester tester) async {
       overrides: [
         projectsRepositoryProvider.overrideWithValue(_FakeProjectsRepository()),
         tasksRepositoryProvider.overrideWithValue(_FakeTasksRepository()),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

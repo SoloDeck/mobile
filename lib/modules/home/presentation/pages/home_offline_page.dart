@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/home/presentation/widgets/dashed_card.dart';
 import 'package:solodesk_mobile/modules/home/presentation/widgets/offline_banner.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_text.dart';
@@ -60,13 +63,14 @@ const _tabRoutes = [
   RouteNames.me,
 ];
 
-class HomeOfflinePage extends StatelessWidget {
+class HomeOfflinePage extends ConsumerWidget {
   const HomeOfflinePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appearance = ref.watch(appearanceControllerProvider);
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       // Không còn `const` được từ đây xuống: thanh tab và nút chuông giữ
       // closure điều hướng. Các nhánh con vẫn `const` để phần thân màn không
       // dựng lại theo.

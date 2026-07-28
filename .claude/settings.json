@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter pub get)",
+      "Bash(dart format:*)",
+      "Bash(python3 tools/sync_tokens.py:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)"
+    ],
+    "deny": [
+      "Edit(lib/theme/app_colors.dart)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/verify_dart.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

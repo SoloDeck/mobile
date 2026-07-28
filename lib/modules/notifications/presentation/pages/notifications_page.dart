@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
 import 'package:solodesk_mobile/theme/app_radius.dart';
@@ -40,13 +42,40 @@ import 'package:solodesk_mobile/ui/solo_icons.dart';
 /// CHƯA NỐI API — backend chưa có feed thông báo (chỉ `users` router có
 /// notification *settings*, không phải danh sách thông báo). Toàn bộ danh
 /// sách dưới đây là dữ liệu giả từ bản phác thảo.
-class NotificationsPage extends ConsumerWidget {
+class NotificationsPage extends ConsumerStatefulWidget {
   const NotificationsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends ConsumerState<NotificationsPage> {
+  /// Chỉ mục chip đang chọn trong [_MockData.filters]. Trạng thái cục bộ
+  /// thuần UI — màn này chưa có provider/backend đứng sau (xem doc comment
+  /// của `_MockData`), nên không cần gì nặng hơn `setState`.
+  int _selectedFilterIndex = 0;
+
+  bool _matchesSelectedFilter(String category) {
+    final selected = _MockData.filters[_selectedFilterIndex];
+    return selected == _MockData.filterAll || category == selected;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appearance = ref.watch(appearanceControllerProvider);
+
+    final todayNotices = <MapEntry<String, Widget>>[
+      const MapEntry(_MockData.filterMoney, _OverdueMoneyNotice()),
+      const MapEntry(_MockData.filterLead, _QuoteReadyNotice()),
+    ].where((e) => _matchesSelectedFilter(e.key)).map((e) => e.value).toList();
+
+    final yesterdayNotices = <MapEntry<String, Widget>>[
+      const MapEntry(_MockData.filterMoney, _PaymentReceivedNotice()),
+      const MapEntry(_MockData.filterTask, _TaskDueNotice()),
+    ].where((e) => _matchesSelectedFilter(e.key)).map((e) => e.value).toList();
+
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       // `const` phải bỏ ở nút `Scaffold` vì `onTap` của nút quay lại là closure
       // — mọi nhánh con còn lại vẫn giữ `const` để không tăng chi phí dựng lại.
       child: Scaffold(
@@ -72,39 +101,53 @@ class NotificationsPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const Expanded(
+              Expanded(
                 // SingleChildScrollView chứ không phải ListView: nội dung dựng
                 // hết một lượt để test tìm được cả phần "Hôm qua" dưới màn.
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: AppGap.screen),
+                  padding: const EdgeInsets.only(bottom: AppGap.screen),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       FilterChipBar(
                         labels: _MockData.filters,
-                        selectedIndex: 0,
+                        selectedIndex: _selectedFilterIndex,
+                        onSelected: (index) =>
+                            setState(() => _selectedFilterIndex = index),
                       ),
-                      SizedBox(height: AppGap.xs),
+                      const SizedBox(height: AppGap.xs),
                       Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: AppGap.screen,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            SectionLabel('hôm nay'),
-                            SizedBox(height: AppGap.sm),
-                            _OverdueMoneyNotice(),
-                            SizedBox(height: AppGap.betweenCards),
-                            _NewLeadNotice(),
-                            SizedBox(height: AppGap.betweenCards),
-                            _QuoteReadyNotice(),
-                            SizedBox(height: AppGap.sectionTop),
-                            SectionLabel('hôm qua'),
-                            SizedBox(height: AppGap.sm),
-                            _PaymentReceivedNotice(),
-                            SizedBox(height: AppGap.betweenCards),
-                            _TaskDueNotice(),
+                            if (todayNotices.isNotEmpty) ...[
+                              const SectionLabel('hôm nay'),
+                              const SizedBox(height: AppGap.sm),
+                              for (var i = 0; i < todayNotices.length; i++) ...[
+                                if (i > 0)
+                                  const SizedBox(height: AppGap.betweenCards),
+                                todayNotices[i],
+                              ],
+                            ],
+                            if (todayNotices.isNotEmpty &&
+                                yesterdayNotices.isNotEmpty)
+                              const SizedBox(height: AppGap.sectionTop),
+                            if (yesterdayNotices.isNotEmpty) ...[
+                              const SectionLabel('hôm qua'),
+                              const SizedBox(height: AppGap.sm),
+                              for (
+                                var i = 0;
+                                i < yesterdayNotices.length;
+                                i++
+                              ) ...[
+                                if (i > 0)
+                                  const SizedBox(height: AppGap.betweenCards),
+                                yesterdayNotices[i],
+                              ],
+                            ],
                           ],
                         ),
                       ),
@@ -233,25 +276,6 @@ class _OverdueMoneyNotice extends StatelessWidget {
   }
 }
 
-/// "Có lead mới từ form" — thông tin, không tô nền, giữ độ đậm bình thường.
-class _NewLeadNotice extends StatelessWidget {
-  const _NewLeadNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _NotificationCard(
-      icon: SoloIcons.file,
-      tone: Tone.ok,
-      title: 'Có lead mới từ form',
-      time: '09:19',
-      sub: Text(
-        'Trần Nam gửi yêu cầu chụp 40 sản phẩm, ngân sách khoảng 15 triệu.',
-        style: AppText.sub,
-      ),
-    );
-  }
-}
-
 /// "Báo giá soạn xong" — bản nháp do AI soạn, chờ người dùng tự mở màn xem
 /// trước để duyệt (quy tắc 5); thông báo chỉ báo tin, không có nút gửi tắt.
 class _QuoteReadyNotice extends StatelessWidget {
@@ -320,5 +344,15 @@ class _TaskDueNotice extends StatelessWidget {
 /// biểu thức `const`, mà widget của màn này phải const được. Tên viết hoa theo
 /// lint `camel_case_types` của repo.
 abstract final class _MockData {
-  static const List<String> filters = ['Tất cả', 'Tiền', 'Lead mới', 'Task'];
+  static const String filterAll = 'Tất cả';
+  static const String filterMoney = 'Tiền';
+  static const String filterLead = 'Lead mới';
+  static const String filterTask = 'Task';
+
+  static const List<String> filters = [
+    filterAll,
+    filterMoney,
+    filterLead,
+    filterTask,
+  ];
 }

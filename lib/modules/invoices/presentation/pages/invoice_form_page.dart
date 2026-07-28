@@ -8,11 +8,18 @@ import 'package:solodesk_mobile/modules/invoices/domain/repositories/invoices_re
 import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoice_detail_controller.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/line_item_editor.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/extensions/context_extensions.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
+import 'package:solodesk_mobile/theme/app_text.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
+import 'package:solodesk_mobile/ui/perforated_divider.dart';
+import 'package:solodesk_mobile/ui/slip_card.dart';
 
 /// Preset linkage passed via `GoRouter` `extra` when creating an invoice from a
 /// deal — the deal (and its client) are then locked in the form.
@@ -41,15 +48,20 @@ class InvoiceFormPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(title: Text(_isEdit ? 'Sửa hóa đơn' : 'Tạo hóa đơn')),
-      body: _isEdit
-          ? AsyncValueWidget<Invoice>(
-              value: ref.watch(invoiceDetailProvider(invoiceId!)),
-              onRetry: () => ref.invalidate(invoiceDetailProvider(invoiceId!)),
-              data: (invoice) => _InvoiceFormBody(invoice: invoice),
-            )
-          : _InvoiceFormBody(preset: preset),
+    final appearance = ref.watch(appearanceControllerProvider);
+    return Theme(
+      data: AppTheme.light(seed: appearance.accent.seed),
+      child: Scaffold(
+        appBar: AppBar(title: Text(_isEdit ? 'Sửa hóa đơn' : 'Tạo hóa đơn')),
+        body: _isEdit
+            ? AsyncValueWidget<Invoice>(
+                value: ref.watch(invoiceDetailProvider(invoiceId!)),
+                onRetry: () =>
+                    ref.invalidate(invoiceDetailProvider(invoiceId!)),
+                data: (invoice) => _InvoiceFormBody(invoice: invoice),
+              )
+            : _InvoiceFormBody(preset: preset),
+      ),
     );
   }
 }
@@ -397,19 +409,13 @@ class _TotalsPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return SlipCard(
       child: Column(
         children: [
           _row(context, 'Tạm tính', subtotal),
           const SizedBox(height: 6),
           _row(context, 'Thuế', taxAmount),
-          const Divider(height: 20),
+          const PerforatedDivider(),
           _row(context, 'Tổng cộng', total, bold: true),
         ],
       ),
@@ -423,14 +429,12 @@ class _TotalsPreview extends StatelessWidget {
     bool bold = false,
   }) {
     final theme = Theme.of(context);
-    final style = bold
-        ? theme.textTheme.titleMedium
-        : theme.textTheme.bodyMedium;
+    final labelStyle = bold ? theme.textTheme.titleMedium : theme.textTheme.bodyMedium;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
-        MoneyText(value, style: style),
+        Text(label, style: labelStyle),
+        Money(value, tone: Tone.neutral, style: bold ? AppText.numMd : null),
       ],
     );
   }

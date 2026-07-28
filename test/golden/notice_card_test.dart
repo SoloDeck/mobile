@@ -145,6 +145,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Column(
+          key: Key('golden-root'),
           mainAxisSize: MainAxisSize.min,
           children: [
             NoticeCard(
@@ -167,7 +168,7 @@ void main() {
     );
 
     await expectLater(
-      find.byType(Column),
+      find.byKey(const Key('golden-root')),
       matchesGoldenFile('goldens/notice_card.png'),
     );
   }, skip: !soloFontsLoaded);

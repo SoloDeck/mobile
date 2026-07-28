@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:solodesk_mobile/core/theme/app_semantic_colors.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
+import 'package:solodesk_mobile/theme/app_text.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
+import 'package:solodesk_mobile/ui/perforated_divider.dart';
+import 'package:solodesk_mobile/ui/slip_card.dart';
 
 /// The money panel at the top of the invoice detail — the outstanding balance is
 /// the hero figure, with total and amount-paid beneath it.
@@ -12,40 +15,24 @@ class InvoiceAmountSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final outstandingColor = invoice.isOverdue ? scheme.error : scheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return SlipCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Còn lại phải trả', style: theme.textTheme.bodyMedium),
+          Text('Còn lại phải trả', style: AppText.sub),
           const SizedBox(height: 4),
-          MoneyText(
-            invoice.amountOutstanding,
-            style: theme.textTheme.headlineMedium,
-            color: outstandingColor,
-          ),
-          const Divider(height: 28),
+          Money.hero(invoice.amountOutstanding, tone: Tone.money),
+          const PerforatedDivider(),
           _Row(
             label: 'Tổng cộng',
-            child: MoneyText(invoice.total, style: theme.textTheme.titleSmall),
+            child: Money.card(invoice.total, tone: Tone.neutral),
           ),
           const SizedBox(height: 8),
           _Row(
             label: 'Đã thanh toán',
-            child: MoneyText(
+            child: Money.card(
               invoice.amountPaid,
-              style: theme.textTheme.titleSmall,
-              color: invoice.amountPaid > 0
-                  ? context.semanticColors.success
-                  : null,
+              tone: invoice.amountPaid > 0 ? Tone.ok : Tone.neutral,
             ),
           ),
         ],
@@ -64,10 +51,7 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        child,
-      ],
+      children: [Text(label, style: AppText.body), child],
     );
   }
 }

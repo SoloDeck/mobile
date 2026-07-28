@@ -2,28 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
-import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
+import 'package:solodesk_mobile/modules/analytics/presentation/providers/analytics_provider.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/providers/auth_state_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
+import 'package:solodesk_mobile/modules/subscriptions/presentation/providers/subscriptions_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_gap.dart';
+import 'package:solodesk_mobile/theme/app_radius.dart';
 import 'package:solodesk_mobile/theme/app_text.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/avatar.dart';
+import 'package:solodesk_mobile/ui/icon_button_box.dart';
 import 'package:solodesk_mobile/ui/section_header.dart';
 import 'package:solodesk_mobile/ui/solo_app_bar.dart';
 import 'package:solodesk_mobile/ui/solo_icons.dart';
+import 'package:solodesk_mobile/ui/status_chip.dart';
 
-/// Tab "Tôi" — cửa vào của mọi màn không có tab riêng.
+/// Tab "Tôi" — thẻ hồ sơ + ba nhóm menu (Tài chính, Công việc, Tài khoản).
 ///
-/// **KHÔNG có trong `design/solodesk-mobile-ui.html`.** `SoloNavBar` chỉ có bốn
-/// chỗ (Hôm nay, Pipeline, Dự án, Tôi) trong khi bộ 15 màn còn Doanh thu, Thông
-/// báo, Báo giá, Nhắc thu tiền, Gói, Mẫu — cộng thêm Khách hàng và Hoá đơn của
-/// hai module đã chạy API thật. Không có màn nào trong bản phác thảo nhận vai
-/// "Tôi", nên màn này dựng ra để chúng có lối vào thay vì bị bỏ rơi.
+/// Đối chiếu: `design/solodesk_toi_tab_redesign.html`. Bản phác thảo còn vẽ một
+/// hàng hai ô số liệu "Doanh thu tháng"/"Chờ thu" ngay dưới thẻ hồ sơ — cố ý bỏ
+/// hẳn theo quyết định đã chốt với người dùng, vì "Chờ thu" không có field số
+/// tiền sẵn trong API và việc thêm một khối số liệu thứ hai (sau MÀN 02) là
+/// trùng lặp. Thẻ hồ sơ nối thẳng xuống ba nhóm menu.
 ///
-/// Cố ý chỉ là một danh sách liên kết: mọi nội dung thật đều nằm ở màn đích, và
-/// khi bản phác thảo bổ sung màn "Tôi" thật thì thay nội dung ở đây theo nó.
+/// Field/hành động nào chưa nối API thật (badge số hoá đơn quá hạn, badge số
+/// báo giá chờ duyệt, "Trợ giúp và phản hồi", số phiên bản) đều ghi trong
+/// `docs/superpowers/specs/2026-07-28-me-profile-settings-checklist.md`.
 ///
 /// MÀN 15 (ngoại tuyến) **không** có mặt trong danh sách — đó là một *trạng
 /// thái* của trang chủ chứ không phải một đích đến. Route
@@ -34,17 +41,29 @@ class MePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+    final appearance = ref.watch(appearanceControllerProvider);
+    final dashboard = ref.watch(dashboardSummaryProvider).value;
+    final planName = ref.watch(mySubscriptionProvider).value?.planName;
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              const SoloAppBar(title: 'Tôi'),
+              SoloAppBar(
+                title: 'Tôi',
+                titleSize: SoloAppBar.lg,
+                actions: [
+                  IconButtonBox(
+                    SoloIcons.settings,
+                    label: 'Cài đặt',
+                    onTap: () => context.push(RouteNames.settings),
+                  ),
+                ],
+              ),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
@@ -54,11 +73,8 @@ class MePage extends ConsumerWidget {
                     AppGap.navBarInset,
                   ),
                   children: [
-                    _AccountCard(
-                      fullName: user?.fullName ?? 'Chưa đăng nhập',
-                      email: user?.email ?? '',
-                    ),
-                    const SectionHeader('Tiền'),
+                    const _ProfileCard(),
+                    const SectionHeader('Tài chính'),
                     const _MenuCard([
                       _MenuEntry(
                         icon: SoloIcons.cash,
@@ -73,47 +89,47 @@ class MePage extends ConsumerWidget {
                       _MenuEntry(
                         icon: SoloIcons.send,
                         label: 'Nhắc thu tiền',
-                        route: RouteNames.reminderCompose,
+                        route: RouteNames.reminders,
                       ),
                     ]),
                     const SectionHeader('Công việc'),
-                    const _MenuCard([
+                    _MenuCard([
                       _MenuEntry(
                         icon: SoloIcons.user,
                         label: 'Khách hàng',
                         route: RouteNames.clients,
+                        trailing: dashboard != null
+                            ? _TrailingCount('${dashboard.totalClients}')
+                            : null,
                       ),
-                      _MenuEntry(
+                      const _MenuEntry(
                         icon: SoloIcons.ai,
-                        label: 'Báo giá chờ duyệt',
-                        route: RouteNames.proposalReview,
+                        label: 'Báo giá',
+                        route: RouteNames.proposals,
                       ),
-                      _MenuEntry(
+                      const _MenuEntry(
                         icon: SoloIcons.folder,
                         label: 'Thư viện mẫu',
                         route: RouteNames.templates,
                       ),
                     ]),
                     const SectionHeader('Tài khoản'),
-                    const _MenuCard([
-                      _MenuEntry(
-                        icon: SoloIcons.bell,
-                        label: 'Thông báo',
-                        route: RouteNames.notifications,
-                      ),
+                    _MenuCard([
                       _MenuEntry(
                         icon: SoloIcons.tag,
                         label: 'Gói và thanh toán',
                         route: RouteNames.plans,
+                        trailing: planName != null
+                            ? _TrailingCount(planName)
+                            : null,
                       ),
-                      _MenuEntry(
-                        icon: SoloIcons.dots,
+                      const _MenuEntry(
+                        icon: SoloIcons.settings,
                         label: 'Cài đặt',
                         route: RouteNames.settings,
                       ),
                     ]),
-                    const SizedBox(height: AppGap.sectionTop),
-                    const _LogOutButton(),
+                    const _FooterLinks(),
                   ],
                 ),
               ),
@@ -125,45 +141,74 @@ class MePage extends ConsumerWidget {
   }
 }
 
-/// Tên và email của người đang đăng nhập.
+/// Thẻ hồ sơ: avatar, tên, badge tên gói, email, chevron. Cả thẻ bấm được, mở
+/// MÀN 05 ("Hồ sơ").
 ///
 /// Đọc `currentUserProvider` — controller nạp nó sau mỗi lần đăng nhập thành
 /// công. Lần `/me` hỏng thì provider vẫn rỗng mà phiên vẫn hợp lệ (xem
 /// `AuthController._loadCurrentUser`), nên chỗ này phải chịu được `null` chứ
-/// không được coi đó là chưa đăng nhập.
-class _AccountCard extends StatelessWidget {
-  const _AccountCard({required this.fullName, required this.email});
-
-  final String fullName;
-  final String email;
+/// không được coi đó là chưa đăng nhập. Badge tên gói đọc
+/// `mySubscriptionProvider` (`GET /subscriptions/me`) — ẩn hẳn khi đang tải
+/// hoặc lỗi thay vì đoán mò.
+class _ProfileCard extends ConsumerWidget {
+  const _ProfileCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final planName = ref.watch(mySubscriptionProvider).value?.planName;
+    final fullName = user?.fullName ?? 'Chưa đăng nhập';
+    final email = user?.email ?? '';
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppGap.card),
-        child: Row(
-          children: [
-            Avatar.initials(_initials(fullName), tone: Tone.money),
-            const SizedBox(width: AppGap.row),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(fullName, style: AppText.bodyStrong),
-                  if (email.isNotEmpty) Text(email, style: AppText.mut),
-                ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(RouteNames.profile),
+        child: Padding(
+          padding: const EdgeInsets.all(AppGap.card),
+          child: Row(
+            children: [
+              _ProfileAvatar(
+                initials: _initials(fullName),
+                avatarUrl: user?.avatarUrl,
               ),
-            ),
-          ],
+              const SizedBox(width: AppGap.row),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            fullName,
+                            style: AppText.bodyStrong,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (planName != null) ...[
+                          const SizedBox(width: AppGap.xs),
+                          StatusChip(planName, tone: Tone.ai),
+                        ],
+                      ],
+                    ),
+                    if (email.isNotEmpty) Text(email, style: AppText.mut),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppGap.row),
+              const SoloIcon(SoloIcons.chevron, label: null, size: SoloIcon.sm),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// Hai chữ cái đầu của tên. Tên một chữ thì lấy một chữ; rỗng thì trả về "?"
-  /// để `Avatar.initials` luôn có gì đó để vẽ.
+  /// để `_ProfileAvatar` luôn có gì đó để vẽ.
   static String _initials(String name) {
     final parts = name
         .trim()
@@ -174,6 +219,54 @@ class _AccountCard extends StatelessWidget {
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
         .toUpperCase();
+  }
+}
+
+/// Avatar của thẻ hồ sơ: dùng `avatarUrl` khi có, ngược lại vẽ chữ cái viết
+/// tắt. Ảnh lỗi (mạng chập chờn, URL hỏng) rơi về chữ cái viết tắt thay vì vỡ
+/// hình hoặc crash.
+///
+/// Chưa có API upload avatar — xem checklist. `avatarUrl` hiện chỉ đọc từ
+/// `GET /users/me` khi backend đã có sẵn giá trị.
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.initials, required this.avatarUrl});
+
+  final String initials;
+  final String? avatarUrl;
+
+  /// Cạnh ô, theo đúng bản phác thảo (42 × 42).
+  static const double _size = 42;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = avatarUrl;
+    if (url == null || url.isEmpty) {
+      return Avatar.initials(initials, tone: Tone.money, size: _size);
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.avatar),
+      child: Image.network(
+        url,
+        width: _size,
+        height: _size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Avatar.initials(initials, tone: Tone.money, size: _size),
+      ),
+    );
+  }
+}
+
+/// Số/chữ mờ ở cuối một dòng menu, trước chevron — "24" ở Khách hàng, "Pro" ở
+/// Gói và thanh toán.
+class _TrailingCount extends StatelessWidget {
+  const _TrailingCount(this.value);
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(value, style: AppText.mut);
   }
 }
 
@@ -205,11 +298,15 @@ class _MenuEntry extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.route,
+    this.trailing,
   });
 
   final SoloIconData icon;
   final String label;
   final String route;
+
+  /// Số/chữ mờ trước chevron — ví dụ số khách hàng, tên gói. `null` = không có.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +324,10 @@ class _MenuEntry extends StatelessWidget {
             SoloIcon(icon, label: null, size: SoloIcon.md),
             const SizedBox(width: AppGap.row),
             Expanded(child: Text(label, style: AppText.body)),
+            if (trailing != null) ...[
+              trailing!,
+              const SizedBox(width: AppGap.row),
+            ],
             const SoloIcon(SoloIcons.chevron, label: null, size: SoloIcon.sm),
           ],
         ),
@@ -235,21 +336,29 @@ class _MenuEntry extends StatelessWidget {
   }
 }
 
-/// Đăng xuất. `AuthController.logout` tự xoá token và bắn `logoutProvider`,
-/// router bắt tín hiệu đó rồi đưa về `/login` — màn này không tự điều hướng.
-class _LogOutButton extends ConsumerWidget {
-  const _LogOutButton();
+/// "Trợ giúp và phản hồi" + số phiên bản, cuối màn.
+///
+/// "Trợ giúp và phản hồi" chưa có đích đến thật (không link, không mailto,
+/// không màn FAQ) — `onTap: null` để không crash, xem checklist.
+///
+/// Số phiên bản: dự án chưa có dependency `package_info_plus` để đọc version
+/// runtime, nên đây là chuỗi tĩnh chép tay từ `pubspec.yaml` (`version:`) —
+/// nhớ cập nhật lại khi bump version, hoặc thay bằng `package_info_plus` khi
+/// được duyệt thêm dependency mới.
+class _FooterLinks extends StatelessWidget {
+  const _FooterLinks();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final busy = ref.watch(authControllerProvider).isLoading;
-
-    return OutlinedButton(
-      onPressed: busy
-          ? null
-          : () => ref.read(authControllerProvider.notifier).logout(),
-      style: AppTheme.outlined(),
-      child: const Text('Đăng xuất'),
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppGap.lg),
+      child: Column(
+        children: [
+          const Text('Trợ giúp và phản hồi', style: AppText.link),
+          const SizedBox(height: AppGap.xs),
+          Text('Phiên bản 1.3.0', style: AppText.mut),
+        ],
+      ),
     );
   }
 }

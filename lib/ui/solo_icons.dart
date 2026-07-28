@@ -159,6 +159,74 @@ abstract final class SoloIcons {
     SoloCircle(7.6, 7.6, 1.4),
   ]);
 
+  static const SoloIconData settings = SoloIconData('ic-settings', [
+    SoloCircle(12, 12, 7.5),
+    SoloPath(
+      'M19.6 12H21.6M17.4 17.4 18.8 18.8M12 19.6V21.6M6.6 17.4 5.2 18.8'
+      'M4.4 12H2.4M6.6 6.6 5.2 5.2M12 4.4V2.4M17.4 6.6 18.8 5.2',
+    ),
+    SoloCircle(12, 12, 2.6),
+  ]);
+
+  static const SoloIconData lock = SoloIconData('ic-lock', [
+    SoloPath('M7.7 10V7.6A4.3 4.3 0 0 1 16.3 7.6V10'),
+    SoloRect(5, 10, 14, 9.5, 2),
+    SoloCircle(12, 14.1, 1.3, filled: true),
+    SoloPath('M12 15.4V17.2'),
+  ]);
+
+  static const SoloIconData fingerprint = SoloIconData('ic-fingerprint', [
+    SoloPath(
+      'M5.5 15.5A6.5 7.5 0 0 1 18.5 15.5'
+      'M7.3 15A4.7 6 0 0 1 16.7 15'
+      'M9 14.4A3 4.6 0 0 1 15 14.4'
+      'M10.6 13.7A1.4 3 0 0 1 13.4 13.7',
+    ),
+    SoloPath('M12 17.6V19.6'),
+  ]);
+
+  static const SoloIconData download = SoloIconData('ic-download', [
+    SoloPath('M12 3.5V15'),
+    SoloPath('M7.3 10.8 12 15.4 16.7 10.8'),
+    SoloPath('M4.5 19.6H19.5'),
+  ]);
+
+  static const SoloIconData logout = SoloIconData('ic-logout', [
+    SoloPath('M13 4.2H7A1.5 1.5 0 0 0 5.5 5.7V18.3A1.5 1.5 0 0 0 7 19.8H13'),
+    SoloPath('M9.5 12H20.5M17 8.3 20.5 12 17 15.7'),
+  ]);
+
+  static const SoloIconData trash = SoloIconData('ic-trash', [
+    SoloPath('M4 6.5H20'),
+    SoloPath('M9.5 6.5V5A1 1 0 0 1 10.5 4H13.5A1 1 0 0 1 14.5 5V6.5'),
+    SoloPath(
+      'M6.3 6.5L7.3 19.6A1.5 1.5 0 0 0 8.8 21H15.2A1.5 1.5 0 0 0 16.7 19.6'
+      'L17.7 6.5',
+    ),
+    SoloPath('M10 10V17.5M14 10V17.5'),
+  ]);
+
+  static const SoloIconData link = SoloIconData('ic-link', [
+    SoloRect(3, 7.5, 10, 6, 3),
+    SoloRect(11, 10.5, 10, 6, 3),
+  ]);
+
+  static const SoloIconData language = SoloIconData('ic-language', [
+    SoloCircle(12, 12, 8.2),
+    SoloPath('M3.8 12H20.2'),
+    SoloPath('M12 3.8C8.3 6.8 8.3 17.2 12 20.2C15.7 17.2 15.7 6.8 12 3.8'),
+  ]);
+
+  static const SoloIconData currencyDong = SoloIconData('ic-currency-dong', [
+    SoloPath('M8 5V19'),
+    SoloPath('M8 5H10.5A6.5 6.5 0 0 1 10.5 18H8'),
+    SoloPath('M5.3 11.6H14.7'),
+  ]);
+
+  static const SoloIconData moon = SoloIconData('ic-moon', [
+    SoloPath('M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z', filled: true),
+  ]);
+
   /// Tra icon theo id `<symbol>`, để đối chiếu nhanh với bản phác thảo.
   static const Map<String, SoloIconData> byName = {
     'ic-home': home,
@@ -181,6 +249,16 @@ abstract final class SoloIcons {
     'ic-dots': dots,
     'ic-wifi-off': wifiOff,
     'ic-tag': tag,
+    'ic-settings': settings,
+    'ic-lock': lock,
+    'ic-fingerprint': fingerprint,
+    'ic-download': download,
+    'ic-logout': logout,
+    'ic-trash': trash,
+    'ic-link': link,
+    'ic-language': language,
+    'ic-currency-dong': currencyDong,
+    'ic-moon': moon,
   };
 }
 

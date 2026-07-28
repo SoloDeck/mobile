@@ -99,3 +99,5 @@ See `../backend/contracts/openapi.yaml` for the full OpenAPI 3.1.0 specification
 - [Backend](../backend/README.md) — FastAPI Python API
 - [Web](../web/) — React web frontend
 - [OpenAPI Spec](../backend/contracts/openapi.yaml)
+
+keytool -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android

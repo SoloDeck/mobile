@@ -6,8 +6,13 @@ import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_qu
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_status.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoices_list_controller.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_card.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/widgets/error_retry_widget.dart';
 import 'package:solodesk_mobile/shared/widgets/loading_shimmer.dart';
+import 'package:solodesk_mobile/theme/app_gap.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
+import 'package:solodesk_mobile/ui/filter_chip_bar.dart';
 
 /// The "Hóa đơn" tab — a filterable, paginated list of the freelancer's
 /// invoices.
@@ -55,43 +60,49 @@ class _InvoicesPageState extends ConsumerState<InvoicesPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(invoicesListControllerProvider);
     final activeFilter = state.value?.filter ?? const InvoiceListFilter();
+    final appearance = ref.watch(appearanceControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Hóa đơn')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('${RouteNames.invoices}/new'),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Tạo hóa đơn'),
-      ),
-      body: Column(
-        children: [
-          _FilterBar(
-            filters: _filters,
-            active: activeFilter,
-            onSelected: (filter) => ref
-                .read(invoicesListControllerProvider.notifier)
-                .setFilter(filter),
-          ),
-          Expanded(
-            child: state.when(
-              loading: () => const LoadingShimmer(),
-              error: (error, _) => ErrorRetryWidget(
-                message: error.toString(),
-                onRetry: () => ref.invalidate(invoicesListControllerProvider),
-              ),
-              data: (data) => RefreshIndicator(
-                onRefresh: () =>
-                    ref.read(invoicesListControllerProvider.notifier).refresh(),
-                child: data.invoices.isEmpty
-                    ? _EmptyState(scrollController: _scrollController)
-                    : _InvoiceList(
-                        scrollController: _scrollController,
-                        state: data,
-                      ),
+    return Theme(
+      data: AppTheme.light(seed: appearance.accent.seed),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Hóa đơn')),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => context.push('${RouteNames.invoices}/new'),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Tạo hóa đơn'),
+        ),
+        body: Column(
+          children: [
+            _FilterBar(
+              filters: _filters,
+              active: activeFilter,
+              onSelected: (filter) => ref
+                  .read(invoicesListControllerProvider.notifier)
+                  .setFilter(filter),
+            ),
+            Expanded(
+              child: state.when(
+                loading: () => const LoadingShimmer(),
+                error: (error, _) => ErrorRetryWidget(
+                  message: error.toString(),
+                  onRetry: () =>
+                      ref.invalidate(invoicesListControllerProvider),
+                ),
+                data: (data) => RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(invoicesListControllerProvider.notifier)
+                      .refresh(),
+                  child: data.invoices.isEmpty
+                      ? _EmptyState(scrollController: _scrollController)
+                      : _InvoiceList(
+                          scrollController: _scrollController,
+                          state: data,
+                        ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -110,21 +121,13 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: filters.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final entry = filters[index];
-          return ChoiceChip(
-            label: Text(entry.label),
-            selected: entry.filter == active,
-            onSelected: (_) => onSelected(entry.filter),
-          );
-        },
+    final selectedIndex = filters.indexWhere((f) => f.filter == active);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppGap.xs),
+      child: FilterChipBar(
+        labels: [for (final f in filters) f.label],
+        selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
+        onSelected: (index) => onSelected(filters[index].filter),
       ),
     );
   }
@@ -171,7 +174,7 @@ class _EmptyState extends StatelessWidget {
     return ListView(
       controller: scrollController,
       children: [
-        const SizedBox(height: 120),
+        const SizedBox(height: AppGap.navBarInset),
         Icon(
           Icons.receipt_long_outlined,
           size: 56,

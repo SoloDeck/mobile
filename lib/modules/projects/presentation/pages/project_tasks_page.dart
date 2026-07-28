@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/modules/projects/domain/entities/project.dart';
 import 'package:solodesk_mobile/modules/projects/presentation/providers/projects_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/entities/task.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/value_objects/priority.dart';
 import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_owner.dart';
@@ -55,9 +57,10 @@ class ProjectTasksPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectDetailProvider(projectId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     return Theme(
-      data: AppTheme.light(),
+      data: AppTheme.light(seed: appearance.accent.seed),
       child: Scaffold(
         backgroundColor: AppColors.paper,
         body: SafeArea(

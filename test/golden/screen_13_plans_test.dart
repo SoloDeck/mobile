@@ -8,6 +8,7 @@ import 'package:solodesk_mobile/modules/subscriptions/domain/repositories/subscr
 import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/subscription_status.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/repository/subscriptions_repository_impl.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/pages/plans_page.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/tone.dart';
 import 'package:solodesk_mobile/ui/bottom_action_bar.dart';
@@ -20,6 +21,7 @@ import 'package:solodesk_mobile/ui/stamp_badge.dart';
 import 'package:solodesk_mobile/ui/status_chip.dart';
 
 import '../flutter_test_config.dart';
+import '../support/fake_settings_repository.dart';
 
 /// Chỉ `listPlans`/`getMySubscription` được MÀN 13 dùng (qua `plansProvider`
 /// và `mySubscriptionProvider`) — bốn method còn lại của
@@ -124,6 +126,7 @@ Future<void> _pump(WidgetTester tester) async {
             subscription: subscription,
           ),
         ),
+        settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

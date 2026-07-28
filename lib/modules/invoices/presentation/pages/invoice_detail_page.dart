@@ -8,13 +8,18 @@ import 'package:solodesk_mobile/modules/invoices/presentation/controllers/invoic
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_amount_summary.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/invoice_status_badge.dart';
-import 'package:solodesk_mobile/modules/invoices/presentation/widgets/money_text.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/payment_record_tile.dart';
 import 'package:solodesk_mobile/modules/invoices/presentation/widgets/record_payment_sheet.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/extensions/context_extensions.dart';
 import 'package:solodesk_mobile/shared/extensions/datetime_extensions.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
+import 'package:solodesk_mobile/theme/app_text.dart';
+import 'package:solodesk_mobile/theme/app_theme.dart';
+import 'package:solodesk_mobile/theme/tone.dart';
+import 'package:solodesk_mobile/ui/money.dart';
 
 /// Invoice detail — money summary, line items, payment history and the
 /// status-driven actions (edit / send / record payment / void).
@@ -26,6 +31,7 @@ class InvoiceDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final invoice = ref.watch(invoiceDetailProvider(invoiceId));
+    final appearance = ref.watch(appearanceControllerProvider);
 
     ref.listen(invoiceDetailControllerProvider, (previous, next) {
       if (next.hasError) {
@@ -37,39 +43,42 @@ class InvoiceDetailPage extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết hóa đơn')),
-      body: AsyncValueWidget<Invoice>(
-        value: invoice,
-        onRetry: () => ref.invalidate(invoiceDetailProvider(invoiceId)),
-        data: (d) => ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    d.invoiceNumber,
-                    style: Theme.of(context).textTheme.headlineSmall,
+    return Theme(
+      data: AppTheme.light(seed: appearance.accent.seed),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết hóa đơn')),
+        body: AsyncValueWidget<Invoice>(
+          value: invoice,
+          onRetry: () => ref.invalidate(invoiceDetailProvider(invoiceId)),
+          data: (d) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      d.invoiceNumber,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
-                ),
-                InvoiceStatusBadge(status: d.status),
-              ],
-            ),
-            const SizedBox(height: 16),
-            InvoiceAmountSummary(invoice: d),
-            const SizedBox(height: 24),
-            _MetaSection(invoice: d),
-            const SizedBox(height: 24),
-            _LineItemsSection(invoice: d),
-            const SizedBox(height: 24),
-            _PaymentsSection(invoiceId: invoiceId),
-          ],
+                  InvoiceStatusBadge(status: d.status),
+                ],
+              ),
+              const SizedBox(height: 16),
+              InvoiceAmountSummary(invoice: d),
+              const SizedBox(height: 24),
+              _MetaSection(invoice: d),
+              const SizedBox(height: 24),
+              _LineItemsSection(invoice: d),
+              const SizedBox(height: 24),
+              _PaymentsSection(invoiceId: invoiceId),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: invoice.maybeWhen(
-        data: (d) => _ActionBar(invoice: d),
-        orElse: () => null,
+        bottomNavigationBar: invoice.maybeWhen(
+          data: (d) => _ActionBar(invoice: d),
+          orElse: () => null,
+        ),
       ),
     );
   }
@@ -92,7 +101,9 @@ class _MetaSection extends StatelessWidget {
         _MetaRow(label: 'Ngày lập', value: invoice.issueDate.toDisplayDate()),
         _MetaRow(
           label: 'Hạn thanh toán',
-          value: invoice.dueDate.toDisplayDate(),
+          value: invoice.isOverdue
+              ? '${invoice.dueDate.toDisplayDate()} · Quá hạn'
+              : invoice.dueDate.toDisplayDate(),
           emphasize: invoice.isOverdue,
         ),
         if (invoice.notes != null && invoice.notes!.isNotEmpty)
@@ -130,7 +141,7 @@ class _MetaRow extends StatelessWidget {
               value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: emphasize ? theme.colorScheme.error : null,
+                color: emphasize ? Tone.money.accent : null,
               ),
             ),
           ),
@@ -177,7 +188,7 @@ class _LineItemsSection extends StatelessWidget {
                       ],
                     ),
                   ),
-                  MoneyText(item.amount, style: theme.textTheme.bodyMedium),
+                  Money(item.amount, tone: Tone.neutral),
                 ],
               ),
             ),
@@ -220,7 +231,11 @@ class _TotalsRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          MoneyText(value, style: style),
+          Money(
+            value,
+            tone: Tone.neutral,
+            style: bold ? AppText.numMd : null,
+          ),
         ],
       ),
     );

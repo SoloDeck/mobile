@@ -12,6 +12,16 @@
 				<string>com.googleusercontent.apps.106120287057-084s5jppd0bt5rq2fcla416rh0tt39o7</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>space.solodesk.payment</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>solodesk</string>
+			</array>
+		</dict>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
@@ -48,6 +58,10 @@
 	<string>SoloDesk cần quyền truy cập micro để ghi âm giọng nói của bạn.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>SoloDesk cần quyền nhận dạng giọng nói để chuyển nội dung ghi âm thành thông tin khách hàng.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SoloDesk cần quyền truy cập thư viện ảnh để đính kèm ảnh brief của khách hàng.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SoloDesk cần quyền truy cập camera để chụp ảnh brief của khách hàng.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
