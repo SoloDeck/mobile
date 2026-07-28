@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/core/time/app_clock.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/services/payment_link_launcher.dart';
+import 'package:solodesk_mobile/modules/subscriptions/application/services/payment_result_deep_link.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/cancel_subscription_usecase.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/poll_payment_intent_usecase.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/start_checkout_usecase.dart';
@@ -51,14 +52,19 @@ class CheckoutState {
 @riverpod
 class CheckoutController extends _$CheckoutController {
   @override
-  CheckoutState build() => const CheckoutState();
+  CheckoutState build() {
+    ref.listen(paymentResultDeepLinkStreamProvider, (_, next) {
+      next.whenData((_) => _onPaymentResultDeepLink());
+    });
+    return const CheckoutState();
+  }
 
   Future<void> startCheckout(String planId) async {
     state = state.copyWith(step: CheckoutStep.creatingIntent);
     try {
       final intent = await StartCheckoutUseCase(
         ref.read(subscriptionsRepositoryProvider),
-      )(planId: planId);
+      )(planId: planId, returnUrl: paymentResultDeepLink);
       state = state.copyWith(
         step: CheckoutStep.awaitingPayment,
         intent: intent,
@@ -87,6 +93,10 @@ class CheckoutController extends _$CheckoutController {
       clock,
     );
     await for (final intent in useCase(intentId)) {
+      // _onPaymentResultDeepLink có thể đã settle state ở giữa hai lượt poll
+      // (nó gọi cùng getPaymentIntent, chỉ sớm hơn) — không ghi đè kết quả
+      // đó bằng một nhánh khác (vd. "hết hạn" đè lên "đã huỷ").
+      if (state.step != CheckoutStep.awaitingPayment) return;
       state = state.copyWith(intent: intent);
       if (intent.status == PaymentIntentStatus.succeeded) {
         state = state.copyWith(step: CheckoutStep.succeeded);
@@ -102,11 +112,44 @@ class CheckoutController extends _$CheckoutController {
       }
     }
     // Stream đóng vì hết 30 lượt kiểm mà chưa settle -> coi như hết hạn.
-    if (state.step != CheckoutStep.succeeded) {
+    if (state.step == CheckoutStep.awaitingPayment) {
       state = state.copyWith(
         step: CheckoutStep.failed,
         error: 'Phiên thanh toán đã hết hạn, thử lại',
       );
+    }
+  }
+
+  /// Gọi khi deep link solodesk://payment-result bắn về (cả khi thành công
+  /// LẪN khi huỷ trên MoMo — MoMo redirect trình duyệt về CÙNG một link cho
+  /// cả hai trường hợp). KHÔNG tin bất kỳ query param nào MoMo có thể/không
+  /// đính kèm qua custom scheme — chỉ dùng làm tín hiệu "kiểm tra lại ngay",
+  /// nguồn sự thật vẫn là backend qua getPaymentIntent (giống hệt [_poll]).
+  /// KHÔNG cần huỷ vòng lặp [_poll] đang chạy nền: mỗi lượt lặp của [_poll]
+  /// tự kiểm tra `state.step` trước khi ghi state, nên một khi hàm này đã
+  /// chuyển sang `succeeded`/`failed` thì lượt poll tiếp theo sẽ thấy vậy và
+  /// tự thoát thay vì ghi đè bằng thông báo khác (vd. "hết hạn" đè "đã huỷ").
+  Future<void> _onPaymentResultDeepLink() async {
+    if (state.step != CheckoutStep.awaitingPayment) return;
+    final intentId = state.intent?.id;
+    if (intentId == null) return;
+    try {
+      final intent = await ref
+          .read(subscriptionsRepositoryProvider)
+          .getPaymentIntent(intentId);
+      state = state.copyWith(intent: intent);
+      if (intent.status == PaymentIntentStatus.succeeded) {
+        state = state.copyWith(step: CheckoutStep.succeeded);
+        ref.invalidate(mySubscriptionProvider);
+      } else if (intent.status.isSettled) {
+        state = state.copyWith(
+          step: CheckoutStep.failed,
+          error: 'Thanh toán đã bị huỷ hoặc thất bại',
+        );
+      }
+    } on AppException {
+      // Bỏ qua — đây là kiểm tra tuỳ chọn, vòng lặp poll nền vẫn là nguồn
+      // sự thật chính.
     }
   }
 

@@ -17,7 +17,10 @@ abstract interface class SubscriptionsRepository {
 
   /// `POST /subscriptions/checkout`. `provider` luôn là `'momo'` — giá trị
   /// duy nhất backend hỗ trợ. [returnUrl], nếu có, phải bắt đầu bằng
-  /// `http://` hoặc `https://`.
+  /// `http://` / `https://`, HOẶC là deep link đã đăng ký của app —
+  /// `solodesk://payment-result` (xem `paymentResultDeepLink`); backend chấp
+  /// nhận đúng chuỗi này để MoMo trả quyền điều khiển thẳng về app sau khi
+  /// thanh toán xong hoặc bị huỷ.
   Future<PaymentIntent> createCheckout({
     required String planId,
     String? returnUrl,

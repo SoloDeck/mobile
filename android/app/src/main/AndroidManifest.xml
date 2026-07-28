@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="SoloDesk"
@@ -25,6 +27,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Nhận lại quyền điều khiển từ MoMo qua solodesk://payment-result
+                 (cả khi thanh toán xong LẪN khi người dùng bấm huỷ). Cần
+                 android:launchMode="singleTop" ở trên để link bắn vào
+                 onNewIntent của Activity đang chạy, không tạo Activity mới. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="solodesk" android:host="payment-result"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
