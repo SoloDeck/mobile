@@ -16,6 +16,7 @@ class TaskListWidget extends ConsumerWidget {
     required this.entityType,
     required this.entityId,
     this.shrinkWrap = false,
+    this.loadingWidget,
   });
 
   final TaskOwner entityType;
@@ -24,6 +25,15 @@ class TaskListWidget extends ConsumerWidget {
   /// When embedded inside another scroll view (e.g. a detail page), set true.
   final bool shrinkWrap;
 
+  /// Override when embedded inside an unbounded scroll view: the default
+  /// `AsyncValueWidget` fallback (`LoadingShimmer`) is itself a `ListView`
+  /// with no intrinsic height, which only works when this widget's own
+  /// parent gives it bounded constraints (e.g. a `TabBarView`, as
+  /// `ProjectDetailPage` does). Nested in a `SingleChildScrollView` instead
+  /// (as `DealDetailPage`'s "Dự án" tab does), the unbounded shimmer breaks
+  /// layout — pass a fixed-height placeholder there.
+  final Widget? loadingWidget;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasks = ref.watch(taskListProvider(entityType, entityId));
@@ -31,6 +41,7 @@ class TaskListWidget extends ConsumerWidget {
     return AsyncValueWidget<List<Task>>(
       value: tasks,
       onRetry: () => ref.invalidate(taskListProvider(entityType, entityId)),
+      loadingWidget: loadingWidget,
       data: (items) {
         if (items.isEmpty) {
           return const Padding(

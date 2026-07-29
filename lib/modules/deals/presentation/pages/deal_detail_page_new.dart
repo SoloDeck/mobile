@@ -11,6 +11,10 @@ import 'package:solodesk_mobile/modules/invoices/presentation/pages/invoice_form
 import 'package:solodesk_mobile/modules/invoices/presentation/providers/invoices_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/widgets/deal_activity_tab.dart';
+import 'package:solodesk_mobile/modules/deals/presentation/widgets/deal_attachments_tab.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_owner.dart';
+import 'package:solodesk_mobile/modules/tasks/presentation/pages/widgets/task_list_widget.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/shared/widgets/async_value_widget.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
@@ -47,8 +51,8 @@ import 'package:solodesk_mobile/ui/status_chip.dart';
 /// - Lịch thanh toán dựng bằng `SlipCard` vì đúng là tiền (quy tắc 3
 ///   `AGENTS.md`): đợt đã thu tô ngọc, đợt đến hạn tô hồng kèm con dấu quá hạn,
 ///   đợt chưa tới tô xám.
-/// - Tab con (Dự án / Tài liệu / File / Lịch sử) gom bằng `FilterChipBar` cuộn
-///   ngang thay vì dựng bốn màn con riêng, để không làm nặng màn hình đầu.
+/// - Tab con (Dự án / Tài liệu / Lịch sử) gom bằng `FilterChipBar` cuộn ngang
+///   thay vì dựng ba màn con riêng, để không làm nặng màn hình đầu.
 ///
 /// Đổi giai đoạn qua chip "Đổi giai đoạn" — mở menu chọn, không kéo thả (quy
 /// tắc 4 `AGENTS.md`).
@@ -199,8 +203,23 @@ class _DealDetailPageState extends ConsumerState<DealDetailPage> {
                             ),
                             child: _RecentNoteCard(),
                           ),
-                        ] else
-                          const _EmptySubTab(),
+                        ] else if (_selectedSubTabIndex == 1)
+                          TaskListWidget(
+                            entityType: TaskOwner.deal,
+                            entityId: deal.id,
+                            shrinkWrap: true,
+                            // Same unbounded-height guard as `_PaymentSlip`
+                            // above — see doc comment on
+                            // `TaskListWidget.loadingWidget`.
+                            loadingWidget: const SizedBox(
+                              height: 160,
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                          )
+                        else if (_selectedSubTabIndex == 2)
+                          DealAttachmentsTab(dealId: deal.id)
+                        else
+                          DealActivityTab(dealId: deal.id),
                       ],
                     ),
                   ),
@@ -821,27 +840,6 @@ class _MoMoLinkButton extends StatelessWidget {
   }
 }
 
-/// Chỗ trống cho các tab con chưa có dữ liệu/provider đứng sau (Dự án / Tài
-/// liệu / File / Lịch sử) — xem ghi chú "CHƯA NỐI API" ở `_MockData.subTabs`.
-/// Cùng kiểu chữ với `_EmptyPipeline` trong `pipeline_page_new.dart`.
-class _EmptySubTab extends StatelessWidget {
-  const _EmptySubTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(AppGap.screen),
-        child: Text(
-          'Chưa có dữ liệu cho mục này.',
-          style: AppText.mut,
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
-
 /// Ghi chú gần nhất — `Card` thường vì nội dung không liên quan tiền.
 ///
 /// CHƯA NỐI API — `Deal` không có lịch sử trao đổi/ghi chú giọng nói; giữ dữ
@@ -880,15 +878,12 @@ abstract final class _MockData {
   /// CHƯA NỐI API — `Deal` không có tên người liên hệ hay số điện thoại.
   static const String contactInfo = 'Chị Hạnh · 0903 xxx 118';
 
-  /// CHƯA NỐI API — tab con (Dự án / Tài liệu / File / Lịch sử) chưa có nội
-  /// dung hay provider đứng sau; mới chỉ là nhãn tĩnh, `onSelected` chưa xử lý.
-  static const List<String> subTabs = [
-    'Tổng quan',
-    'Dự án',
-    'Tài liệu',
-    'File',
-    'Lịch sử',
-  ];
+  /// Bốn tab con, mỗi tab (trừ Tổng quan) nối provider thật của riêng nó:
+  /// `TaskListWidget` (Dự án), `DealAttachmentsTab`, `DealActivityTab`. Gộp
+  /// "Tài liệu"/"File" của bản phác thảo gốc thành một tab duy nhất vì backend
+  /// chỉ có một cơ chế đính kèm nhiều-file (`/deals/{id}/attachments`) — cơ chế
+  /// một-file cũ (`/deals/{id}/document`) không có UI riêng ở đây.
+  static const List<String> subTabs = ['Tổng quan', 'Dự án', 'Tài liệu', 'Lịch sử'];
 
   /// CHƯA NỐI API — `Deal` không lưu lịch sử trao đổi/ghi chú giọng nói.
   static const String noteText =

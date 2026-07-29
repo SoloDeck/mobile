@@ -24,6 +24,17 @@ abstract final class ApiEndpoints {
   static String dealStage(String id) => '/deals/$id/stage';
   static String dealActivities(String id) => '/deals/$id/activity';
 
+  // Deal attachments — NOT documented in contracts/openapi.yaml (the spec
+  // only covers the single-file `/deals/{id}/document` route). Path shape
+  // confirmed against `backend/src/modules/deals/api/router.py`: list/upload
+  // are scoped under the deal, but download/delete are NOT — they live under
+  // a flat `/deals/attachments/{id}` prefix with no `deal_id` segment.
+  static String dealAttachments(String dealId) => '/deals/$dealId/attachments';
+  static String dealAttachmentDownload(String attachmentId) =>
+      '/deals/attachments/$attachmentId/download';
+  static String dealAttachmentById(String attachmentId) =>
+      '/deals/attachments/$attachmentId';
+
   // Projects
   static const projects = '/projects';
   static String projectById(String id) => '/projects/$id';
