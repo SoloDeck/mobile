@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solodesk_mobile/modules/deals/domain/entities/deal.dart';
+import 'package:solodesk_mobile/modules/deals/domain/entities/deal_activity.dart';
+import 'package:solodesk_mobile/modules/deals/domain/entities/deal_attachment.dart';
+import 'package:solodesk_mobile/modules/deals/domain/repositories/deal_activities_repository.dart';
+import 'package:solodesk_mobile/modules/deals/domain/repositories/deal_attachments_repository.dart';
 import 'package:solodesk_mobile/modules/deals/domain/repositories/deals_repository.dart';
+import 'package:solodesk_mobile/modules/deals/domain/value_objects/deal_activity_type.dart';
+import 'package:solodesk_mobile/modules/deals/infrastructure/repository/deal_activities_repository_impl.dart';
+import 'package:solodesk_mobile/modules/deals/infrastructure/repository/deal_attachments_repository_impl.dart';
 import 'package:solodesk_mobile/modules/deals/infrastructure/repository/deals_repository_impl.dart';
 import 'package:solodesk_mobile/modules/deals/presentation/pages/deal_detail_page_new.dart';
 import 'package:solodesk_mobile/modules/invoices/domain/entities/invoice.dart';
@@ -12,6 +19,12 @@ import 'package:solodesk_mobile/modules/invoices/domain/value_objects/invoice_st
 import 'package:solodesk_mobile/modules/invoices/domain/value_objects/payment_method.dart';
 import 'package:solodesk_mobile/modules/invoices/infrastructure/repository/invoices_repository_impl.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/entities/task.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/repositories/tasks_repository.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/value_objects/priority.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_owner.dart';
+import 'package:solodesk_mobile/modules/tasks/domain/value_objects/task_status.dart';
+import 'package:solodesk_mobile/modules/tasks/infrastructure/repository/tasks_repository_impl.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
@@ -132,6 +145,76 @@ class _FakeInvoicesRepository implements InvoicesRepository {
   }) async => invoices.first;
 }
 
+/// Repo giả cho tab "Dự án" — trả về đúng một task gắn thẳng vào deal (không
+/// đi qua lớp project, khác bản cũ đã xoá).
+class _FakeTasksRepository implements TasksRepository {
+  const _FakeTasksRepository(this.tasks);
+
+  final List<Task> tasks;
+
+  @override
+  Future<List<Task>> listByEntity({
+    required TaskOwner entityType,
+    required String entityId,
+    TaskStatus? status,
+  }) async => tasks;
+
+  @override
+  Future<Task> getTask(String id) async =>
+      tasks.firstWhere((t) => t.id == id);
+
+  @override
+  Future<Task> createTask({
+    required TaskOwner entityType,
+    required String entityId,
+    required String title,
+    String? description,
+    Priority? priority,
+    DateTime? deadline,
+  }) async => tasks.first;
+
+  @override
+  Future<Task> updateStatus({
+    required String taskId,
+    required TaskStatus status,
+  }) async => tasks.firstWhere((t) => t.id == taskId);
+}
+
+/// Repo giả cho tab "Tài liệu".
+class _FakeDealAttachmentsRepository implements DealAttachmentsRepository {
+  const _FakeDealAttachmentsRepository(this.attachments);
+
+  final List<DealAttachment> attachments;
+
+  @override
+  Future<List<DealAttachment>> listAttachments(String dealId) async =>
+      attachments;
+
+  @override
+  Future<DealAttachment> uploadAttachment({
+    required String dealId,
+    required String filePath,
+    required String filename,
+  }) async => attachments.first;
+
+  @override
+  Future<List<int>> downloadAttachment(String attachmentId) async => [1, 2, 3];
+
+  @override
+  Future<void> deleteAttachment(String attachmentId) async {}
+}
+
+/// Repo giả cho tab "Lịch sử".
+class _FakeDealActivitiesRepository implements DealActivitiesRepository {
+  const _FakeDealActivitiesRepository(this.activities);
+
+  final List<DealActivity> activities;
+
+  @override
+  Future<List<DealActivity>> listActivities(String dealId) async =>
+      activities;
+}
+
 final _testDeal = Deal(
   id: 'd1',
   ownerUserId: 'u1',
@@ -186,6 +269,43 @@ final _testInvoices = [
   ),
 ];
 
+final _testTasks = [
+  Task(
+    id: 't1',
+    entityType: TaskOwner.deal,
+    entityId: 'd1',
+    title: 'Gửi bản nháp logo vòng 2',
+    priority: Priority.high,
+    status: TaskStatus.inProgress,
+    createdAt: DateTime.utc(2026, 6, 1),
+  ),
+];
+
+final _testAttachments = [
+  DealAttachment(
+    id: 'att-1',
+    dealId: 'd1',
+    filename: 'brief.pdf',
+    contentType: 'application/pdf',
+    sizeBytes: 20480,
+    // Cố ý false: để test tab Tài liệu phủ luôn nhánh hiện badge cảnh báo.
+    aiReadable: false,
+    createdAt: DateTime.utc(2026, 7, 1),
+  ),
+];
+
+final _testActivities = [
+  DealActivity(
+    id: 'act-1',
+    dealId: 'd1',
+    entryType: DealActivityType.stageChange,
+    description: 'Stage changed: qualified → active',
+    createdAt: DateTime.utc(2026, 7, 1),
+    previousStage: DealStage.qualified,
+    newStage: DealStage.active,
+  ),
+];
+
 /// [deals] cho phép từng test thay repo giả (deal ở giai đoạn khác, hoặc repo
 /// ném lỗi). Bỏ trống thì đúng cấu hình mặc định mà ảnh vàng chốt.
 Future<void> _pump(WidgetTester tester, {_FakeDealsRepository? deals}) async {
@@ -200,6 +320,15 @@ Future<void> _pump(WidgetTester tester, {_FakeDealsRepository? deals}) async {
         ),
         invoicesRepositoryProvider.overrideWithValue(
           _FakeInvoicesRepository(_testInvoices),
+        ),
+        tasksRepositoryProvider.overrideWithValue(
+          _FakeTasksRepository(_testTasks),
+        ),
+        dealAttachmentsRepositoryProvider.overrideWithValue(
+          _FakeDealAttachmentsRepository(_testAttachments),
+        ),
+        dealActivitiesRepositoryProvider.overrideWithValue(
+          _FakeDealActivitiesRepository(_testActivities),
         ),
         settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       ],
@@ -289,7 +418,7 @@ void main() {
       await _pump(tester);
 
       final bar = tester.widget<FilterChipBar>(find.byType(FilterChipBar));
-      expect(bar.labels, ['Tổng quan', 'Dự án', 'Tài liệu', 'File', 'Lịch sử']);
+      expect(bar.labels, ['Tổng quan', 'Dự án', 'Tài liệu', 'Lịch sử']);
       expect(bar.selectedIndex, 0);
     });
   });
@@ -364,6 +493,51 @@ void main() {
     });
   });
 
+  group('MÀN 05 — tab con Dự án / Tài liệu / Lịch sử nối API thật', () {
+    testWidgets('tab "Dự án" hiện task gắn thẳng vào deal, không qua project', (
+      tester,
+    ) async {
+      await _pump(tester);
+      await tester.tap(find.text('Dự án'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gửi bản nháp logo vòng 2'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tab "Tài liệu" hiện tên file và cảnh báo khi AI chưa đọc được',
+      (tester) async {
+        await _pump(tester);
+        await tester.tap(find.text('Tài liệu'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('brief.pdf'), findsOneWidget);
+        expect(find.text('AI chưa đọc được nội dung này'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'tab "Lịch sử" hiện đúng mô tả và chiều đổi giai đoạn của activity thật',
+      (tester) async {
+        await _pump(tester);
+        await tester.dragUntilVisible(
+          find.text('Lịch sử'),
+          find.byType(FilterChipBar),
+          const Offset(-60, 0),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Lịch sử'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Stage changed: qualified → active'),
+          findsOneWidget,
+        );
+        expect(find.text('Đã sàng lọc → Đang triển khai'), findsOneWidget);
+      },
+    );
+  });
+
   group('MÀN 05 — chuỗi hiển thị chép từ bản phác thảo', () {
     testWidgets('nguyên văn tiếng Việt, không diễn giải lại', (tester) async {
       await _pump(tester);
@@ -380,7 +554,6 @@ void main() {
         'Tổng quan',
         'Dự án',
         'Tài liệu',
-        'File',
         'LỊCH THANH TOÁN',
         'HD-002 QUÁ HẠN',
         'Hóa đơn HD-001 · Đã thanh toán',

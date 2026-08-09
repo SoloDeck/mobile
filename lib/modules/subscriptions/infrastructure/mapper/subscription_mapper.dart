@@ -14,6 +14,7 @@ extension PlanDtoMapper on PlanDto {
     name: name,
     slug: slug,
     priceMonthly: priceMonthly,
+    priceYearly: priceYearly,
     currency: currency,
     canUseAi: canUseAi,
     canExportPdf: canExportPdf,

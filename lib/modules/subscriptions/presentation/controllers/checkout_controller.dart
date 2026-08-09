@@ -6,6 +6,7 @@ import 'package:solodesk_mobile/modules/subscriptions/application/usecases/cance
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/poll_payment_intent_usecase.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/start_checkout_usecase.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_intent.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/payment_intent_status.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/repository/subscriptions_repository_impl.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/providers/subscriptions_provider.dart';
@@ -59,12 +60,19 @@ class CheckoutController extends _$CheckoutController {
     return const CheckoutState();
   }
 
-  Future<void> startCheckout(String planId) async {
+  Future<void> startCheckout(
+    String planId, {
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
+  }) async {
     state = state.copyWith(step: CheckoutStep.creatingIntent);
     try {
       final intent = await StartCheckoutUseCase(
         ref.read(subscriptionsRepositoryProvider),
-      )(planId: planId, returnUrl: paymentResultDeepLink);
+      )(
+        planId: planId,
+        billingPeriod: billingPeriod,
+        returnUrl: paymentResultDeepLink,
+      );
       state = state.copyWith(
         step: CheckoutStep.awaitingPayment,
         intent: intent,

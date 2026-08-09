@@ -1,6 +1,7 @@
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_intent.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/plan.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/subscription.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 
 /// Contract for reading gói dịch vụ (plans) và quản lý thanh toán MoMo.
 /// Implemented in `infrastructure/repository/subscriptions_repository_impl.dart`.
@@ -20,9 +21,11 @@ abstract interface class SubscriptionsRepository {
   /// `http://` / `https://`, HOẶC là deep link đã đăng ký của app —
   /// `solodesk://payment-result` (xem `paymentResultDeepLink`); backend chấp
   /// nhận đúng chuỗi này để MoMo trả quyền điều khiển thẳng về app sau khi
-  /// thanh toán xong hoặc bị huỷ.
+  /// thanh toán xong hoặc bị huỷ. [billingPeriod] mặc định theo tháng —
+  /// backend tính tiền `price_yearly` khi truyền [BillingPeriod.yearly].
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   });
 

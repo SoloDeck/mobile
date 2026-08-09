@@ -5,6 +5,7 @@ import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_in
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/plan.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/subscription.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/repositories/subscriptions_repository.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/payment_intent_status.dart';
 
 /// Repo giả trả về các [PaymentIntent] đã kịch bản sẵn THEO THỨ TỰ cho các
@@ -34,6 +35,7 @@ class _ScriptedRepository implements SubscriptionsRepository {
   @override
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   }) => throw UnimplementedError();
 
