@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/get_my_subscription_usecase.dart';
 import 'package:solodesk_mobile/modules/subscriptions/application/usecases/list_plans_usecase.dart';
@@ -18,38 +19,51 @@ Future<List<Plan>> plans(Ref ref) =>
 Future<Subscription> mySubscription(Ref ref) =>
     GetMySubscriptionUseCase(ref.watch(subscriptionsRepositoryProvider))();
 
-/// Dữ liệu MÀN 13: 3 gói theo đúng vị trí trên màn (thấp hơn gói hiện tại,
-/// gói hiện tại, cao hơn gói hiện tại) — MÀN 13 chỉ có chỗ cho đúng 3 thẻ.
+/// Dữ liệu MÀN 13: TOÀN BỘ gói đang bán (sắp theo giá tháng tăng dần) + gói
+/// hiện tại của người dùng. Không còn giả định "đúng 3 gói, gói giữa là gói
+/// đang dùng" như bản đầu — màn render theo danh sách, gói nào đang dùng thì
+/// thành tấm phiếu hero, bất kể là Free hay gói đắt nhất.
 class PlansViewData {
   const PlansViewData({
-    required this.free,
-    required this.current,
-    required this.business,
+    required this.plans,
+    required this.currentPlan,
     required this.subscription,
   });
 
-  final Plan free;
-  final Plan current;
-  final Plan business;
+  /// Mọi gói đang bán, sắp theo `priceMonthly` tăng dần.
+  final List<Plan> plans;
+
+  /// Gói người dùng đang đứng — null khi `subscription.planId` không khớp
+  /// gói nào trong [plans] (dữ liệu lệch giữa hai endpoint); màn vẫn phải
+  /// render danh sách thay vì crash.
+  final Plan? currentPlan;
+
   final Subscription subscription;
+
+  /// Các gói đắt hơn gói hiện tại — những đích nâng cấp hợp lệ (không hỗ trợ
+  /// hạ gói). Khi không xác định được gói hiện tại, coi như đứng ở đáy: mọi
+  /// gói trả phí đều là đích nâng cấp.
+  List<Plan> get upgradeTargets {
+    final floor = currentPlan?.priceMonthly ?? 0;
+    return plans.where((p) => p.priceMonthly > floor).toList();
+  }
+
+  /// True khi không còn gói nào đắt hơn để nâng — ẩn nút nâng cấp.
+  bool get isOnTopPlan => upgradeTargets.isEmpty;
 }
 
 @riverpod
 Future<PlansViewData> plansView(Ref ref) async {
   final allPlans = await ref.watch(plansProvider.future);
   final subscription = await ref.watch(mySubscriptionProvider.future);
-  final current = allPlans.firstWhere((p) => p.id == subscription.planId);
-  // Sắp theo giá — free = rẻ nhất, business = đắt nhất; nếu danh sách khác 3
-  // gói thì lấy rẻ nhất/đắt nhất làm hai đầu, chấp nhận đơn giản hoá này vì
-  // MÀN 13 chỉ có 3 vị trí cố định trên bố cục.
   final sorted = [...allPlans]
     ..sort((a, b) => a.priceMonthly.compareTo(b.priceMonthly));
-  final free = sorted.first;
-  final business = sorted.last;
+  // firstWhereOrNull chứ không firstWhere: planId lạ (gói đã gỡ bán, dữ liệu
+  // lệch) không được phép ném StateError làm sập cả màn.
+  final current = sorted.firstWhereOrNull((p) => p.id == subscription.planId);
   return PlansViewData(
-    free: free,
-    current: current,
-    business: business,
+    plans: sorted,
+    currentPlan: current,
     subscription: subscription,
   );
 }

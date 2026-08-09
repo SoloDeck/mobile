@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 
 part 'plan.freezed.dart';
 
@@ -16,6 +17,7 @@ abstract class Plan with _$Plan {
     required String name,
     required String slug,
     required double priceMonthly,
+    required double priceYearly,
     required String currency,
     required bool canUseAi,
     required bool canExportPdf,
@@ -26,6 +28,22 @@ abstract class Plan with _$Plan {
 }
 
 extension PlanX on Plan {
+  /// Giá theo kỳ thanh toán — [priceYearly] là giá TRỌN NĂM (không phải
+  /// giá tháng nhân 12), backend đã trừ sẵn chiết khấu.
+  double priceFor(BillingPeriod period) => switch (period) {
+    BillingPeriod.monthly => priceMonthly,
+    BillingPeriod.yearly => priceYearly,
+  };
+
+  /// Phần trăm rẻ hơn khi trả cả năm so với trả 12 tháng lẻ, làm tròn về
+  /// số nguyên (ví dụ 28 cho "−28%"). Gói miễn phí (priceMonthly == 0)
+  /// không có khái niệm chiết khấu — trả về 0 thay vì chia cho 0.
+  int get yearlyDiscountPercent {
+    if (priceMonthly == 0) return 0;
+    final fullYear = priceMonthly * 12;
+    return ((1 - priceYearly / fullYear) * 100).round();
+  }
+
   /// null = không giới hạn.
   String get clientsLabel =>
       maxClients == null ? 'Không giới hạn' : '$maxClients khách';

@@ -4,6 +4,7 @@ import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_in
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/plan.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/subscription.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/repositories/subscriptions_repository.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/datasource/subscriptions_remote_datasource.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/dto/checkout_request_dto.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/mapper/subscription_mapper.dart';
@@ -30,9 +31,16 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
   @override
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   }) => _remote
-      .createCheckout(CheckoutRequestDto(planId: planId, returnUrl: returnUrl))
+      .createCheckout(
+        CheckoutRequestDto(
+          planId: planId,
+          billingPeriod: billingPeriod.wireValue,
+          returnUrl: returnUrl,
+        ),
+      )
       .then((d) => d.toDomain());
 
   @override

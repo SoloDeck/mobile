@@ -35,6 +35,7 @@ import 'package:solodesk_mobile/modules/reminders/presentation/pages/reminders_l
 import 'package:solodesk_mobile/modules/settings/presentation/pages/me_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/profile_page.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/pages/settings_page.dart';
+import 'package:solodesk_mobile/modules/subscriptions/application/services/payment_result_deep_link.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/pages/plans_page.dart';
 import 'package:solodesk_mobile/modules/tasks/presentation/pages/task_detail_page.dart';
 import 'package:solodesk_mobile/modules/templates/presentation/pages/templates_page.dart';
@@ -115,7 +116,21 @@ GoRouter router(Ref ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: RouteNames.home,
     refreshListenable: routerNotifier,
-    redirect: (context, state) => authGuard(state, tokenManager),
+    redirect: (context, state) {
+      // Android intent-filter / iOS URL scheme deep links go through
+      // GoRouter's own platform route provider independently of the
+      // app_links listener in payment_result_deep_link.dart — there is no
+      // real screen for this URI (it's a status-recheck signal, handled by
+      // CheckoutController), so without this GoRouter throws "no routes for
+      // location" the moment MoMo redirects back after a cancel. Redirecting
+      // to an existing route swallows it instead of letting it fail to match.
+      final deepLink = Uri.parse(paymentResultDeepLink);
+      if (state.uri.scheme == deepLink.scheme &&
+          state.uri.host == deepLink.host) {
+        return RouteNames.home;
+      }
+      return authGuard(state, tokenManager);
+    },
     routes: [
       // ── Ngoài phiên đăng nhập ───────────────────────────────────────────
       GoRoute(

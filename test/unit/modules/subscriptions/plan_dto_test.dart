@@ -10,6 +10,7 @@ Map<String, dynamic> _planJson({required Object? maxClients}) => {
   'name': 'Pro',
   'slug': 'pro',
   'price_monthly': 149000,
+  'price_yearly': 1287000,
   'currency': 'VND',
   'can_use_ai': true,
   'can_export_pdf': true,
@@ -30,6 +31,16 @@ void main() {
 
     test('accepts a decimal JSON string', () {
       expect(decimalFromJson('149000.00'), 149000.0);
+    });
+  });
+
+  group('decimalOrZeroFromJson', () {
+    test('missing/null price_yearly (backend cũ) parse thành 0, không nổ', () {
+      final json = _planJson(maxClients: null)..remove('price_yearly');
+
+      final plan = PlanDto.fromJson(json).toDomain();
+
+      expect(plan.priceYearly, 0);
     });
   });
 

@@ -11,6 +11,7 @@ import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_in
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/plan.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/subscription.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/repositories/subscriptions_repository.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/payment_intent_status.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/repository/subscriptions_repository_impl.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/controllers/checkout_controller.dart';
@@ -58,6 +59,9 @@ class _FakeSubscriptionsRepository implements SubscriptionsRepository {
   /// đăng ký, xem [paymentResultDeepLink].
   String? capturedReturnUrl;
 
+  /// Kỳ thanh toán controller truyền xuống ở lần gọi gần nhất.
+  BillingPeriod? capturedBillingPeriod;
+
   /// Đếm số lần backend bị hỏi trạng thái, để khẳng định deep link lúc `idle`
   /// KHÔNG gọi gì cả.
   int getPaymentIntentCallCount = 0;
@@ -65,9 +69,11 @@ class _FakeSubscriptionsRepository implements SubscriptionsRepository {
   @override
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   }) async {
     capturedReturnUrl = returnUrl;
+    capturedBillingPeriod = billingPeriod;
     return _createdIntent;
   }
 
@@ -108,6 +114,7 @@ class _ScriptedRepository implements SubscriptionsRepository {
   @override
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   }) async => _createdIntent;
 
@@ -179,7 +186,7 @@ ProviderContainer _containerFor(
 
 void main() {
   test(
-    'opens the deeplink (instructions) first and stops there when it works',
+    'opens the web payUrl (url) first and stops there when it works',
     () async {
       final opener = _RecordingUrlOpener([true]);
       final container = _containerFor(opener);
@@ -189,14 +196,14 @@ void main() {
           .read(checkoutControllerProvider.notifier)
           .startCheckout('plan-2');
 
-      expect(opener.calls, [_instructions]);
+      expect(opener.calls, [_url]);
       final state = container.read(checkoutControllerProvider);
       expect(state.needsQr, isFalse);
       expect(state.step, CheckoutStep.succeeded);
     },
   );
 
-  test('falls back to url when the deeplink does not open', () async {
+  test('falls back to the deeplink when the payUrl does not open', () async {
     final opener = _RecordingUrlOpener([false, true]);
     final container = _containerFor(opener);
     addTearDown(container.dispose);
@@ -205,7 +212,7 @@ void main() {
         .read(checkoutControllerProvider.notifier)
         .startCheckout('plan-2');
 
-    expect(opener.calls, [_instructions, _url]);
+    expect(opener.calls, [_url, _instructions]);
     final state = container.read(checkoutControllerProvider);
     expect(state.needsQr, isFalse);
     expect(state.step, CheckoutStep.succeeded);
@@ -222,13 +229,49 @@ void main() {
           .read(checkoutControllerProvider.notifier)
           .startCheckout('plan-2');
 
-      // Exactly two attempts — instructions then url — never a third for
+      // Exactly two attempts — url then instructions — never a third for
       // the QR code (it is only ever displayed, not "opened").
-      expect(opener.calls, [_instructions, _url]);
+      expect(opener.calls, [_url, _instructions]);
       final state = container.read(checkoutControllerProvider);
       expect(state.needsQr, isTrue);
     },
   );
+
+  test('defaults billingPeriod to monthly when the caller omits it', () async {
+    final repo = _FakeSubscriptionsRepository(
+      _intentWith(),
+      _intentWith(status: PaymentIntentStatus.succeeded),
+    );
+    final container = _containerFor(
+      _RecordingUrlOpener([true]),
+      repository: repo,
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(checkoutControllerProvider.notifier)
+        .startCheckout('plan-2');
+
+    expect(repo.capturedBillingPeriod, BillingPeriod.monthly);
+  });
+
+  test('passes billingPeriod yearly through to the repository', () async {
+    final repo = _FakeSubscriptionsRepository(
+      _intentWith(),
+      _intentWith(status: PaymentIntentStatus.succeeded),
+    );
+    final container = _containerFor(
+      _RecordingUrlOpener([true]),
+      repository: repo,
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(checkoutControllerProvider.notifier)
+        .startCheckout('plan-2', billingPeriod: BillingPeriod.yearly);
+
+    expect(repo.capturedBillingPeriod, BillingPeriod.yearly);
+  });
 
   test('sends the registered deep link as returnUrl to the backend', () async {
     final repo = _FakeSubscriptionsRepository(

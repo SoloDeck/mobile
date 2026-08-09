@@ -5,6 +5,7 @@ import 'package:solodesk_mobile/modules/subscriptions/domain/entities/payment_in
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/plan.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/entities/subscription.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/repositories/subscriptions_repository.dart';
+import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/billing_period.dart';
 import 'package:solodesk_mobile/modules/subscriptions/domain/value_objects/subscription_status.dart';
 import 'package:solodesk_mobile/modules/subscriptions/infrastructure/repository/subscriptions_repository_impl.dart';
 import 'package:solodesk_mobile/modules/subscriptions/presentation/pages/plans_page.dart';
@@ -45,6 +46,7 @@ class _FakeSubscriptionsRepository implements SubscriptionsRepository {
   @override
   Future<PaymentIntent> createCheckout({
     required String planId,
+    BillingPeriod billingPeriod = BillingPeriod.monthly,
     String? returnUrl,
   }) => throw UnimplementedError();
 
@@ -65,6 +67,7 @@ const free = Plan(
   name: 'Free',
   slug: 'free',
   priceMonthly: 0,
+  priceYearly: 0,
   currency: 'VND',
   canUseAi: false,
   canExportPdf: false,
@@ -78,6 +81,9 @@ const pro = Plan(
   name: 'Solo Pro',
   slug: 'pro',
   priceMonthly: 149000,
+  // 149.000 × 12 × 0.72, làm tròn nghìn — khớp công thức backfill backend,
+  // cho ra đúng −28% trên chip năm.
+  priceYearly: 1287000,
   currency: 'VND',
   canUseAi: true,
   canExportPdf: true,
@@ -91,6 +97,9 @@ const business = Plan(
   name: 'Business',
   slug: 'business',
   priceMonthly: 399000,
+  // Chiết khấu năm của gói này nông hơn Pro (≈10%) — chip "Theo năm −28%"
+  // phải lấy mức giảm TỐT NHẤT trong các gói, không phải của gói đắt nhất.
+  priceYearly: 4310000,
   currency: 'VND',
   canUseAi: true,
   canExportPdf: true,
@@ -113,7 +122,23 @@ final subscription = Subscription(
   cancelAtPeriodEnd: false,
 );
 
-Future<void> _pump(WidgetTester tester) async {
+/// Kịch bản Bug 1: người dùng còn đứng gói Free — Free phải là tấm phiếu
+/// hero, Pro/Agency là đích nâng cấp chọn được. Backend cho gói Free một
+/// period 100 năm, vì thế ngày kết thúc kỳ cố tình đặt ở 2126 để khẳng định
+/// màn KHÔNG hiện "Gia hạn ngày 12/07/2126".
+final freeSubscription = Subscription(
+  id: 's-1',
+  userId: 'u-1',
+  planId: 'plan-free',
+  planName: 'Free',
+  planSlug: 'free',
+  status: SubscriptionStatus.active,
+  currentPeriodStart: DateTime(2026, 7, 12),
+  currentPeriodEnd: DateTime(2126, 7, 12),
+  cancelAtPeriodEnd: false,
+);
+
+Future<void> _pump(WidgetTester tester, {Subscription? currentSubscription}) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -123,7 +148,7 @@ Future<void> _pump(WidgetTester tester) async {
         subscriptionsRepositoryProvider.overrideWithValue(
           _FakeSubscriptionsRepository(
             plans: [free, pro, business],
-            subscription: subscription,
+            subscription: currentSubscription ?? subscription,
           ),
         ),
         settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
@@ -243,6 +268,119 @@ void main() {
       );
       expect(monthly.tone, Tone.solid);
     });
+
+    testWidgets('gói đích mặc định (đắt nhất) mang chip "Đã chọn" tone đặc', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      final chosen = tester.widget<StatusChip>(
+        find.widgetWithText(StatusChip, 'Đã chọn'),
+      );
+      expect(chosen.tone, Tone.solid);
+    });
+  });
+
+  group('MÀN 13 — chọn gói và kỳ thanh toán', () {
+    testWidgets('chạm "Theo năm" đổi giá nút nâng cấp sang giá năm', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      await tester.tap(find.textContaining('Theo năm', findRichText: true));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nâng lên Business · 4.310.000 ₫'), findsOneWidget);
+    });
+
+    testWidgets('chạm một gói đắt hơn chuyển lựa chọn sang gói đó', (
+      tester,
+    ) async {
+      await _pump(tester, currentSubscription: freeSubscription);
+
+      await tester.tap(find.text('Solo Pro'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nâng lên Solo Pro · 149.000 ₫'), findsOneWidget);
+    });
+
+    testWidgets('gói rẻ hơn gói hiện tại không chạm được (không hạ gói)', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      // "Đã chọn" đang đứng ở Business; chạm vào Free không được đổi gì.
+      await tester.tap(find.text('Free'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nâng lên Business · 399.000 ₫'), findsOneWidget);
+    });
+  });
+
+  group('MÀN 13 — người dùng còn ở gói Free (Bug 1)', () {
+    testWidgets('Free là tấm phiếu hero, đứng TRÊN hai gói trả phí', (
+      tester,
+    ) async {
+      await _pump(tester, currentSubscription: freeSubscription);
+
+      // Chỉ một tấm phiếu, và tên trên con dấu là Free chứ không phải Pro.
+      final stamp = tester.widget<StampBadge>(find.byType(StampBadge));
+      expect(stamp.text, 'Free');
+
+      final slipTop = tester.getTopLeft(find.byType(SlipCard)).dy;
+      final cardFinder = find.byType(Card);
+      expect(cardFinder, findsNWidgets(2), reason: 'Pro và Business là Card');
+      expect(slipTop, lessThan(tester.getTopLeft(cardFinder.at(0)).dy));
+      expect(slipTop, lessThan(tester.getTopLeft(cardFinder.at(1)).dy));
+
+      // Free không render lần thứ hai dưới dạng thẻ mờ 0.72 (các widget dùng
+      // chung có thể có Opacity riêng với giá trị khác — chỉ 0.72 là dấu hiệu
+      // của thẻ "gói đã bỏ qua").
+      expect(
+        find.byWidgetPredicate((w) => w is Opacity && w.opacity == 0.72),
+        findsNothing,
+      );
+    });
+
+    testWidgets('gói Free không có dòng "Gia hạn ngày…" (period 100 năm)', (
+      tester,
+    ) async {
+      await _pump(tester, currentSubscription: freeSubscription);
+
+      expect(find.textContaining('Gia hạn ngày'), findsNothing);
+    });
+
+    testWidgets('nút mặc định vẫn trỏ gói đắt nhất, Pro chọn được', (
+      tester,
+    ) async {
+      await _pump(tester, currentSubscription: freeSubscription);
+
+      expect(find.text('Nâng lên Business · 399.000 ₫'), findsOneWidget);
+      expect(find.widgetWithText(StatusChip, 'Đã chọn'), findsOneWidget);
+    });
+  });
+
+  group('MÀN 13 — người dùng đã ở gói cao nhất', () {
+    testWidgets('ẩn nút nâng cấp, chỉ còn dòng "Bạn đang dùng gói cao nhất"', (
+      tester,
+    ) async {
+      final businessSubscription = Subscription(
+        id: 's-1',
+        userId: 'u-1',
+        planId: 'plan-business',
+        planName: 'Business',
+        planSlug: 'business',
+        status: SubscriptionStatus.active,
+        currentPeriodStart: DateTime(2026, 7, 12),
+        currentPeriodEnd: DateTime(2026, 8, 12),
+        cancelAtPeriodEnd: false,
+      );
+      await _pump(tester, currentSubscription: businessSubscription);
+
+      expect(find.byType(BottomActionBar), findsNothing);
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.text('Bạn đang dùng gói cao nhất'), findsOneWidget);
+    });
   });
 
   group('MÀN 13 — chuỗi hiển thị chép từ bản phác thảo', () {
@@ -253,7 +391,10 @@ void main() {
         'Gói dịch vụ',
         'Theo tháng',
         'Free',
-        '5 khách · 3 lượt AI · không xuất PDF',
+        // Cả ba thẻ dùng chung một dòng tóm tắt 4 phần (khách · thương vụ ·
+        // AI · PDF) từ khi gộp về một `_PlanCard` — không còn bản rút gọn
+        // riêng cho Free.
+        '5 khách · Không giới hạn · 3 lượt AI · không xuất PDF',
         'Đang dùng',
         // `StampBadge` tự in hoa chữ (xem lib/ui/stamp_badge.dart), nên "Solo
         // Pro" hiện ra trên màn là "SOLO PRO".
@@ -309,6 +450,14 @@ void main() {
     await expectLater(
       find.byType(PlansPage),
       matchesGoldenFile('goldens/screen_13_plans.png'),
+    );
+  }, skip: !soloFontsLoaded);
+
+  testWidgets('ảnh vàng — màn 13 khi còn ở gói Free (Bug 1)', (tester) async {
+    await _pump(tester, currentSubscription: freeSubscription);
+    await expectLater(
+      find.byType(PlansPage),
+      matchesGoldenFile('goldens/screen_13_plans_free.png'),
     );
   }, skip: !soloFontsLoaded);
 }
