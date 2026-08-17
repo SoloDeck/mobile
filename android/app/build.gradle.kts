@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -12,13 +14,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    // Kotlin phải cùng JVM target với Java. Không đặt dòng này thì Kotlin lấy
-    // mặc định theo JDK đang cài (JDK 21 trên máy dev), lệch với Java 17 ở trên
-    // và Gradle dừng với "Inconsistent JVM-target compatibility".
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -45,6 +40,16 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+}
+
+// Kotlin phải cùng JVM target với Java. Không đặt dòng này thì Kotlin lấy
+// mặc định theo JDK đang cài (JDK 21 trên máy dev), lệch với Java 17 ở trên
+// và Gradle dừng với "Inconsistent JVM-target compatibility".
+// Kotlin 2.3.x đã bỏ hẳn DSL `kotlinOptions`, nên dùng `compilerOptions`.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
