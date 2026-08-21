@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:solodesk_mobile/modules/auth/domain/entities/last_login_account.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/pages/login_landing_page.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/providers/last_login_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/theme/app_colors.dart';
 import 'package:solodesk_mobile/theme/app_theme.dart';
@@ -11,7 +13,18 @@ import 'package:solodesk_mobile/ui/solo_nav_bar.dart';
 import '../flutter_test_config.dart';
 import '../support/fake_settings_repository.dart';
 
-Future<void> _pump(WidgetTester tester) async {
+/// Tài khoản đăng nhập gần nhất *giả lập*. Trước đây hai chuỗi này nằm cứng
+/// trong màn hình; giờ chúng đến từ keychain qua `lastLoginAccountProvider`,
+/// nên test tự bơm vào để ảnh vàng và các kỳ vọng chuỗi không đổi.
+const _lastLogin = LastLoginAccount(
+  fullName: 'Hoàng Lan',
+  email: 'lan.design@gmail.com',
+);
+
+Future<void> _pump(
+  WidgetTester tester, {
+  LastLoginAccount? lastLogin = _lastLogin,
+}) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -19,6 +32,7 @@ Future<void> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+        lastLoginAccountProvider.overrideWith((ref) => lastLogin),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -44,6 +58,16 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('máy chưa từng đăng nhập thì không có thẻ nào', (tester) async {
+      await _pump(tester, lastLogin: null);
+
+      expect(find.text('LẦN ĐĂNG NHẬP GẦN NHẤT'), findsNothing);
+      expect(find.byType(Card), findsNothing);
+      // Hai lối đăng nhập vẫn còn nguyên — mất thẻ không phải mất màn.
+      expect(find.text('Tiếp tục với Google'), findsOneWidget);
+      expect(find.text('Đăng nhập bằng email'), findsOneWidget);
     });
 
     testWidgets('nút Google đứng trên, nút email đứng dưới', (tester) async {

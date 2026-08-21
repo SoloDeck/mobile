@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solodesk_mobile/core/router/route_names.dart';
 import 'package:solodesk_mobile/modules/auth/presentation/controllers/auth_controller.dart';
+import 'package:solodesk_mobile/modules/auth/presentation/providers/last_login_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/providers/settings_provider.dart';
 import 'package:solodesk_mobile/modules/settings/presentation/theme/accent_preset_colors.dart';
 import 'package:solodesk_mobile/shared/errors/app_exception.dart';
@@ -22,7 +23,7 @@ import 'package:solodesk_mobile/ui/solo_icons.dart';
 ///
 /// Ba quyết định trong figcaption, đừng đảo lại khi sửa:
 /// - **Nhớ tài khoản gần nhất để một chạm.** Thẻ "Lần đăng nhập gần nhất" hiện
-///   sẵn Hoàng Lan và có thể bấm thẳng vào — freelancer hiếm khi đổi máy nên
+///   sẵn chủ máy và có thể bấm thẳng vào — freelancer hiếm khi đổi máy nên
 ///   không bắt gõ lại email/mật khẩu.
 /// - **Google OAuth 2.0 đứng trên cùng, email là lối phụ.** Nút Google dùng
 ///   nút đặc (`Tone.solid`, hành động chính), nút email dùng nút viền và nằm
@@ -44,8 +45,9 @@ import 'package:solodesk_mobile/ui/solo_icons.dart';
 /// `authControllerProvider` (`lib/modules/auth/presentation/controllers/`) là
 /// controller *lệnh* — `AsyncValue<bool> build()` không giữ dữ liệu để đọc,
 /// chỉ có các phương thức `login`/`loginWithGoogle`/... Màn này chỉ dùng nó để
-/// gọi lệnh và đọc `isLoading`; tên "Hoàng Lan" và email trong thẻ "Lần đăng
-/// nhập gần nhất" là dữ liệu phiên trước, xem [_MockData].
+/// gọi lệnh và đọc `isLoading`. Tên và email trong thẻ "Lần đăng nhập gần
+/// nhất" đến từ `lastLoginAccountProvider` — dữ liệu thật đã lưu trên máy sau
+/// lần đăng nhập trước, không phải dữ liệu mẫu.
 class LoginLandingPage extends ConsumerWidget {
   const LoginLandingPage({super.key});
 
@@ -133,13 +135,15 @@ class _Greeting extends StatelessWidget {
         ),
         const SizedBox(height: AppGap.card),
         Text(
-          _MockData.subtitle,
+          _Copy.subtitle,
           // `.sub` mặc định 12.5px màu ink2, nhưng bản phác thảo ghi đè cỡ chữ
           // thành 14px cho riêng đoạn này — đúng khớp AppText.body. Giữ màu
           // mờ (ink2) của `.sub` bằng copyWith, không viết cứng màu mới.
           style: AppText.body.copyWith(color: AppColors.ink2),
         ),
-        const SizedBox(height: AppGap.xxxl),
+        // Khoảng trống trên thẻ nằm *trong* `_LastLoginCard`: máy chưa từng
+        // đăng nhập thì cả thẻ lẫn khoảng trống phải biến mất, nếu để
+        // `SizedBox` ở đây thì câu chào bị đẩy lên vô cớ.
         const _LastLoginCard(),
       ],
     );
@@ -150,47 +154,70 @@ class _Greeting extends StatelessWidget {
 /// khoản này, đúng ý "một chạm" trong figcaption. `Card` chứ không phải
 /// `SlipCard`: nội dung không phải tiền (xem doc comment của
 /// `LoginLandingPage`).
+///
+/// Máy chưa từng đăng nhập thành công lần nào thì thẻ **không hiện** — thà
+/// thiếu một lối tắt còn hơn chào sai tên người đang cầm máy.
 class _LastLoginCard extends ConsumerWidget {
   const _LastLoginCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        // "Một chạm" ở đây vẫn phải qua hộp chọn tài khoản của Google: không có
-        // API nào đăng nhập thẳng vào một tài khoản đã biết mà bỏ qua bước xác
-        // nhận. Rút ngắn được đúng một bước — không phải gõ lại email.
-        onTap: () => _signInWithGoogle(context, ref),
-        child: const Padding(
-          padding: EdgeInsets.all(AppGap.card),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SectionLabel('Lần đăng nhập gần nhất'),
-              SizedBox(height: AppGap.md),
-              Row(
-                children: [
-                  Avatar.initials('HL', tone: Tone.money),
-                  SizedBox(width: AppGap.row),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _MockData.lastLoginName,
-                          style: AppText.bodyStrong,
-                        ),
-                        Text(_MockData.lastLoginEmail, style: AppText.mut),
-                      ],
+    // Đọc keychain là việc bất đồng bộ nhưng rất nhanh: trong lúc chờ (và khi
+    // đọc lỗi) coi như chưa có tài khoản nào, không dựng chỗ trống chờ sẵn —
+    // một ô xám nhấp nháy ở giữa câu chào tệ hơn là không có gì.
+    final account = ref.watch(lastLoginAccountProvider).value;
+    if (account == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppGap.xxxl),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          // "Một chạm" ở đây vẫn phải qua hộp chọn tài khoản của Google: không
+          // có API nào đăng nhập thẳng vào một tài khoản đã biết mà bỏ qua bước
+          // xác nhận. Rút ngắn được đúng một bước — không phải gõ lại email.
+          onTap: () => _signInWithGoogle(context, ref),
+          child: Padding(
+            padding: const EdgeInsets.all(AppGap.card),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SectionLabel('Lần đăng nhập gần nhất'),
+                const SizedBox(height: AppGap.md),
+                Row(
+                  children: [
+                    Avatar.initials(account.initials, tone: Tone.money),
+                    const SizedBox(width: AppGap.row),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            account.fullName,
+                            style: AppText.bodyStrong,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            account.email,
+                            style: AppText.mut,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SoloIcon(SoloIcons.chevron, label: null, size: SoloIcon.sm),
-                ],
-              ),
-            ],
+                    const SoloIcon(
+                      SoloIcons.chevron,
+                      label: null,
+                      size: SoloIcon.sm,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -242,19 +269,13 @@ class _SignInActions extends ConsumerWidget {
   }
 }
 
-/// CHƯA NỐI API — "Hoàng Lan" / "lan.design@gmail.com" là dữ liệu phiên đăng
-/// nhập gần nhất của thiết bị; chưa có provider nào đọc lại tài khoản đã lưu
-/// trên máy (`authControllerProvider` chỉ là controller lệnh, không giữ dữ
-/// liệu này). Ghép API thật chỉ cần thay đúng các hằng số dưới đây.
+/// Chuỗi cố định của màn, chép nguyên văn từ bản phác thảo (MÀN 01).
 ///
 /// Là class chứ không phải record vì Dart không cho đọc field của record trong
 /// biểu thức `const`, mà widget của màn này phải const được. Tên viết hoa theo
 /// lint `camel_case_types` của repo.
-abstract final class _MockData {
+abstract final class _Copy {
   static const String subtitle =
       'Đăng nhập để đồng bộ pipeline, hợp đồng và lịch nhắc thu tiền giữa '
       'máy tính và điện thoại.';
-
-  static const String lastLoginName = 'Hoàng Lan';
-  static const String lastLoginEmail = 'lan.design@gmail.com';
 }
