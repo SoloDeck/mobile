@@ -31,14 +31,14 @@ class ErrorInterceptor extends Interceptor {
     final message = body is Map ? body['message'] as String? : null;
 
     return switch (status) {
-      400 => ValidationException(message ?? 'Bad request'),
+      400 => ValidationException(message ?? 'Yêu cầu không hợp lệ'),
       401 => AuthException.unauthenticated(),
       403 => AuthException.forbidden(),
-      404 => NotFoundException(message ?? 'Resource not found'),
-      409 => ConflictException(message ?? 'Conflict'),
-      422 => ValidationException(message ?? 'Unprocessable entity'),
+      404 => NotFoundException(message ?? 'Không tìm thấy dữ liệu'),
+      409 => ConflictException(message ?? 'Dữ liệu bị trùng hoặc đã thay đổi'),
+      422 => ValidationException(message ?? 'Dữ liệu không hợp lệ'),
       429 => NetworkException.rateLimited(),
-      _ => ServerException(status, message ?? 'Server error'),
+      _ => ServerException(status, message ?? 'Lỗi máy chủ'),
     };
   }
 }

@@ -46,7 +46,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         final error = next.error;
         final message = error is AppException
             ? error.message
-            : 'Something went wrong';
+            : 'Đã có lỗi xảy ra';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -103,7 +103,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           const SizedBox(height: 24),
           const Text(
-            'Forgot password?',
+            'Quên mật khẩu?',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -112,7 +112,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           const SizedBox(height: 8),
           const Text(
-            "Enter your email and we'll send you a link to reset your password.",
+            'Nhập email của bạn, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.',
             style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 32),
@@ -130,9 +130,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             ),
             validator: (value) {
               final email = value?.trim() ?? '';
-              if (email.isEmpty) return 'Email is required';
+              if (email.isEmpty) return 'Vui lòng nhập email';
               if (!email.contains('@') || !email.contains('.')) {
-                return 'Enter a valid email';
+                return 'Email không hợp lệ';
               }
               return null;
             },
@@ -152,7 +152,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       ),
                     )
                   : const Text(
-                      'Send reset link',
+                      'Gửi liên kết đặt lại',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -191,7 +191,7 @@ class _SuccessView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Check your email',
+          'Kiểm tra email của bạn',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
@@ -206,7 +206,9 @@ class _SuccessView extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             children: [
-              const TextSpan(text: 'We sent a password reset link to '),
+              const TextSpan(
+                text: 'Chúng tôi đã gửi liên kết đặt lại mật khẩu tới ',
+              ),
               TextSpan(
                 text: email,
                 style: const TextStyle(
@@ -224,7 +226,7 @@ class _SuccessView extends StatelessWidget {
           child: FilledButton(
             onPressed: () => context.go(RouteNames.login),
             child: const Text(
-              'Back to login',
+              'Quay lại đăng nhập',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),

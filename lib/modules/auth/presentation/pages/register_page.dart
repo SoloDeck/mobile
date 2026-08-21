@@ -57,7 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         final error = next.error;
         final message = error is AppException
             ? error.message
-            : 'Something went wrong';
+            : 'Đã có lỗi xảy ra';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -95,7 +95,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Create account',
+                      'Tạo tài khoản',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -104,7 +104,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Start managing your clients and deals',
+                      'Bắt đầu quản lý khách hàng và deal của bạn',
                       style: TextStyle(
                         fontSize: 15,
                         color: AppColors.textSecondary,
@@ -119,13 +119,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.name],
                       decoration: const InputDecoration(
-                        labelText: 'Full name',
-                        hintText: 'Nguyen Van A',
+                        labelText: 'Họ và tên',
+                        hintText: 'Nguyễn Văn A',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if ((value ?? '').trim().isEmpty) {
-                          return 'Full name is required';
+                          return 'Vui lòng nhập họ và tên';
                         }
                         return null;
                       },
@@ -144,9 +144,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                       validator: (value) {
                         final email = value?.trim() ?? '';
-                        if (email.isEmpty) return 'Email is required';
+                        if (email.isEmpty) return 'Vui lòng nhập email';
                         if (!email.contains('@') || !email.contains('.')) {
-                          return 'Enter a valid email';
+                          return 'Email không hợp lệ';
                         }
                         return null;
                       },
@@ -159,7 +159,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: 'Mật khẩu',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -174,7 +174,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                       validator: (value) {
                         if ((value ?? '').length < 8) {
-                          return 'Password must be at least 8 characters';
+                          return 'Mật khẩu phải có ít nhất 8 ký tự';
                         }
                         return null;
                       },
@@ -188,7 +188,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       autofillHints: const [AutofillHints.newPassword],
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Confirm password',
+                        labelText: 'Xác nhận mật khẩu',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -203,7 +203,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                       validator: (value) {
                         if (value != _passwordController.text) {
-                          return 'Passwords do not match';
+                          return 'Mật khẩu xác nhận không khớp';
                         }
                         return null;
                       },
@@ -223,7 +223,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 ),
                               )
                             : const Text(
-                                'Create account',
+                                'Tạo tài khoản',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -236,7 +236,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'Already have an account? ',
+                          'Đã có tài khoản? ',
                           style: TextStyle(color: AppColors.textSecondary),
                         ),
                         GestureDetector(
@@ -244,7 +244,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ? null
                               : () => context.go(RouteNames.login),
                           child: const Text(
-                            'Log in',
+                            'Đăng nhập',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,

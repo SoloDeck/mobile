@@ -43,7 +43,7 @@ class _PasswordResetConfirmPageState
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Password reset successfully. Please log in.'),
+          content: Text('Đặt lại mật khẩu thành công. Mời bạn đăng nhập.'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -61,7 +61,7 @@ class _PasswordResetConfirmPageState
         final error = next.error;
         final message = error is AppException
             ? error.message
-            : 'Something went wrong';
+            : 'Đã có lỗi xảy ra';
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -107,7 +107,7 @@ class _PasswordResetConfirmPageState
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Set new password',
+                      'Đặt mật khẩu mới',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -116,7 +116,7 @@ class _PasswordResetConfirmPageState
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Your new password must be at least 8 characters.',
+                      'Mật khẩu mới phải có ít nhất 8 ký tự.',
                       style: TextStyle(
                         fontSize: 15,
                         color: AppColors.textSecondary,
@@ -130,7 +130,7 @@ class _PasswordResetConfirmPageState
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: 'New password',
+                        labelText: 'Mật khẩu mới',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -145,7 +145,7 @@ class _PasswordResetConfirmPageState
                       ),
                       validator: (value) {
                         if ((value ?? '').length < 8) {
-                          return 'Password must be at least 8 characters';
+                          return 'Mật khẩu phải có ít nhất 8 ký tự';
                         }
                         return null;
                       },
@@ -159,7 +159,7 @@ class _PasswordResetConfirmPageState
                       autofillHints: const [AutofillHints.newPassword],
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Confirm new password',
+                        labelText: 'Xác nhận mật khẩu mới',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -174,7 +174,7 @@ class _PasswordResetConfirmPageState
                       ),
                       validator: (value) {
                         if (value != _passwordController.text) {
-                          return 'Passwords do not match';
+                          return 'Mật khẩu xác nhận không khớp';
                         }
                         return null;
                       },
@@ -194,7 +194,7 @@ class _PasswordResetConfirmPageState
                                 ),
                               )
                             : const Text(
-                                'Reset password',
+                                'Đặt lại mật khẩu',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

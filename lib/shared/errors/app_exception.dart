@@ -10,24 +10,25 @@ final class NetworkException extends AppException {
   const NetworkException(super.message);
 
   factory NetworkException.timeout() =>
-      const NetworkException('Request timed out');
+      const NetworkException('Kết nối quá hạn');
   factory NetworkException.noConnection() =>
-      const NetworkException('No internet connection');
+      const NetworkException('Không có kết nối mạng');
   factory NetworkException.rateLimited() =>
-      const NetworkException('Too many requests — please wait and retry');
+      const NetworkException('Quá nhiều yêu cầu — vui lòng đợi rồi thử lại');
   factory NetworkException.unknown(String? msg) =>
-      NetworkException(msg ?? 'Unknown network error');
+      NetworkException(msg ?? 'Lỗi mạng không xác định');
 }
 
 final class AuthException extends AppException {
   const AuthException(super.message);
 
-  factory AuthException.unauthenticated() =>
-      const AuthException('Session expired — please log in again');
+  factory AuthException.unauthenticated() => const AuthException(
+    'Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại',
+  );
   factory AuthException.forbidden() =>
-      const AuthException('You do not have permission to do this');
+      const AuthException('Bạn không có quyền thực hiện thao tác này');
   factory AuthException.invalidCredentials() =>
-      const AuthException('Invalid email or password');
+      const AuthException('Email hoặc mật khẩu không đúng');
 }
 
 final class ValidationException extends AppException {
