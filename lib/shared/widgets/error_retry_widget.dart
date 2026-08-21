@@ -33,7 +33,7 @@ class ErrorRetryWidget extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Something went wrong',
+              'Đã có lỗi xảy ra',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -46,7 +46,7 @@ class ErrorRetryWidget extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: const Text('Thử lại'),
               style: OutlinedButton.styleFrom(minimumSize: const Size(160, 48)),
             ),
           ],

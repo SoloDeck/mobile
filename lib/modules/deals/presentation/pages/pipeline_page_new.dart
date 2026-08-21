@@ -433,7 +433,7 @@ _HeatMockup _heatFor(int index) => switch (index % 4) {
   ),
   1 => const _HeatMockup(
     avatarTone: Tone.money,
-    chipLabel: '🔥 Hot',
+    chipLabel: '🔥 Nóng',
     chipTone: Tone.money,
     opacity: 1,
   ),

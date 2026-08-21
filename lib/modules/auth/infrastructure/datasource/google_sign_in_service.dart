@@ -20,7 +20,7 @@ class GoogleSignInService {
     if (_initialized) return;
     if (!AppConfig.isGoogleSignInConfigured) {
       throw const AuthException(
-        'Google Sign-In is not configured. Set GOOGLE_WEB_CLIENT_ID in your .env.',
+        'Chưa cấu hình đăng nhập Google. Hãy đặt GOOGLE_WEB_CLIENT_ID trong file .env.',
       );
     }
     try {
@@ -41,7 +41,9 @@ class GoogleSignInService {
         serverClientId: Platform.isIOS ? null : AppConfig.googleWebClientId,
       );
     } catch (e) {
-      throw AuthException('Google Sign-In init failed: ${e.toString()}');
+      throw AuthException(
+        'Khởi tạo đăng nhập Google thất bại: ${e.toString()}',
+      );
     }
     _initialized = true;
   }
@@ -55,7 +57,7 @@ class GoogleSignInService {
     final signIn = GoogleSignIn.instance;
     if (!signIn.supportsAuthenticate()) {
       throw const AuthException(
-        'Google Sign-In is not supported on this platform.',
+        'Thiết bị này không hỗ trợ đăng nhập bằng Google.',
       );
     }
 
@@ -65,12 +67,12 @@ class GoogleSignInService {
       );
       final idToken = account.authentication.idToken;
       if (idToken == null) {
-        throw const AuthException('Google did not return an ID token.');
+        throw const AuthException('Google không trả về ID token.');
       }
       return idToken;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) return null;
-      throw AuthException(e.description ?? 'Google Sign-In failed.');
+      throw AuthException(e.description ?? 'Đăng nhập Google thất bại.');
     } catch (e) {
       throw AuthException(e.toString());
     }

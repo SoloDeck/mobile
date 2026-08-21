@@ -355,9 +355,9 @@ class _ScoreBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final semantic = context.semanticColors;
     final (color, label) = switch (recommendation) {
-      'hot' => (semantic.scoreHot, 'Hot'),
-      'warm' => (semantic.scoreWarm, 'Warm'),
-      _ => (semantic.scoreCold, 'Cold'),
+      'hot' => (semantic.scoreHot, 'Nóng'),
+      'warm' => (semantic.scoreWarm, 'Ấm'),
+      _ => (semantic.scoreCold, 'Nguội'),
     };
     return Chip(
       key: Key('score_badge_$recommendation'),
