@@ -1,0 +1,5 @@
+# Copy this file to key.properties and fill in your values. Never commit the real key.properties file.
+storePassword=
+keyPassword=
+keyAlias=
+storeFile=
