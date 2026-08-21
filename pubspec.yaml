@@ -41,6 +41,9 @@ dependencies:
   # UI
   shimmer: ^3.0.0
   intl: ^0.20.3
+  # Logo SoloDesk (assets/brand/solodesk-logo.svg) — cùng một file vector với
+  # favicon của bản web, nên hai nền tảng không lệch hình.
+  flutter_svg: ^2.0.17
 
   # Utilities
   collection: ^1.19.0
@@ -80,6 +83,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/brand/
   fonts:
     - family: Bricolage Grotesque
       fonts:
